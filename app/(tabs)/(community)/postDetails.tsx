@@ -29,6 +29,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { timeAgo } from "@/utils/date";
+import { CircleUserRound } from "lucide-react-native";
 
 const PostDetails = () => {
   const { postId } = useLocalSearchParams();
@@ -124,26 +125,31 @@ const PostDetails = () => {
           <Text style={styles.commentsTitle}>Commentaire(s)</Text>
           {comments?.map((comment) => (
             <View key={comment.id} style={styles.commentContainer}>
-              {comment?.profiles?.avatar_url?.startsWith("https://") ? (
-                <Image
-                  source={{ uri: comment.profiles?.avatar_url }}
-                  style={styles.avatar}
-                />
+              {comment?.profiles?.avatar_url ? (
+                comment.profiles.avatar_url.startsWith("https://") ? (
+                  <Image
+                    source={{ uri: comment.profiles.avatar_url }}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <RemoteImage
+                    path={comment.profiles.avatar_url}
+                    fallback="profile-placeholder"
+                    style={styles.avatar}
+                  />
+                )
               ) : (
-                <RemoteImage
-                  path={comment?.profiles?.avatar_url}
-                  fallback="profile image"
-                  style={styles.avatar}
-                />
+                <CircleUserRound color="#666" size={wp("8%")} />
               )}
               <View style={styles.commentContent}>
                 <View style={styles.commentHeader}>
                   <Text style={styles.username}>
-                    {comment?.profiles?.username ||
-                      comment?.profiles?.full_name}
+                    {comment.profiles?.full_name ||
+                      comment.profiles?.username ||
+                      "Utilisateur"}
                   </Text>
                   <Text style={styles.timestamp}>
-                    {timeAgo(comment?.created_at)}
+                    {timeAgo(comment.created_at)}
                   </Text>
                 </View>
                 <Text style={styles.commentText}>{comment.text}</Text>

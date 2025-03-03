@@ -8,17 +8,37 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import AuthProvider from "./provider/AuthProvider";
 import AnimationScreen from "@/components/AnimationScreen";
 import {
-  useQuery,
-  useMutation,
-  useQueryClient,
   QueryClient,
   QueryClientProvider,
+  focusManager,
 } from "@tanstack/react-query";
+import { Platform, AppStateStatus } from "react-native";
+import { useOnlineManager } from "@/hooks/useOnlineManager";
+import { useAppState } from "@/hooks/useAppState";
+import OfflineNotice from "@/components/OfflineNotice";
 
 SplashScreen.preventAutoHideAsync();
 
-// @ts-ignore
-const queryClient = new QueryClient();
+// Créer le queryClient en dehors du composant pour éviter les re-créations
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnMount: true,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      networkMode: "online",
+    },
+    mutations: {
+      networkMode: "online",
+      retry: 3,
+    },
+  },
+});
+
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [animationFinished, setAnimationFinished] = useState(false);
@@ -27,6 +47,10 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+
+  // Utiliser les hooks personnalisés pour la gestion de la connectivité
+  useOnlineManager();
+  useAppState();
 
   useEffect(() => {
     if (loaded) {
@@ -51,9 +75,11 @@ export default function RootLayout() {
     );
   }
 
+  // Envelopper toute l'application avec QueryClientProvider
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <OfflineNotice />
         <Stack screenOptions={{ headerShadowVisible: false }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)/(community)" />

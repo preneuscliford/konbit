@@ -8,6 +8,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { CircleUserRound } from "lucide-react-native";
 
 import { ServiceImages } from "./Images";
 import RemoteImage from "./RemoteImage";
@@ -19,6 +20,8 @@ const EventItem = ({ event, onPress }: any) => {
   const formattedDate = `${dayjs(event.start_date).format(
     "dddd DD MMM  HH:mm"
   )} → ${dayjs(event.end_date).format("HH:mm")}`;
+
+  console.log(event.profiles);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
@@ -34,21 +37,27 @@ const EventItem = ({ event, onPress }: any) => {
           style={styles.gradient}
         >
           <View style={styles.authorInfo}>
-            {event.profiles?.avatar_url?.startsWith("https://") ? (
-              <Image
-                source={{ uri: event.profiles.avatar_url }}
-                style={styles.authorImage}
-              />
+            {event.profiles?.avatar_url ? (
+              event.profiles.avatar_url.startsWith("https://") ? (
+                <Image
+                  source={{ uri: event.profiles.avatar_url }}
+                  style={styles.authorImage}
+                />
+              ) : (
+                <RemoteImage
+                  path={event.profiles.avatar_url}
+                  fallback="profile-placeholder"
+                  style={styles.authorImage}
+                />
+              )
             ) : (
-              <RemoteImage
-                path={event.profiles?.avatar_url}
-                fallback="profile-placeholder"
-                style={styles.authorImage}
-              />
+              <CircleUserRound color="white" size={wp("8%")} />
             )}
             <View>
               <Text style={styles.authorName}>
-                {event.profiles?.full_name || event.profiles?.username}
+                {event.profiles?.full_name ||
+                  event.profiles?.username ||
+                  "Utilisateur"}
               </Text>
               <View style={styles.categoryTag}>
                 <Text style={styles.categoryText}>
@@ -73,7 +82,7 @@ const EventItem = ({ event, onPress }: any) => {
         <View style={styles.metaContainer}>
           <View style={styles.infoGroup}>
             <MaterialIcons name="location-on" size={16} color="#666" />
-            <Text style={styles.location}>
+            <Text style={styles.location} numberOfLines={1}>
               {event.location || "Lieu inconnu"}
             </Text>
           </View>
@@ -108,7 +117,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
-    width: wp("50%"),
+    width: wp("52%"),
     marginHorizontal: 8,
   },
   imageContainer: {

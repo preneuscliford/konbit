@@ -20,6 +20,8 @@ import { useRouter } from "expo-router";
 import { ServiceImages } from "./Images";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import RemoteImage from "@/components/RemoteImage";
+import { useQuery } from "@tanstack/react-query";
+import { CircleUserRound } from "lucide-react-native";
 
 interface Service {
   id: string;
@@ -42,51 +44,33 @@ interface Service {
 }
 
 const DerniersServices = () => {
-  const [services, setServices] = useState<Service[]>([]);
-  const [chargement, setChargement] = useState<boolean>(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const recupererServices = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("services")
-          .select(
-            `
-            *, profiles(*), reviews(*), category_id(*)
-          `
-          )
-          .order("created_at", { ascending: false })
-          .limit(2);
+  const { data: services, isLoading: chargement } = useQuery({
+    queryKey: ["services"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("services")
+        .select(`*, profiles(*), reviews(*), category_id(*)`)
+        .order("created_at", { ascending: false })
+        .limit(2);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // console.log(data[0].category_id);
-
-        const donneesFormatees: Service[] = data.map((service: any) => ({
-          id: service.id,
-          titre: service?.title,
-          prestataire:
-            service?.profiles?.full_name || service.profiles.username,
-          type: service?.category_id?.name || "Général",
-          image: service?.gallery[0],
-          prix: service.price,
-          avis: service.reviews[0]?.count || 0,
-          location: service.location,
-          profiles: service.profiles,
-          reviews: service.reviews,
-        }));
-
-        setServices(donneesFormatees);
-      } catch (error) {
-        console.error("Erreur lors de la récupération des services :", error);
-      } finally {
-        setChargement(false);
-      }
-    };
-
-    recupererServices();
-  }, []);
+      return data.map((service: any) => ({
+        id: service.id,
+        titre: service?.title,
+        prestataire: service?.profiles?.full_name || service.profiles.username,
+        type: service?.category_id?.name || "Général",
+        image: service?.gallery[0],
+        prix: service.price,
+        avis: service.reviews[0]?.count || 0,
+        location: service.location,
+        profiles: service.profiles,
+        reviews: service.reviews,
+      }));
+    },
+  });
 
   if (chargement) {
     return <ActivityIndicator style={{ marginVertical: 20 }} />;
@@ -124,21 +108,27 @@ const DerniersServices = () => {
               />
               <View style={styles.authorOverlay}>
                 <View style={styles.authorInfo}>
-                  {item.profiles?.avatar_url?.startsWith("https://") ? (
-                    <Image
-                      source={{ uri: item.profiles.avatar_url }}
-                      style={styles.authorImage}
-                    />
+                  {item.profiles?.avatar_url ? (
+                    item.profiles.avatar_url.startsWith("https://") ? (
+                      <Image
+                        source={{ uri: item.profiles.avatar_url }}
+                        style={styles.authorImage}
+                      />
+                    ) : (
+                      <RemoteImage
+                        path={item.profiles.avatar_url}
+                        fallback="profile-placeholder"
+                        style={styles.authorImage}
+                      />
+                    )
                   ) : (
-                    <RemoteImage
-                      path={item.profiles?.avatar_url}
-                      fallback="profile-placeholder"
-                      style={styles.authorImage}
-                    />
+                    <CircleUserRound color="white" size={wp("8%")} />
                   )}
                   <View>
                     <Text style={styles.authorName}>
-                      {item.profiles?.full_name || item.profiles?.username}
+                      {item.profiles?.full_name ||
+                        item.profiles?.username ||
+                        "Utilisateur"}
                     </Text>
                     <View style={styles.ratingContainer}>
                       <MaterialCommunityIcons

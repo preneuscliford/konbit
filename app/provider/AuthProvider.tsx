@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type AuthContext = {
   session: Session | null;
@@ -62,12 +62,13 @@ export async function getProfile(user_id: string) {
 
 export default function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
+  const queryClient = useQueryClient();
 
   const { data } = useQuery({
     queryKey: ["getProfile", session?.user?.id],
-    queryFn: () => {
+    queryFn: async () => {
       if (!session?.user?.id) {
-        return Promise.reject(new Error("ID utilisateur non trouvé"));
+        throw new Error("ID utilisateur non trouvé");
       }
       return getProfile(session.user.id);
     },
@@ -77,10 +78,20 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session) {
+        queryClient.invalidateQueries({
+          queryKey: ["getProfile", session.user.id],
+        });
+      }
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) {
+        queryClient.invalidateQueries({
+          queryKey: ["getProfile", session.user.id],
+        });
+      }
     });
   }, []);
 

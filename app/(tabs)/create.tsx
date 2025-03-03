@@ -7,6 +7,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,6 +30,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import BackAppbar from "@/components/AppBar";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Pour simplifier, nous limitons ici les types à "service" et "event"
 type ListingType = "service" | "event";
@@ -63,10 +66,14 @@ const Create = () => {
 
   const router = useRouter();
   const { session } = useAuth();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!session) router.push("/(auth)/signUp");
-  }, [session, router]);
+    if (!session) {
+      router.push("/(auth)/signUp");
+      return; // Ajoutez un return pour éviter l'exécution du reste du code
+    }
+  }, [session]);
 
   const validateForm = () => {
     if (!session?.user?.id) {
@@ -79,6 +86,10 @@ const Create = () => {
     }
     if (!form.description.trim()) {
       Alert.alert("Erreur", "La description est obligatoire");
+      return false;
+    }
+    if (images.length === 0) {
+      Alert.alert("Erreur", "Au moins une image est requise");
       return false;
     }
     if (form.type === "service") {
@@ -111,27 +122,32 @@ const Create = () => {
     try {
       if (!validateForm()) return;
       setUploading(true);
+
       const mediaUrls = await uploadServicesImages(images);
       if (mediaUrls.length === 0) {
         throw new Error("Aucune image n'a pu être téléversée");
       }
-      let error;
+
       if (form.type === "event") {
-        const { data, error: eventError } = await supabase
-          .from("events")
-          .insert({
-            title: form.title.trim(),
-            description: form.description.trim(),
-            start_date: form.startDate.toISOString(),
-            end_date: form.endDate.toISOString(),
-            file: mediaUrls,
-            location: form.location,
-            organizer_id: session?.user?.id,
-          });
-        error = eventError;
-        if (error) throw error;
-        Alert.alert("Succès", "Votre événement a été ajouté avec succès");
+        const { error: eventError } = await supabase.from("events").insert({
+          title: form.title.trim(),
+          description: form.description.trim(),
+          start_date: form.startDate.toISOString(),
+          end_date: form.endDate.toISOString(),
+          file: mediaUrls,
+          location: form.location,
+          organizer_id: session?.user?.id,
+        });
+
+        if (eventError) throw eventError;
+        await queryClient.invalidateQueries({ queryKey: ["events"] });
+        toastRef.current?.show(
+          "Votre événement a été ajouté avec succès",
+          "success",
+          1500
+        );
         resetForm();
+        router.back();
       } else if (form.type === "service") {
         const { error: serviceError } = await supabase.from("services").insert({
           title: form.title.trim(),
@@ -139,19 +155,18 @@ const Create = () => {
           price: parseFloat(form.price),
           gallery: mediaUrls,
           provider_id: session?.user?.id,
-          category_id: form.categoryId, // Utilisation de la catégorie sélectionnée
-          // Vous pouvez ajouter "duration" ici si nécessaire
+          category_id: form.categoryId,
         });
-        error = serviceError;
-        if (error) throw error;
 
+        if (serviceError) throw serviceError;
+        await queryClient.invalidateQueries({ queryKey: ["services"] });
         toastRef.current?.show(
           "Votre service a été ajouté avec succès",
           "success",
           1500
         );
-
         resetForm();
+        router.back();
       }
     } catch (error) {
       console.error("Erreur lors de la soumission:", error);
@@ -182,157 +197,170 @@ const Create = () => {
   };
 
   return (
-    <View style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea}>
       <BackAppbar title="" />
       <StatusBar style="dark" backgroundColor="#F5F8FD" />
       <Toast ref={toastRef} />
-      <ScrollView>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>Créer une nouvelle annonce</Text>
-          <Text style={styles.headerSubtitle}>
-            Remplissez les informations de votre annonce
-          </Text>
-        </View>
-
-        <View style={styles.contentContainer}>
-          <TouchableOpacity onPress={pickImages} style={styles.imagePicker}>
-            <MaterialIcons
-              name="add-photo-alternate"
-              size={24}
-              color="#7D5FFF"
-            />
-            <Text style={styles.imagePickerText}>
-              Ajouter des images ({images.length}/10)
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerTitle}>Créer une nouvelle annonce</Text>
+            <Text style={styles.headerSubtitle}>
+              Remplissez les informations de votre annonce
             </Text>
-          </TouchableOpacity>
+          </View>
 
-          {images.length > 0 && (
-            <ScrollView
-              horizontal
-              style={styles.imageScroll}
-              contentContainerStyle={styles.imageScrollContent}
-              showsHorizontalScrollIndicator={false}
-            >
-              {images.map((image, index) => (
-                <View key={index} style={styles.imageWrapper}>
-                  <Image
-                    source={{ uri: image.uri }}
-                    style={styles.imagePreview}
-                  />
-                  <TouchableOpacity
-                    onPress={() => removeImage(index)}
-                    style={styles.removeImageButton}
-                  >
-                    <MaterialIcons name="close" size={16} color="#FFF" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-          )}
+          <View style={styles.contentContainer}>
+            <TouchableOpacity onPress={pickImages} style={styles.imagePicker}>
+              <MaterialIcons
+                name="add-photo-alternate"
+                size={24}
+                color="#7D5FFF"
+              />
+              <Text style={styles.imagePickerText}>
+                Ajouter des images ({images.length}/10)
+              </Text>
+            </TouchableOpacity>
 
-          <View style={styles.formSection}>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={form.type}
-                onValueChange={(value: ListingType) =>
-                  setForm({ ...form, type: value })
-                }
-                style={styles.picker}
+            {images.length > 0 && (
+              <ScrollView
+                horizontal
+                style={styles.imageScroll}
+                contentContainerStyle={styles.imageScrollContent}
+                showsHorizontalScrollIndicator={false}
               >
-                <Picker.Item label="Service" value="service" />
-                <Picker.Item label="Événement" value="event" />
-              </Picker>
-            </View>
+                {images.map((image, index) => (
+                  <View key={index} style={styles.imageWrapper}>
+                    <Image
+                      source={{ uri: image.uri }}
+                      style={styles.imagePreview}
+                    />
+                    <TouchableOpacity
+                      onPress={() => removeImage(index)}
+                      style={styles.removeImageButton}
+                    >
+                      <MaterialIcons name="close" size={16} color="#FFF" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
 
-            {form.type === "service" && (
+            <View style={styles.formSection}>
               <View style={styles.pickerContainer}>
                 <Picker
-                  selectedValue={form.categoryId}
-                  onValueChange={(value: string) =>
-                    setForm({ ...form, categoryId: value })
+                  selectedValue={form.type}
+                  onValueChange={(value: ListingType) =>
+                    setForm({ ...form, type: value })
                   }
                   style={styles.picker}
                 >
-                  <Picker.Item label="Sélectionnez une catégorie" value="" />
-                  {serviceCategories.map((cat) => (
-                    <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
-                  ))}
+                  <Picker.Item label="Service" value="service" />
+                  <Picker.Item label="Événement" value="event" />
                 </Picker>
               </View>
-            )}
 
-            {form.type === "event" && (
-              <EventForm form={form} setForm={setForm} />
-            )}
+              {form.type === "service" && (
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={form.categoryId}
+                    onValueChange={(value: string) =>
+                      setForm({ ...form, categoryId: value })
+                    }
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="Sélectionnez une catégorie" value="" />
+                    {serviceCategories.map((cat) => (
+                      <Picker.Item
+                        key={cat.id}
+                        label={cat.name}
+                        value={cat.id}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              )}
 
-            <RNTextInput
-              value={form.title}
-              onChangeText={(text) => setForm({ ...form, title: text })}
-              placeholder={
-                form.type === "event"
-                  ? "Titre de l'événement"
-                  : "Titre du service"
-              }
-              maxLength={100}
-              style={styles.input}
-            />
+              {form.type === "event" && (
+                <EventForm form={form} setForm={setForm} />
+              )}
 
-            <RNTextInput
-              value={form.description}
-              onChangeText={(text) => setForm({ ...form, description: text })}
-              placeholder={
-                form.type === "event"
-                  ? "Description de l'événement"
-                  : "Description du service"
-              }
-              multiline
-              numberOfLines={5}
-              maxLength={1500}
-              textAlignVertical="top"
-              style={[styles.input, styles.textArea]}
-            />
-
-            {form.type === "service" ? (
               <RNTextInput
-                value={form.price}
-                onChangeText={(text) =>
-                  setForm({ ...form, price: text.replace(/[^0-9.]/g, "") })
+                value={form.title}
+                onChangeText={(text) => setForm({ ...form, title: text })}
+                placeholder={
+                  form.type === "event"
+                    ? "Titre de l'événement"
+                    : "Titre du service"
                 }
-                placeholder="Prix"
-                keyboardType="numeric"
-                style={styles.input}
-              />
-            ) : (
-              <RNTextInput
-                value={form.location}
-                onChangeText={(text) => setForm({ ...form, location: text })}
-                placeholder="Lieu"
                 maxLength={100}
                 style={styles.input}
               />
-            )}
-          </View>
 
-          <TouchableOpacity
-            disabled={uploading || !session}
-            onPress={submitForm}
-            style={[
-              styles.submitButton,
-              uploading && styles.submitButtonDisabled,
-            ]}
-          >
-            {uploading ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <>
-                <MaterialIcons name="send" size={20} color="#FFF" />
-                <Text style={styles.submitButtonText}>Publier l'annonce</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+              <RNTextInput
+                value={form.description}
+                onChangeText={(text) => setForm({ ...form, description: text })}
+                placeholder={
+                  form.type === "event"
+                    ? "Description de l'événement"
+                    : "Description du service"
+                }
+                multiline
+                numberOfLines={5}
+                maxLength={1500}
+                textAlignVertical="top"
+                style={[styles.input, styles.textArea]}
+              />
+
+              {form.type === "service" ? (
+                <RNTextInput
+                  value={form.price}
+                  onChangeText={(text) =>
+                    setForm({ ...form, price: text.replace(/[^0-9.]/g, "") })
+                  }
+                  placeholder="Prix"
+                  keyboardType="numeric"
+                  style={styles.input}
+                />
+              ) : (
+                <RNTextInput
+                  value={form.location}
+                  onChangeText={(text) => setForm({ ...form, location: text })}
+                  placeholder="Lieu"
+                  maxLength={100}
+                  style={styles.input}
+                />
+              )}
+
+              <TouchableOpacity
+                style={[
+                  styles.submitButton,
+                  uploading && styles.submitButtonDisabled,
+                ]}
+                onPress={submitForm}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <>
+                    <MaterialIcons name="check" size={24} color="#FFF" />
+                    <Text style={styles.submitButtonText}>
+                      {form.type === "event"
+                        ? "Créer l'événement"
+                        : "Créer le service"}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -340,6 +368,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F5F8FD",
+  },
+  scrollView: {
+    flex: 1,
   },
   headerContainer: {
     padding: wp("5%"),
@@ -403,7 +434,7 @@ const styles = StyleSheet.create({
     padding: wp("1%"),
   },
   formSection: {
-    gap: hp("1%"),
+    gap: hp("2%"),
   },
   pickerContainer: {
     backgroundColor: "#FFF",
@@ -413,7 +444,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   picker: {
-    height: hp("7%"),
+    height: hp("6%"),
   },
   input: {
     backgroundColor: "#FFF",

@@ -5,7 +5,7 @@ import {
   StyleSheet,
   RefreshControl,
 } from "react-native";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
@@ -22,6 +22,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Product {
   id: number;
@@ -39,6 +40,7 @@ export default function HomeScreen() {
   const [categories, setCategories] = useState<string[]>([]);
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   // Fonction de rafraîchissement
 
@@ -58,15 +60,21 @@ export default function HomeScreen() {
     fetchData().finally(() => setLoading(false));
   }, []);
 
-  const onRefresh = async () => {
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
     try {
-      setRefreshing(true);
-      // Recharger toutes les données ici
-      await fetchData();
+      // Invalider toutes les queries pertinentes
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["services"] }),
+        queryClient.invalidateQueries({ queryKey: ["events"] }),
+        queryClient.invalidateQueries({ queryKey: ["getProfile"] }),
+      ]);
+    } catch (error) {
+      console.error("Erreur lors du rafraîchissement:", error);
     } finally {
       setRefreshing(false);
     }
-  };
+  }, []);
 
   // if (loading) {
   //   return (
