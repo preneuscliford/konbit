@@ -20,8 +20,10 @@ import { useRouter } from "expo-router";
 import { ServiceImages } from "./Images";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import RemoteImage from "@/components/RemoteImage";
-import { useQuery } from "@tanstack/react-query";
-import { CircleUserRound } from "lucide-react-native";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CircleUserRound, Trash2 } from "lucide-react-native";
+import { AlertDialog } from "@/components/AlertDialog";
+import { useAuth } from "@/app/provider/AuthProvider";
 
 interface Service {
   id: string;
@@ -45,6 +47,9 @@ interface Service {
 
 const DerniersServices = () => {
   const router = useRouter();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   const { data: services, isLoading: chargement } = useQuery({
     queryKey: ["services"],
@@ -71,6 +76,26 @@ const DerniersServices = () => {
       }));
     },
   });
+
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from("services")
+        .delete()
+        .eq("id", itemToDelete);
+
+      if (error) throw error;
+
+      // Invalider la query pour rafraîchir la liste
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+    } finally {
+      setItemToDelete(null);
+    }
+  };
 
   if (chargement) {
     return <ActivityIndicator style={{ marginVertical: 20 }} />;
@@ -150,6 +175,14 @@ const DerniersServices = () => {
                   </View>
                 </View>
               </View>
+              {user?.id === item.profiles.id && (
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => setItemToDelete(item.id)}
+                >
+                  <Trash2 color="white" size={20} />
+                </TouchableOpacity>
+              )}
             </View>
 
             <View style={styles.contenu}>
@@ -181,6 +214,15 @@ const DerniersServices = () => {
           </TouchableOpacity>
         )}
         keyExtractor={(item) => item.id}
+      />
+      <AlertDialog
+        isVisible={!!itemToDelete}
+        title="Supprimer le service"
+        message="Êtes-vous sûr de vouloir supprimer ce service ?"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={handleDelete}
+        onCancel={() => setItemToDelete(null)}
       />
     </View>
   );
@@ -327,6 +369,15 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: hp("1.2%"),
     fontWeight: "500",
+  },
+  deleteButton: {
+    position: "absolute",
+    top: wp("2%"),
+    right: wp("2%"),
+    backgroundColor: "rgba(239, 68, 68, 0.8)",
+    padding: wp("2%"),
+    borderRadius: wp("2%"),
+    zIndex: 10,
   },
 });
 

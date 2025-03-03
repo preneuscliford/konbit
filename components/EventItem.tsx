@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import dayjs from "dayjs";
@@ -8,7 +8,11 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { CircleUserRound } from "lucide-react-native";
+import { CircleUserRound, Trash2 } from "lucide-react-native";
+import { AlertDialog } from "@/components/AlertDialog";
+import { useAuth } from "@/app/provider/AuthProvider";
+import { supabase } from "@/lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { ServiceImages } from "./Images";
 import RemoteImage from "./RemoteImage";
@@ -16,12 +20,30 @@ import RemoteImage from "./RemoteImage";
 dayjs.locale("fr"); // Configuration globale
 
 const EventItem = ({ event, onPress }: any) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   // Formatage de la date de début et fin
   const formattedDate = `${dayjs(event.start_date).format(
     "dddd DD MMM  HH:mm"
   )} → ${dayjs(event.end_date).format("HH:mm")}`;
 
-  console.log(event.profiles);
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", event.id);
+
+      if (error) throw error;
+
+      // Invalider la query pour rafraîchir la liste
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+    }
+  };
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
@@ -67,6 +89,14 @@ const EventItem = ({ event, onPress }: any) => {
             </View>
           </View>
         </LinearGradient>
+        {user?.id === event.organizer_id && (
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => setShowDeleteDialog(true)}
+          >
+            <Trash2 color="white" size={20} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Contenu */}
@@ -103,6 +133,16 @@ const EventItem = ({ event, onPress }: any) => {
           {event.price && <Text style={styles.priceLabel}>/personne</Text>}
         </View> */}
       </View>
+
+      <AlertDialog
+        isVisible={showDeleteDialog}
+        title="Supprimer l'événement"
+        message="Êtes-vous sûr de vouloir supprimer cet événement ?"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+      />
     </TouchableOpacity>
   );
 };
@@ -214,6 +254,15 @@ const styles = StyleSheet.create({
   priceLabel: {
     color: "#64748B",
     fontSize: 12,
+  },
+  deleteButton: {
+    position: "absolute",
+    top: wp("2%"),
+    right: wp("2%"),
+    backgroundColor: "rgba(239, 68, 68, 0.8)",
+    padding: wp("2%"),
+    borderRadius: wp("2%"),
+    zIndex: 10,
   },
 });
 
