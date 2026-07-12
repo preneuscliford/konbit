@@ -82,7 +82,7 @@ export default function RootLayout() {
         <OfflineNotice />
         <Stack screenOptions={{ headerShadowVisible: false }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)/(community)" />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         </Stack>
       </AuthProvider>
     </QueryClientProvider>

@@ -60,14 +60,15 @@ const Slider = () => {
 
 const styles = StyleSheet.create({
   container: {
-    height: 200,
-    marginVertical: 16,
+    height: 180,
+    marginVertical: 12,
   },
   slide: {
-    width: 350,
-    height: 200,
-    marginHorizontal: 8,
-    borderRadius: 12,
+    width: wp("82%"),
+    height: 180,
+    marginLeft: 16,
+    marginRight: 8,
+    borderRadius: 16,
     overflow: "hidden",
     position: "relative",
   },
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: "50%",
+    height: "60%",
     justifyContent: "flex-end",
   },
   textContainer: {
@@ -88,15 +89,13 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "white",
-    fontSize: hp("2%"),
-    fontWeight: "bold",
-    letterSpacing: 1,
+    fontSize: 18,
+    fontWeight: "700",
     marginBottom: 4,
   },
   subtitle: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: hp("1.5%"),
-    letterSpacing: 1,
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 13,
   },
 });
 

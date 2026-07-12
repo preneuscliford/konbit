@@ -1,26 +1,63 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Konbit Design System - Color Palette
+ *
+ * Primary: Teal-green (warm, caribbean feel)
+ * Secondary: Orange-coral (energy, accent)
+ * Surface: Warm whites for backgrounds
+ * Charcoal: Dark tones for text
  */
 
-const tintColorLight = "#0a7ea4";
-const tintColorDark = "#fff";
+const Colors = {
+  // Primary palette
+  primary: "#0D9488",
+  primaryLight: "#14B8A6",
+  primaryDark: "#0F766E",
+  primary50: "#F0FDFA",
+  primary100: "#CCFBF1",
 
-export const Colors = {
+  // Secondary palette
+  secondary: "#F97316",
+  secondaryLight: "#FB923C",
+  secondaryDark: "#EA580C",
+
+  // Surface palette
+  surface: "#FFFFFF",
+  surfaceWarm: "#FAFAF5",
+  surfaceMuted: "#F5F5F0",
+
+  // Text palette
+  text: "#1A1A2E",
+  textLight: "#2D2D44",
+  textMuted: "#6B7280",
+  textInverse: "#FFFFFF",
+
+  // Semantic
+  error: "#EF4444",
+  success: "#22C55E",
+  warning: "#F59E0B",
+  info: "#3B82F6",
+
+  // Tab bar
+  tabBarBackground: "#FFFFFF",
+  tabBarBorder: "#F0F0EB",
+  tabIconDefault: "#9CA3AF",
+  tabIconActive: "#0D9488",
+
+  // Legacy compatibility
   light: {
-    text: "#11181C",
-    background: "#fff",
-    tint: tintColorLight,
-    icon: "#687076",
-    tabIconDefault: "#687076",
-    tabIconSelected: tintColorLight,
+    text: "#1A1A2E",
+    background: "#FAFAF5",
+    tint: "#0D9488",
+    tabIconDefault: "#9CA3AF",
+    tabIconSelected: "#0D9488",
   },
   dark: {
-    text: "#ECEDEE",
-    background: "#151718",
-    tint: tintColorDark,
-    icon: "#9BA1A6",
-    tabIconDefault: "#9BA1A6",
-    tabIconSelected: tintColorDark,
+    text: "#F5F5F0",
+    background: "#1A1A2E",
+    tint: "#14B8A6",
+    tabIconDefault: "#6B7280",
+    tabIconSelected: "#14B8A6",
   },
 };
+
+export default Colors;

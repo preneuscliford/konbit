@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 
-import { useTheme } from "@react-navigation/native"; // Si vous utilisez react-navigation
+import { useColorScheme } from "react-native";
 import { PostImages } from "./Images";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,7 +22,10 @@ const { width } = Dimensions.get("window");
 const IMAGE_HEIGHT = 300;
 
 const ImageSlider: React.FC<ImageSliderProps> = ({ images }) => {
-  const { colors } = useTheme();
+  const colorScheme = useColorScheme();
+  const colors = {
+    border: colorScheme === "dark" ? "#333" : "#ddd",
+  };
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 

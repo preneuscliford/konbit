@@ -77,7 +77,7 @@ const PostDetails = () => {
         },
         () => {
           loadData();
-        }
+        },
       )
       .subscribe();
 
@@ -100,7 +100,7 @@ const PostDetails = () => {
     <View style={styles.safeArea}>
       <Toast ref={toastRef} />
       <BackAppbar title="" />
-      <StatusBar style="dark" backgroundColor="#F5F8FD" />
+      <StatusBar style="dark" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -122,45 +122,58 @@ const PostDetails = () => {
 
         {/* Zone scrollable pour la liste des commentaires */}
         <View style={styles.commentsWrapper}>
-          <Text style={styles.commentsTitle}>Commentaire(s)</Text>
+          <Text style={styles.commentsTitle}>Commentaires</Text>
           {comments?.map((comment) => (
-            <View key={comment.id} style={styles.commentContainer}>
-              {comment?.profiles?.avatar_url ? (
-                comment.profiles.avatar_url.startsWith("https://") ? (
-                  <Image
-                    source={{ uri: comment.profiles.avatar_url }}
-                    style={styles.avatar}
-                  />
+            <View key={comment.id} style={styles.commentCard}>
+              <View style={styles.commentRow}>
+                {comment?.profiles?.avatar_url ? (
+                  comment.profiles.avatar_url.startsWith("https://") ? (
+                    <Image
+                      source={{ uri: comment.profiles.avatar_url }}
+                      style={styles.commentAvatar}
+                    />
+                  ) : (
+                    <RemoteImage
+                      path={comment.profiles.avatar_url}
+                      fallback="profile-placeholder"
+                      style={styles.commentAvatar}
+                    />
+                  )
                 ) : (
-                  <RemoteImage
-                    path={comment.profiles.avatar_url}
-                    fallback="profile-placeholder"
-                    style={styles.avatar}
-                  />
-                )
-              ) : (
-                <CircleUserRound color="#666" size={wp("8%")} />
-              )}
-              <View style={styles.commentContent}>
-                <View style={styles.commentHeader}>
-                  <Text style={styles.username}>
-                    {comment.profiles?.full_name ||
-                      comment.profiles?.username ||
-                      "Utilisateur"}
-                  </Text>
-                  <Text style={styles.timestamp}>
-                    {timeAgo(comment.created_at)}
-                  </Text>
-                </View>
-                <Text style={styles.commentText}>{comment.text}</Text>
-                <View style={styles.actions}>
-                  <TouchableOpacity style={styles.actionButton}>
-                    <Feather name="heart" size={16} color="#64748B" />
-                    <Text style={styles.actionText}></Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.actionButton}>
-                    <Feather name="message-circle" size={16} color="#64748B" />
-                  </TouchableOpacity>
+                  <View style={styles.commentAvatarPlaceholder}>
+                    <CircleUserRound color="#9CA3AF" size={20} />
+                  </View>
+                )}
+                <View style={styles.commentBody}>
+                  <View style={styles.commentBubble}>
+                    <View style={styles.commentHead}>
+                      <Text style={styles.commentUsername}>
+                        {comment.profiles?.full_name ||
+                          comment.profiles?.username ||
+                          "Utilisateur"}
+                      </Text>
+                      <Text style={styles.commentTime}>
+                        {timeAgo(comment.created_at)}
+                      </Text>
+                    </View>
+                    <Text style={styles.commentText}>
+                      {comment.content || comment.text}
+                    </Text>
+                  </View>
+                  <View style={styles.commentActions}>
+                    <TouchableOpacity style={styles.commentActionBtn}>
+                      <Feather name="heart" size={14} color="#9CA3AF" />
+                      <Text style={styles.commentActionLabel}>J'aime</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.commentActionBtn}>
+                      <Feather
+                        name="message-circle"
+                        size={14}
+                        color="#9CA3AF"
+                      />
+                      <Text style={styles.commentActionLabel}>Répondre</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>
@@ -180,7 +193,7 @@ const PostDetails = () => {
             toastRef.current?.show(
               "Échec de l'ajout du commentaire",
               "error",
-              2000
+              2000,
             );
           }
         }}
@@ -212,55 +225,75 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 12,
   },
-  commentContainer: {
+  commentCard: {
+    marginBottom: 12,
+  },
+  commentRow: {
     flexDirection: "row",
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+    gap: 10,
   },
-  avatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    marginHorizontal: 5,
+  commentAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
-  commentContent: {
+  commentAvatarPlaceholder: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F0F0EB",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  commentBody: {
     flex: 1,
   },
-  commentHeader: {
+  commentBubble: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  commentHead: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "baseline",
+    justifyContent: "space-between",
     marginBottom: 4,
   },
-  username: {
-    fontSize: hp("1.5%"),
-    letterSpacing: 0.5,
-    fontWeight: "bold",
-    marginRight: 8,
+  commentUsername: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1A1A2E",
   },
-  timestamp: {
-    fontSize: hp("1.2%"),
-    color: "#64748B",
+  commentTime: {
+    fontSize: 11,
+    color: "#9CA3AF",
+    marginLeft: 8,
   },
   commentText: {
-    fontSize: hp("1.4%"),
-    letterSpacing: 0.5,
-    marginBottom: 8,
+    fontSize: 14,
+    color: "#1A1A2E",
+    lineHeight: 20,
   },
-  actions: {
+  commentActions: {
     flexDirection: "row",
+    gap: 16,
+    marginTop: 6,
+    paddingLeft: 4,
   },
-  actionButton: {
+  commentActionBtn: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 16,
+    gap: 4,
   },
-  actionText: {
-    fontSize: hp("1.2%"),
-    letterSpacing: 0.5,
-    color: "#64748B",
-    marginLeft: 4,
+  commentActionLabel: {
+    fontSize: 11,
+    color: "#9CA3AF",
+    fontWeight: "500",
   },
 });
 

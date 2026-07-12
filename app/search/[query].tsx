@@ -54,7 +54,7 @@ const search = () => {
             renderItem={({ item, index }) => (
               <ScrollView key={index} style={{ paddingBottom: 10 }}>
                 <TouchableOpacity
-                  onPress={() => router.navigate("product/details")}
+                  onPress={() => router.navigate("/product/details" as any)}
                 >
                   <View style={{ margin: 5, width: 180 }}>
                     <Card style={{ width: "100%" }}>
@@ -81,7 +81,7 @@ const search = () => {
                           style={{ alignSelf: "flex-start" }}
                           className="font-bold"
                         >
-                          {""} {item?.price} €
+                          {item?.price ? `${item.price} €` : ""}
                         </Badge>
                         <Text variant="titleSmall" numberOfLines={1}>
                           {item?.title}{" "}

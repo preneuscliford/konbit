@@ -105,7 +105,7 @@ const NativeAdComponent: React.FC = () => {
             <TouchableOpacity className="flex-row items-center gap-2 mt-2">
               <AntDesign
                 style={{ opacity: 0.5 }}
-                name="hearto"
+                name="heart"
                 size={22}
                 color="black"
               />

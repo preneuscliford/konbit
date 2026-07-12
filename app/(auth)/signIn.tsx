@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Text,
   TextInput,
@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   View,
   AppState,
-  Alert,
   BackHandler,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,6 +15,7 @@ import * as Burnt from "burnt";
 import SignInWithGoogleBotton from "@/components/SignInWithGoogleBotton";
 import { supabase } from "@/lib/supabase";
 import { StatusBar } from "expo-status-bar";
+
 AppState.addEventListener("change", (state) => {
   if (state === "active") {
     supabase.auth.startAutoRefresh();
@@ -38,13 +38,11 @@ const signIn = () => {
       () => {
         router.push("/(tabs)");
         return true;
-      }
+      },
     );
-
     return () => backHandler.remove();
   }, []);
 
-  // Valider les champs avant de soumettre
   const validateFields = () => {
     let isValid = true;
 
@@ -68,31 +66,42 @@ const signIn = () => {
     return isValid;
   };
 
-  // Connexion par email et mot de passe
   const signInWithEmail = async () => {
-    if (!validateFields()) {
-      return; // Arrêter si la validation échoue
-    }
+    if (!validateFields()) return;
+
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    console.log("[signIn] Tentative de connexion:", emailAddress);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: emailAddress,
       password: password,
     });
 
     if (error) {
+      console.error("[signIn] Erreur:", error.code, error.message);
       if (error.message === "Invalid login credentials") {
         setPasswordError("Email ou mot de passe incorrect.");
         setEmailError("...");
+      } else if (error.code === "email_not_confirmed") {
+        Burnt.toast({
+          title: "Email non confirmé",
+          preset: "error",
+          message:
+            "Vérifiez votre boîte mail ou désactivez la confirmation dans le dashboard Supabase.",
+        });
       } else {
         Burnt.toast({
-          title: "Erreur inconnue",
+          title: "Erreur: " + (error.code || "inconnue"),
           preset: "error",
-          message: error.message || "Une erreur s'est produite.",
+          message: error.message,
         });
       }
       setLoading(false);
       return;
     }
+
+    console.log("[signIn] Succès, user:", data.user?.id);
+
     Burnt.toast({
       title: "Connexion réussie",
       preset: "done",
@@ -102,13 +111,12 @@ const signIn = () => {
     setEmailAddress("");
     setPassword("");
     setLoading(false);
-
-    router.push("/"); // Redirection après succès
+    router.push("/");
   };
 
   return (
     <SafeAreaView className="flex-1 bg-ghost-white px-4 sm:px-6 justify-between">
-      <StatusBar style="dark" backgroundColor="#F5F8FD" />
+      <StatusBar style="dark" />
       <View className="flex-1 justify-center">
         <View className="mb-6 sm:mb-8">
           <Text className="text-2xl sm:text-3xl font-bold text-gray-900">
@@ -212,10 +220,7 @@ const signIn = () => {
             Politique de confidentialité
           </Text>
         </Text>
-        <Text
-          onPress={() => {}}
-          className="text-center text-gray-500 text-xs mt-2"
-        >
+        <Text className="text-center text-gray-500 text-xs mt-2">
           Version 1.0.0
         </Text>
       </View>

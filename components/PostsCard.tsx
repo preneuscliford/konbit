@@ -3,32 +3,14 @@ import {
   Text,
   View,
   TouchableOpacity,
-  useWindowDimensions,
   Share,
   Animated,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
-import { shadow } from "react-native-paper";
-import Entypo from "@expo/vector-icons/Entypo";
-import {
-  AntDesign,
-  Feather,
-  Ionicons,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
-
+import { AntDesign, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import RemoteImage from "./RemoteImage";
-import moment from "moment";
-
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { supabase } from "@/lib/supabase";
 import { Link } from "expo-router";
-
-import { Easing } from "react-native-reanimated";
 import { ModerationActions } from "./ModerationActions";
 import { Image } from "expo-image";
 import ImageSlider from "./ImageSlider";
@@ -37,15 +19,15 @@ import { createNotification } from "@/lib/postServices";
 import { CircleUserRound } from "lucide-react-native";
 import { timeAgo } from "@/utils/date";
 
-const textStyles = {
-  fontSize: 16,
+const COLORS = {
+  text: "#1A1A2E",
+  textMuted: "#6B7280",
+  primary: "#0D9488",
+  accent: "#F97316",
+  border: "#F0F0EB",
+  like: "#EF4444",
 };
 
-const tagsStyles = {
-  div: textStyles,
-  p: textStyles,
-  ol: textStyles,
-};
 const PostsCard = ({
   item,
   router,
@@ -53,197 +35,136 @@ const PostsCard = ({
   hasShadow = true,
   showMoreIcons = true,
 }: any) => {
-  const { width } = useWindowDimensions();
   const [likes, setLikes] = useState<any[]>([]);
   const [isLiking, setIsLiking] = useState(false);
-  const dataTime = moment(item?.created_at).fromNow();
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-
+  const heartScale = useRef(new Animated.Value(1)).current;
   const { user } = useAuth();
+  const channelRef = useRef<any>(null);
 
-  // Styles modernes
-  const textStyles = {
-    fontSize: 16,
-    lineHeight: 22,
-    color: "#1F2937",
-  };
+  const liked = likes?.some((like) => like.user_id === currentUser?.id);
 
-  const hasShadowStyle = {
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
-    elevation: 5,
+  const animateHeart = () => {
+    Animated.sequence([
+      Animated.spring(heartScale, {
+        toValue: 1.5,
+        friction: 3,
+        useNativeDriver: true,
+      }),
+      Animated.spring(heartScale, {
+        toValue: 1,
+        friction: 3,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   const handleLike = async () => {
     if (isLiking || !currentUser?.id) return;
-
     setIsLiking(true);
     try {
       if (liked) {
         const updatedLikes = likes.filter(
-          (like) => like.userId !== currentUser.id
+          (like) => like.user_id !== currentUser.id,
         );
         setLikes(updatedLikes);
-
         const { error } = await supabase
           .from("post_likes")
           .delete()
-          .eq("userId", currentUser.id)
-          .eq("postId", item.id);
-
+          .eq("user_id", currentUser.id)
+          .eq("post_id", item.id);
         if (error) {
           setLikes(likes);
-          console.error("Erreur lors de la suppression du like:", error);
-          return;
+          console.error("Unlike error:", error);
         }
       } else {
-        const newLike = {
-          postId: item.id,
-          userId: currentUser.id,
-          created_at: new Date().toISOString(),
-        };
+        const newLike = { post_id: item.id, user_id: currentUser.id };
         setLikes([...likes, newLike]);
-
+        animateHeart();
         const { data, error } = await supabase
           .from("post_likes")
-          .insert({
-            postId: item.id,
-            userId: currentUser.id,
-          })
+          .insert({ post_id: item.id, user_id: currentUser.id })
           .select()
           .single();
-
-        if (!error) {
-          // Créer la notification
+        if (!error && data) {
           const { data: postOwner } = await supabase
             .from("posts")
-            .select("userId")
+            .select("user_id")
             .eq("id", item.id)
             .single();
-
-          if (postOwner?.userId && postOwner.userId !== currentUser.id) {
+          if (postOwner?.user_id && postOwner.user_id !== currentUser.id) {
             await createNotification({
               type: "like",
-              receiverId: postOwner.userId,
+              receiverId: postOwner.user_id,
               senderId: currentUser.id,
               postId: parseInt(item.id, 10),
-              content: `${
-                currentUser.username || currentUser.full_name
-              } a aimé votre publication`,
-              metadata: {
-                interaction_type: "like",
-                post_thumbnail: item.media?.[0], // Exemple de métadonnée supplémentaire
-              },
+              content: `${currentUser.username || currentUser.full_name} a aimé votre publication`,
+              metadata: { interaction_type: "like" },
             });
           }
         }
-
         if (error) {
           setLikes(likes);
-          console.error("Erreur lors de l'ajout du like:", error);
-          return;
+          console.error("Like error:", error);
         }
       }
     } catch (error) {
-      console.error("Erreur lors de la gestion du like:", error);
+      console.error("Like handling error:", error);
     } finally {
       setIsLiking(false);
     }
   };
 
   useEffect(() => {
-    const fetchLikes = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("post_likes")
-          .select("*")
-          .eq("postId", item.id);
-
-        if (error) {
-          console.error("Erreur lors du chargement des likes:", error);
-          return;
-        }
-
-        setLikes(data || []);
-      } catch (error) {
-        console.error("Erreur lors du chargement des likes:", error);
-      }
-    };
-
     if (item?.id) {
-      fetchLikes();
+      supabase
+        .from("post_likes")
+        .select("*")
+        .eq("post_id", item.id)
+        .then(({ data, error }) => {
+          if (!error && data) setLikes(data);
+        });
     }
   }, [item?.id]);
 
+  // Realtime channel — only on feed (showMoreIcons=true), not on postDetails
   useEffect(() => {
-    const likesSubscription = supabase
-      .channel(`post-likes-${item.id}`)
+    if (!item?.id || !showMoreIcons) return;
+    if (channelRef.current) channelRef.current.unsubscribe();
+
+    const name = `post-likes-${item.id}-${Math.random().toString(36).slice(2, 6)}`;
+    const channel = supabase.channel(name);
+    channel
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "post_likes",
-          filter: `postId=eq.${item.id}`,
+          filter: `post_id=eq.${item.id}`,
         },
-        async (payload) => {
-          const { data, error } = await supabase
+        async () => {
+          const { data } = await supabase
             .from("post_likes")
             .select("*")
-            .eq("postId", item.id);
-
-          if (!error && data) {
-            setLikes(data);
-          }
-        }
+            .eq("post_id", item.id);
+          if (data) setLikes(data);
+        },
       )
       .subscribe();
+    channelRef.current = channel;
 
     return () => {
-      likesSubscription.unsubscribe();
+      channel.unsubscribe();
+      channelRef.current = null;
     };
-  }, [item?.id]);
-
-  const liked = likes?.some((like) => like.userId === currentUser?.id);
+  }, [item?.id, showMoreIcons]);
 
   const handleShare = async () => {
-    const stripHtmlContent = (html: string) => {
-      html = html.replace(/<\/?[^>]+(>|$)/gm, "");
-      html = html.replace(/&nbsp;/gm, " ");
-      html = html.replace(/&[^;]+;/gm, ""); // Supprime les entités HTML
-      return html;
-    };
-    let content = { message: stripHtmlContent(item?.body) };
-    Share.share(content);
-  };
-
-  const colors = {
-    primary: "#6366F1",
-    secondary: "#4F46E5",
-    accent: "#EC4899",
-    background: "#F8FAFC",
-    text: "#1F2937",
-  };
-
-  const animateLike = () => {
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 1.2,
-        duration: 100,
-        easing: Easing.ease,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 3,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    const text = (item?.content || item?.body || "").replace(
+      /<\/?[^>]+(>|$)/gm,
+      "",
+    );
+    Share.share({ message: text });
   };
 
   const handleProfilePress = () => {
@@ -253,80 +174,40 @@ const PostsCard = ({
     });
   };
 
+  const content = item?.content || item?.body;
+
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.background,
-          transform: [{ scale: scaleAnim }],
-          opacity: fadeAnim,
-        },
-      ]}
-    >
-      {/* En-tête */}
-      <View className="flex-row justify-between items-center mb-2">
+    <View style={styles.card}>
+      <View style={styles.header}>
         <TouchableOpacity
-          className="flex-row items-center gap-3"
+          style={styles.profileRow}
           onPress={handleProfilePress}
         >
-          <View className="relative">
-            {item?.profiles?.avatar_url?.startsWith("https://") ? (
-              <View className="flex-row items-center">
-                <Image
-                  source={{ uri: item?.profiles?.avatar_url }}
-                  style={{ width: 34, height: 34, borderRadius: 20 }}
-                />
-
-                <View className="mt-2">
-                  <Text
-                    className="text-base font-semibold text-gray-900"
-                    onPress={handleProfilePress}
-                  >
-                    {item?.profiles?.username || item?.profiles?.full_name}
-                  </Text>
-                  <Text
-                    className="text-xs text-gray-500"
-                    style={{ fontSize: hp("1.2%") }}
-                  >
-                    {timeAgo(item?.created_at)}
-                  </Text>
-                </View>
-              </View>
+          {item?.profiles?.avatar_url ? (
+            item.profiles.avatar_url.startsWith("https://") ? (
+              <Image
+                source={{ uri: item.profiles.avatar_url }}
+                style={styles.avatar}
+              />
             ) : (
-              <View className="flex-row items-center">
-                <TouchableOpacity onPress={handleProfilePress}>
-                  {!item?.profiles?.avatar_url ? (
-                    <CircleUserRound color="#333" size={34} />
-                  ) : (
-                    <RemoteImage
-                      path={item?.profiles?.avatar_url}
-                      fallback="profile-placeholder"
-                      style={{ width: 34, height: 34, borderRadius: 20 }}
-                    />
-                  )}
-                </TouchableOpacity>
-
-                <View style={{ marginLeft: 3 }}>
-                  <Text
-                    className="text-base font-semibold text-gray-900"
-                    style={{ fontSize: hp("2%"), letterSpacing: 1 }}
-                    onPress={handleProfilePress}
-                  >
-                    {item?.profiles?.username}
-                  </Text>
-                  <Text
-                    className="text-xs text-gray-500"
-                    style={{ fontSize: hp("1.2%"), marginTop: -2 }}
-                  >
-                    {timeAgo(item?.created_at)}
-                  </Text>
-                </View>
-              </View>
-            )}
+              <RemoteImage
+                path={item.profiles.avatar_url}
+                fallback="profile-placeholder"
+                style={styles.avatar}
+              />
+            )
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <CircleUserRound color="#9CA3AF" size={24} />
+            </View>
+          )}
+          <View style={styles.nameCol}>
+            <Text style={styles.username} numberOfLines={1}>
+              {item?.profiles?.username || item?.profiles?.full_name}
+            </Text>
+            <Text style={styles.time}>{timeAgo(item?.created_at)}</Text>
           </View>
         </TouchableOpacity>
-
         {showMoreIcons && (
           <ModerationActions
             postId={item?.id}
@@ -336,57 +217,32 @@ const PostsCard = ({
         )}
       </View>
 
-      {/* Contenu */}
-      <View className="mb-5">
-        <Text
-          style={{ fontSize: hp("1.8%"), letterSpacing: 0.5, marginBottom: 5 }}
-        >
-          {item?.body}
-        </Text>
+      {content ? (
+        <View style={styles.body}>
+          <Text style={styles.contentText}>{content}</Text>
+        </View>
+      ) : null}
 
-        {item?.file && item?.file?.length > 0 && (
-          <View className="overflow-hidden rounded-xl">
-            <ImageSlider images={item?.file} />
-          </View>
-        )}
-      </View>
+      {item?.file && item.file.length > 0 && (
+        <View style={styles.mediaWrap}>
+          <ImageSlider images={item.file} />
+        </View>
+      )}
 
-      {/* Actions */}
-      <View
-        className="flex-row justify-between items-center px-2"
-        style={{
-          paddingVertical: 5,
-          borderStyle: "solid",
-          borderBottomWidth: 0,
-          borderTopWidth: 1,
-          borderColor: "rgba(0, 0, 0, 0.1)",
-          shadowColor: "#000",
-          shadowOffset: { width: 1, height: 2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 5,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <TouchableOpacity
-            onPress={() => {
-              handleLike();
-              animateLike();
-            }}
-            className="flex-row items-center gap-2"
-          >
-            <AntDesign
-              name={liked ? "heart" : "hearto"}
-              size={24}
-              color={liked ? colors.accent : colors.text}
-            />
-            <Text
-              className="text-gray-600 font-medium"
-              style={{ fontSize: hp("1.8%") }}
-            >
+      <View style={styles.actions}>
+        <View style={styles.actionsLeft}>
+          <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
+            <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+              <AntDesign
+                name="heart"
+                size={20}
+                color={liked ? COLORS.like : COLORS.textMuted}
+              />
+            </Animated.View>
+            <Text style={[styles.actionCount, liked && { color: COLORS.like }]}>
               {likes?.length || 0}
             </Text>
           </TouchableOpacity>
-
           <Link
             href={{
               pathname: "/(tabs)/(community)/postDetails",
@@ -394,59 +250,96 @@ const PostsCard = ({
             }}
             asChild
           >
-            <TouchableOpacity className="flex-row items-center gap-2">
-              <Feather name="message-circle" size={22} color={colors.text} />
-              <Text className="text-gray-600 font-medium">
-                {item?.comments?.length}
+            <TouchableOpacity style={styles.actionBtn}>
+              <Feather
+                name="message-circle"
+                size={20}
+                color={COLORS.textMuted}
+              />
+              <Text style={styles.actionCount}>
+                {item?.comments?.length || 0}
               </Text>
             </TouchableOpacity>
           </Link>
         </View>
-
-        <View className="flex-row items-center gap-4">
-          <TouchableOpacity onPress={handleShare}>
+        <View style={styles.actionsRight}>
+          <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
             <MaterialCommunityIcons
               name="share-outline"
-              size={24}
-              color={colors.text}
+              size={20}
+              color={COLORS.textMuted}
             />
           </TouchableOpacity>
-
-          <TouchableOpacity>
-            <Feather name="bookmark" size={22} color={colors.text} />
+          <TouchableOpacity style={styles.actionBtn}>
+            <Feather name="bookmark" size={20} color={COLORS.textMuted} />
           </TouchableOpacity>
         </View>
       </View>
-    </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  card: {
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 12,
+    marginBottom: 12,
+    borderRadius: 20,
     padding: 16,
-    marginBottom: 6,
-    backgroundColor: "#F5F8FD",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
+    shadowRadius: 10,
+    elevation: 3,
   },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  profileRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   avatar: {
-    width: 34,
-    height: 34,
+    width: 42,
+    height: 42,
     borderRadius: 21,
     borderWidth: 2,
-    borderColor: "#E0E7FF",
-    marginRight: 4,
+    borderColor: "#0D9488",
   },
-  interactionButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: "#F8FAFC",
+  avatarPlaceholder: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#F0F0EB",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#0D9488",
   },
+  nameCol: { justifyContent: "center" },
+  username: { fontSize: 14, fontWeight: "700", color: "#1A1A2E" },
+  time: { fontSize: 11, color: "#9CA3AF", marginTop: 1 },
+  body: { marginBottom: 12 },
+  contentText: { fontSize: 15, lineHeight: 22, color: "#1A1A2E" },
+  mediaWrap: { borderRadius: 14, overflow: "hidden", marginBottom: 12 },
+  actions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0EB",
+  },
+  actionsLeft: { flexDirection: "row", alignItems: "center", gap: 18 },
+  actionsRight: { flexDirection: "row", alignItems: "center", gap: 12 },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+  },
+  actionCount: { fontSize: 13, color: "#6B7280", fontWeight: "600" },
 });
 
 export default PostsCard;

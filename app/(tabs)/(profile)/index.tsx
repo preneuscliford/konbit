@@ -132,7 +132,7 @@ const EditProfil = () => {
 
   return (
     <View className="flex-1 bg-gray-100">
-      <StatusBar style="light" backgroundColor="#181F27" />
+      <StatusBar style="light" />
       <View
         style={{ height: hp("25%") }}
         className="bg-slate-950 rounded-br-[80px] px-4"

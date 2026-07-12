@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "voisinaGe",
-    "slug": "voisinaGe",
+    "name": "konbit",
+    "slug": "konbit",
     "owner": "cliford",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "voisinage",
+    "scheme": "konbit",
     "newArchEnabled": true,
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -23,7 +23,7 @@
         "monochromeImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#F5F8FD"
       },
-      "package": "com.cliford.voisinage",
+      "package": "com.cliford.konbit",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.RECORD_AUDIO"
@@ -75,7 +75,11 @@
             "useFrameworks": "static"
           }
         }
-      ]
+      ],
+      "expo-status-bar",
+      "expo-web-browser",
+      "expo-image",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true

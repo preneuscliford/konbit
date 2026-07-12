@@ -9,7 +9,7 @@ import { ImageAsset, uploadImages } from '@/lib/postServices';
 
 interface PostCreationProps {
   userId?: string;
-  editorRef: React.RefObject<RichTextEditor>;
+  editorRef: React.RefObject<any>;
   toastRef: React.RefObject<ToastHandles>;
 }
 

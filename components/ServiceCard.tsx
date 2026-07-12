@@ -1,10 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
 import { ServiceImages } from "./Images";
 
 interface ServiceCardProps {
@@ -29,14 +25,13 @@ interface ServiceCardProps {
 }
 
 const ServiceCard = ({ service, onPress }: ServiceCardProps) => {
-  // Calculer la moyenne des avis
   const averageRating = service.reviews?.length
     ? service.reviews.reduce((acc, curr) => acc + curr.rating, 0) /
       service.reviews.length
     : 0;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.imageContainer}>
         <ServiceImages
           path={service.gallery?.[0]}
@@ -54,25 +49,21 @@ const ServiceCard = ({ service, onPress }: ServiceCardProps) => {
         <Text style={styles.title} numberOfLines={1}>
           {service.title}
         </Text>
-
         <Text style={styles.provider} numberOfLines={1}>
-          {service.profiles?.full_name || service.profiles?.username}
+          par {service.profiles?.full_name || service.profiles?.username}
         </Text>
-
-        <View style={styles.locationContainer}>
-          <MaterialCommunityIcons name="map-marker" size={16} color="#666" />
+        <View style={styles.locationRow}>
+          <MaterialCommunityIcons name="map-marker" size={14} color="#9CA3AF" />
           <Text style={styles.location} numberOfLines={1}>
             {service.location}
           </Text>
         </View>
-
         <View style={styles.footer}>
-          <View style={styles.ratingContainer}>
-            <MaterialCommunityIcons name="star" size={16} color="#FFC107" />
+          <View style={styles.ratingRow}>
+            <MaterialCommunityIcons name="star" size={16} color="#F59E0B" />
             <Text style={styles.rating}>{averageRating.toFixed(1)}</Text>
           </View>
-
-          <Text style={styles.price}>{service.price}€</Text>
+          <Text style={styles.price}>{service.price} €</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -82,20 +73,17 @@ const ServiceCard = ({ service, onPress }: ServiceCardProps) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: wp("4%"),
+    borderRadius: 16,
     overflow: "hidden",
-    marginBottom: hp("2%"),
+    marginBottom: 14,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
     elevation: 3,
   },
   imageContainer: {
-    height: hp("20%"),
+    height: 160,
     width: "100%",
     position: "relative",
   },
@@ -106,62 +94,64 @@ const styles = StyleSheet.create({
   },
   categoryTag: {
     position: "absolute",
-    top: hp("1%"),
-    left: wp("2%"),
-    backgroundColor: "#9333EA",
-    paddingHorizontal: wp("3%"),
-    paddingVertical: hp("0.5%"),
-    borderRadius: wp("4%"),
+    top: 10,
+    left: 10,
+    backgroundColor: "#0D9488",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
   categoryText: {
     color: "#FFFFFF",
-    fontSize: hp("1.4%"),
-    fontWeight: "500",
+    fontSize: 11,
+    fontWeight: "600",
   },
   content: {
-    padding: wp("4%"),
+    padding: 14,
   },
   title: {
-    fontSize: hp("2%"),
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: hp("0.5%"),
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1A1A2E",
+    marginBottom: 4,
   },
   provider: {
-    fontSize: hp("1.6%"),
+    fontSize: 13,
     color: "#6B7280",
-    marginBottom: hp("1%"),
+    marginBottom: 8,
   },
-  locationContainer: {
+  locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: hp("1%"),
+    marginBottom: 10,
+    gap: 4,
   },
   location: {
-    fontSize: hp("1.6%"),
-    color: "#666666",
-    marginLeft: wp("1%"),
+    fontSize: 12,
+    color: "#9CA3AF",
   },
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: hp("1%"),
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0EB",
   },
-  ratingContainer: {
+  ratingRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: wp("1%"),
+    gap: 4,
   },
   rating: {
-    fontSize: hp("1.6%"),
-    color: "#1F2937",
-    fontWeight: "500",
+    fontSize: 14,
+    color: "#1A1A2E",
+    fontWeight: "600",
   },
   price: {
-    fontSize: hp("1.8%"),
-    color: "#9333EA",
-    fontWeight: "600",
+    fontSize: 18,
+    color: "#0D9488",
+    fontWeight: "700",
   },
 });
 

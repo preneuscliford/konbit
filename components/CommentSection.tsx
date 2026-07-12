@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Button,
 } from "react-native";
 import { supabase } from "@/lib/supabase";
 import moment from "moment";
@@ -17,22 +16,16 @@ import RemoteImage from "./RemoteImage";
 import Feather from "@expo/vector-icons/Feather";
 import { TextInput } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { Image } from "expo-image";
-import Burnt from "burnt"; // Assurez-vous d'installer la librairie
-import Toast, { ToastHandles } from "./Toast";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 interface Comment {
   id: number;
-  text: string;
+  content: string;
   created_at: string;
-  userId: string;
-  postId: number;
+  user_id: string;
+  post_id: number;
   profiles: {
     username: string;
     avatar_url: string;
@@ -56,12 +49,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputScale = new Animated.Value(1);
-  const router = useRouter();
 
   const animateInput = () => {
     Animated.sequence([
       Animated.timing(inputScale, {
-        toValue: 0.95,
+        toValue: 0.97,
         duration: 100,
         useNativeDriver: true,
       }),
@@ -80,73 +72,74 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     animateInput();
 
     try {
-      const { error } = await supabase.from("comment").insert({
-        text: newComment.trim(),
-        postId: parseInt(postId, 10),
-        userId: currentUser.id,
+      const { error } = await supabase.from("comments").insert({
+        content: newComment.trim(),
+        post_id: parseInt(postId, 10),
+        user_id: currentUser.id,
       });
 
       if (error) {
-        onCommentAdded(false); // Signal d'échec
+        console.error("[Comment] Insert error:", error.code, error.message);
+        onCommentAdded(false);
         throw error;
       }
 
       setNewComment("");
       onCommentAdded(true);
     } catch (error) {
-      console.error("Erreur lors de l'ajout du commentaire:", error);
+      console.error("[Comment] Error:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView edges={["bottom"]} style={styles.safe}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.container}
       >
-        <View style={styles.commentsContainer}>
-          <Text style={styles.title}>Commentaire(s)</Text>
+        <View style={styles.commentsWrap}>
+          <Text style={styles.title}>Commentaires</Text>
           <ScrollView
-            style={styles.scrollView}
+            style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
             {comments.map((comment) => (
-              <View key={comment.id} style={styles.commentContainer}>
-                {comment.profiles.avatar_url.startsWith("https://") ? (
+              <View key={comment.id} style={styles.commentCard}>
+                {comment.profiles?.avatar_url?.startsWith("https://") ? (
                   <Image
                     source={{ uri: comment.profiles.avatar_url }}
                     style={styles.avatar}
                   />
                 ) : (
                   <RemoteImage
-                    path={comment.profiles.avatar_url}
+                    path={comment.profiles?.avatar_url}
                     fallback="profile image"
                     style={styles.avatar}
                   />
                 )}
-                <View style={styles.commentContent}>
-                  <View style={styles.commentHeader}>
+                <View style={styles.commentBody}>
+                  <View style={styles.commentHead}>
                     <Text style={styles.username}>
-                      {comment.profiles.username || comment.profiles.full_name}
+                      {comment.profiles?.username ||
+                        comment.profiles?.full_name}
                     </Text>
                     <Text style={styles.timestamp}>
                       {moment(comment.created_at).fromNow()}
                     </Text>
                   </View>
-                  <Text style={styles.commentText}>{comment.text}</Text>
+                  <Text style={styles.commentText}>{comment.content}</Text>
                   <View style={styles.actions}>
-                    <TouchableOpacity style={styles.actionButton}>
-                      <Feather name="heart" size={16} color="#64748B" />
-                      <Text style={styles.actionText}>12</Text>
+                    <TouchableOpacity style={styles.actionBtn}>
+                      <Feather name="heart" size={14} color="#9CA3AF" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton}>
+                    <TouchableOpacity style={styles.actionBtn}>
                       <Feather
                         name="message-circle"
-                        size={16}
-                        color="#64748B"
+                        size={14}
+                        color="#9CA3AF"
                       />
                     </TouchableOpacity>
                   </View>
@@ -155,12 +148,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             ))}
           </ScrollView>
         </View>
-        {/* Zone de saisie en mode absolute en bas de l'écran */}
+
         <Animated.View
-          style={[
-            styles.inputContainer,
-            { transform: [{ scale: inputScale }] },
-          ]}
+          style={[styles.inputBar, { transform: [{ scale: inputScale }] }]}
         >
           <TextInput
             mode="flat"
@@ -168,13 +158,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             value={newComment}
             onChangeText={setNewComment}
             multiline
-            style={styles.input}
+            style={styles.textInput}
             underlineColor="transparent"
             theme={{
-              colors: {
-                primary: "#9333EA",
-                placeholder: "#94A3B8",
-              },
+              colors: { primary: "#0D9488", placeholder: "#9CA3AF" },
               roundness: 12,
             }}
             right={
@@ -186,12 +173,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     style={{ padding: 8 }}
                   >
                     {isSubmitting ? (
-                      <ActivityIndicator color="#9333EA" />
+                      <ActivityIndicator color="#0D9488" />
                     ) : (
                       <MaterialCommunityIcons
                         name="send-circle"
                         size={32}
-                        color={newComment.trim() ? "#9333EA" : "#CBD5E1"}
+                        color={newComment.trim() ? "#0D9488" : "#CBD5E1"}
                       />
                     )}
                   </TouchableOpacity>
@@ -206,89 +193,96 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 };
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: "#FAFAF5",
+  },
   container: {
     flex: 1,
   },
-  commentsContainer: {
+  commentsWrap: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
-    marginBottom: 80, // espace pour laisser la zone input visible
+    marginBottom: 80,
   },
   title: {
-    fontSize: hp("2%"),
-    letterSpacing: 0.5,
-    fontWeight: "bold",
-    marginBottom: 12,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1A1A2E",
+    marginBottom: 14,
   },
-  scrollView: {
+  scroll: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100, // pour que le dernier commentaire ne soit pas caché
+    paddingBottom: 100,
   },
-  commentContainer: {
+  commentCard: {
     flexDirection: "row",
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+    backgroundColor: "#FFFFFF",
+    padding: 12,
+    borderRadius: 14,
+    marginBottom: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   avatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    marginHorizontal: 5,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 10,
   },
-  commentContent: {
+  commentBody: {
     flex: 1,
   },
-  commentHeader: {
+  commentHead: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 4,
   },
   username: {
-    fontWeight: "bold",
+    fontWeight: "700",
+    fontSize: 13,
+    color: "#1A1A2E",
     marginRight: 8,
   },
   timestamp: {
-    fontSize: hp("1.2%"),
-    color: "#64748B",
+    fontSize: 11,
+    color: "#9CA3AF",
   },
   commentText: {
-    marginBottom: 8,
+    fontSize: 14,
+    color: "#1A1A2E",
+    lineHeight: 20,
+    marginBottom: 6,
   },
   actions: {
     flexDirection: "row",
+    gap: 12,
   },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: 16,
+  actionBtn: {
+    padding: 2,
   },
-  actionText: {
-    fontSize: 12,
-    color: "#64748B",
-    marginLeft: 4,
-  },
-  inputContainer: {
+  inputBar: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 16,
-    backgroundColor: "#fff",
+    padding: 12,
+    backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
-    borderColor: "#F1F5F9",
+    borderTopColor: "#F0F0EB",
   },
-  input: {
-    backgroundColor: "#F8FAFC",
-    borderRadius: 24,
-    fontSize: 16,
-    lineHeight: 24,
-    paddingHorizontal: 16,
-    maxHeight: 120,
+  textInput: {
+    backgroundColor: "#F5F5F0",
+    borderRadius: 20,
+    fontSize: 15,
+    paddingHorizontal: 14,
+    maxHeight: 100,
   },
 });
 

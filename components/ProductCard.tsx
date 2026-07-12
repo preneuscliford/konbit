@@ -1,59 +1,93 @@
-import { View, Text, Image } from "react-native";
-import RemoteImage from "./RemoteImage";
-import {
-  ReactElement,
-  JSXElementConstructor,
-  ReactNode,
-  ReactPortal,
-  Key,
-} from "react";
+import { View, Text, StyleSheet } from "react-native";
 import ProductsImage from "./ProductsImage";
 
 const ProductCard = ({ image, title, price, category, badges }: any) => (
-  <View className="w-[170px] bg-white rounded-xl shadow-lg overflow-hidden">
-    <View className="relative">
+  <View style={styles.card}>
+    <View style={styles.imageContainer}>
       <ProductsImage
         path={image}
-        fallback={"product image"}
-        className="w-full h-40 object-cover"
+        fallback="product image"
+        style={styles.image}
       />
-
       {badges?.length > 0 && (
-        <View className="absolute top-2 left-2 flex-row gap-1">
-          {badges.map(
-            (
-              badge:
-                | string
-                | number
-                | boolean
-                | ReactElement<any, string | JSXElementConstructor<any>>
-                | Iterable<ReactNode>
-                | ReactPortal
-                | null
-                | undefined,
-              index: Key | null | undefined
-            ) => (
-              <View key={index} className="bg-rose-500 px-2 py-1 rounded-full">
-                <Text className="text-white text-xs font-medium">{badge}</Text>
-              </View>
-            )
-          )}
+        <View style={styles.badges}>
+          {badges.map((badge: any, index: number) => (
+            <View key={index} style={styles.badge}>
+              <Text style={styles.badgeText}>{badge}</Text>
+            </View>
+          ))}
         </View>
       )}
     </View>
-
-    <View className="p-3">
-      <Text className="text-gray-500 text-xs mb-1">{category}</Text>
-      <Text
-        className="text-rich-black font-medium mb-2"
-        numberOfLines={2}
-        ellipsizeMode="tail"
-      >
+    <View style={styles.info}>
+      <Text style={styles.category}>{category}</Text>
+      <Text style={styles.title} numberOfLines={2}>
         {title}
       </Text>
-      <Text className="text-lg font-bold text-gray-900">€{price}</Text>
+      <Text style={styles.price}>€{price}</Text>
     </View>
   </View>
 );
+
+const styles = StyleSheet.create({
+  card: {
+    width: 160,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  imageContainer: {
+    position: "relative",
+  },
+  image: {
+    width: "100%",
+    height: 140,
+  },
+  badges: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    flexDirection: "row",
+    gap: 4,
+  },
+  badge: {
+    backgroundColor: "#0D9488",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  badgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "600",
+  },
+  info: {
+    padding: 12,
+  },
+  category: {
+    fontSize: 11,
+    color: "#9CA3AF",
+    marginBottom: 4,
+    textTransform: "uppercase",
+    fontWeight: "500",
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1A1A2E",
+    marginBottom: 6,
+    lineHeight: 18,
+  },
+  price: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0D9488",
+  },
+});
 
 export default ProductCard;

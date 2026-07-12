@@ -43,9 +43,9 @@ const CreatePost = () => {
       const mediaUrls = await uploadImages(images);
 
       const { error } = await supabase.from("posts").insert({
-        body: content.trim(),
+        content: content.trim(),
         file: mediaUrls,
-        userId: user?.id,
+        user_id: user?.id,
       });
 
       if (error) throw error;
@@ -79,7 +79,7 @@ const CreatePost = () => {
               },
             },
           ],
-          { cancelable: false }
+          { cancelable: false },
         );
       } else {
         resolve(true);
@@ -100,7 +100,7 @@ const CreatePost = () => {
         };
         handleBackPress();
         return true; // Retourne true pour bloquer l'action par défaut
-      }
+      },
     );
 
     return () => backHandler.remove();

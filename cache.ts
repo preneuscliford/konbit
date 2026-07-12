@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store'
 import { Platform } from 'react-native'
-import { TokenCache } from '@clerk/clerk-expo/dist/cache'
+// @ts-ignore - Clerk cache not used, Supabase Auth handles token storage
+type TokenCache = any;
 
 const createTokenCache = (): TokenCache => {
   return {

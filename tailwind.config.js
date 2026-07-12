@@ -1,31 +1,55 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  // NOTE: Update this to include the paths to all of your component files.
-  content: ["./app/**/*.{js,jsx,ts,tsx}"],
+  content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
-        "neon-blue": "#00F6FF",
-        "electric-violet": "#7D5FFF",
-        "carbon-black": "#1A1A1D",
-        "fuchsia-pink": "#FF006E",
-        "ice-white": "#E6E6E6",
-        "lime-neon": "#AFFF00",
-        "steel-gray": "#2E2E3E",
-        "cyber-orange": "#FF8C32",
-        "deep-blue": "#14213D",
-        "tropical-green": "#2D6A4F",
-        "sky-blue": "#52B2CF",
-        "sun-yellow": "#F9C74F",
-        "terracotta-red": "#B7410E",
-        "cream-white": "#FAF3DD",
-        "mango-orange": "#F4A261",
-        "light-gray": "#E5E5E5",
-        "emerald-green": "#81B29A",
-        "ghost-white": "#F5F8FD",
-        "white-2": "#FCFDFE",
-        "rich-black": "#181F27",
+        // Palette Konbit
+        primary: {
+          DEFAULT: "#0D9488",
+          light: "#14B8A6",
+          dark: "#0F766E",
+          50: "#F0FDFA",
+          100: "#CCFBF1",
+          500: "#0D9488",
+          600: "#0F766E",
+          700: "#115E59",
+        },
+        secondary: {
+          DEFAULT: "#F97316",
+          light: "#FB923C",
+          dark: "#EA580C",
+        },
+        surface: {
+          DEFAULT: "#FFFFFF",
+          warm: "#FAFAF5",
+          muted: "#F5F5F0",
+        },
+        charcoal: {
+          DEFAULT: "#1A1A2E",
+          light: "#2D2D44",
+          muted: "#6B7280",
+        },
+        // Legacy aliases for existing code
+        "ghost-white": "#FAFAF5",
+        "rich-black": "#1A1A2E",
+        "emerald-green": "#0D9488",
+        "mango-orange": "#F97316",
+      },
+      fontFamily: {
+        sans: ["System"],
+        mono: ["SpaceMono"],
+      },
+      borderRadius: {
+        xl: "16px",
+        "2xl": "20px",
+        "3xl": "24px",
+      },
+      boxShadow: {
+        card: "0px 2px 8px rgba(0, 0, 0, 0.06)",
+        "card-lg": "0px 4px 16px rgba(0, 0, 0, 0.08)",
+        float: "0px 8px 24px rgba(13, 148, 136, 0.15)",
       },
     },
   },

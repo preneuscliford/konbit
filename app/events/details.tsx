@@ -34,12 +34,12 @@ const EventDetails = () => {
   console.log();
 
   const formattedDate = `${dayjs(event?.start_date).format(
-    "dddd DD MMM  HH:mm"
+    "dddd DD MMM  HH:mm",
   )} → ${dayjs(event?.end_date).format("HH:mm")}`;
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor="#F5F8FD" />
+      <StatusBar style="dark" />
       {event?.map((item: any) => (
         <View className="flex-1" key={item.id}>
           <ScrollView contentContainerStyle={styles.scrollContent}>

@@ -110,7 +110,7 @@ const Create = () => {
       if (form.startDate >= form.endDate) {
         Alert.alert(
           "Erreur",
-          "La date de fin doit être après la date de début"
+          "La date de fin doit être après la date de début",
         );
         return false;
       }
@@ -144,7 +144,7 @@ const Create = () => {
         toastRef.current?.show(
           "Votre événement a été ajouté avec succès",
           "success",
-          1500
+          1500,
         );
         resetForm();
         router.back();
@@ -163,7 +163,7 @@ const Create = () => {
         toastRef.current?.show(
           "Votre service a été ajouté avec succès",
           "success",
-          1500
+          1500,
         );
         resetForm();
         router.back();
@@ -174,7 +174,7 @@ const Create = () => {
         toastRef.current?.show(
           "Une erreur est survenue lors de la soumission de l'annonce",
           "error",
-          1500
+          1500,
         );
       }
     } finally {
@@ -199,7 +199,7 @@ const Create = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackAppbar title="" />
-      <StatusBar style="dark" backgroundColor="#F5F8FD" />
+      <StatusBar style="dark" />
       <Toast ref={toastRef} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}

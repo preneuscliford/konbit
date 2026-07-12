@@ -58,12 +58,12 @@ const CommentInput: React.FC<CommentInputProps> = ({
       const { data, error } = await supabase
         .from("comments")
         .insert({
-          text: newComment.trim(),
-          postId: parseInt(postId, 10),
-          userId: currentUser.id,
+          content: newComment.trim(),
+          post_id: parseInt(postId, 10),
+          user_id: currentUser.id,
         })
-        .select() // Ajouter .select() pour récupérer le commentaire créé
-        .single(); // .single() car on insère un seul enregistrement
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -72,17 +72,17 @@ const CommentInput: React.FC<CommentInputProps> = ({
 
       const { data: postOwner } = await supabase
         .from("posts")
-        .select("userId")
+        .select("user_id")
         .eq("id", parseInt(postId, 10))
         .single();
 
-      if (postOwner?.userId && postOwner.userId !== currentUser.id) {
+      if (postOwner?.user_id && postOwner.user_id !== currentUser.id) {
         await createCommentNotification(
           currentUser,
-          postOwner.userId, // Utiliser la valeur récupérée
+          postOwner.user_id,
           parseInt(postId, 10),
-          data.id, // ID du commentaire créé
-          newComment.trim()
+          data.id,
+          newComment.trim(),
         );
       }
     } catch (error) {

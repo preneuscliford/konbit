@@ -26,7 +26,7 @@ import { StatusBar } from "expo-status-bar";
 const Explore = () => {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
-    null
+    null,
   );
 
   const { data: events } = useQuery({
@@ -36,7 +36,7 @@ const Explore = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" backgroundColor="#F5F8FD" />
+      <StatusBar style="dark" />
       <View style={styles.header}>
         <Text style={styles.title}>Explore</Text>
         <TouchableOpacity style={styles.filterButton}>

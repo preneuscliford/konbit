@@ -43,7 +43,7 @@ const CategoryPage = () => {
         renderItem={({ item }) => (
           <ServiceCard
             service={item}
-            onPress={() => router.push(`/services/${item.id}`)}
+            onPress={() => router.push(`/services/${item.id}` as any)}
           />
         )}
         keyExtractor={(item) => item.id}

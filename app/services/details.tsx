@@ -95,9 +95,6 @@ const dataDetails: React.FC<dataDetailsProps> = () => {
   return (
     <View style={styles.container}>
       <StatusBar
-        translucent
-        networkActivityIndicatorVisible
-        backgroundColor={dominantColors[currentImageIndex] || "#F5F8FD"}
         style={getContrastType(dominantColors[currentImageIndex] || "#F5F8FD")}
       />
 

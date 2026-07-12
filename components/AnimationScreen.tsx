@@ -17,7 +17,7 @@ const AnimationScreen = ({
   }, []);
   return (
     <View style={styles.animationContainer}>
-      <StatusBar style="light" backgroundColor="#181F27" />
+      <StatusBar style="light" />
       <LottieView
         onAnimationFinish={onAnimationFinish}
         loop={false}

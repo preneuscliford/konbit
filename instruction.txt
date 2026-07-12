@@ -102,7 +102,7 @@ create policy "Allow report" on reported_posts
   distributionUrl=https\://services.gradle.org/distributions/gradle-8.10.2-all.zip
 
 
-   adb uninstall com.cliford.voisinage 
+   adb uninstall com.cliford.konbit 
    eas build --platform android --profile preview  
    
 

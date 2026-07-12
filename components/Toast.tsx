@@ -27,7 +27,7 @@ export interface ToastHandles {
     text: string,
     type: ToastType,
     visibleDuration: number,
-    animationDuration?: number
+    animationDuration?: number,
   ) => void;
   hide: (callback?: () => void) => void;
 }
@@ -42,7 +42,7 @@ const Toast = React.forwardRef<ToastHandles, {}>(
     }>({});
 
     const isVisible = useRef(false);
-    const timer = useRef<NodeJS.Timeout>();
+    const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const transY = useSharedValue(-100);
     const transX = useSharedValue(0);
 
@@ -52,7 +52,7 @@ const Toast = React.forwardRef<ToastHandles, {}>(
         error: <AlertCircle size={16} color="#fff" />,
         info: <Info size={16} color="#fff" />,
       }),
-      []
+      [],
     );
 
     const colorMap = useMemo(
@@ -61,23 +61,23 @@ const Toast = React.forwardRef<ToastHandles, {}>(
         error: "#ef4444",
         info: "#0077ed",
       }),
-      []
+      [],
     );
 
     const show = useCallback(
       (text: string, type: ToastType, duration = 2000) => {
         setConfig({ text, type, duration });
       },
-      []
+      [],
     );
 
     const hide = useCallback(
       (callback?: () => void) => {
         transY.value = withTiming(-toastHeight, { duration: 300 }, () =>
-          runOnJS(reset)(callback)
+          runOnJS(reset)(callback),
         );
       },
-      [toastHeight]
+      [toastHeight],
     );
 
     useImperativeHandle(ref, () => ({ show, hide }), [show, hide]);
@@ -94,7 +94,7 @@ const Toast = React.forwardRef<ToastHandles, {}>(
         transY.value,
         [-toastHeight, 20],
         [0, 1],
-        Extrapolation.CLAMP
+        Extrapolation.CLAMP,
       ),
     }));
 
@@ -111,7 +111,11 @@ const Toast = React.forwardRef<ToastHandles, {}>(
 
         timer.current = setTimeout(() => hide(), config.duration);
       }
-      return () => timer.current && clearTimeout(timer.current);
+      return () => {
+        if (timer.current) {
+          clearTimeout(timer.current);
+        }
+      };
     }, [config, toastHeight, textWidth]);
 
     return (
@@ -139,7 +143,7 @@ const Toast = React.forwardRef<ToastHandles, {}>(
         )}
       </Animated.View>
     );
-  }
+  },
 );
 
 const styles = StyleSheet.create({

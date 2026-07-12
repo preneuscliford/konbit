@@ -23,7 +23,7 @@ export const fetchComments = async (postId: string) => {
   const { data, error } = await supabase
     .from("comments")
     .select("*, profiles(*)")
-    .eq("postId", postId)
+    .eq("post_id", postId)
     .order("created_at", { ascending: true });
 
   if (error) throw error;
@@ -60,13 +60,13 @@ export const uploadImages = async (images: ImageAsset[]) => {
 
         if (error) throw error;
         return data?.path;
-      })
+      }),
     );
   } catch (error) {
     throw new Error(
       `Échec du téléversement : ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
   }
 };
@@ -130,7 +130,7 @@ export const createCommentNotification = async (
   postOwnerId: string,
   postId: number,
   commentId: number,
-  commentText: string
+  commentText: string,
 ) => {
   return createNotification({
     type: "comment",
