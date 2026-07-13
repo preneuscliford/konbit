@@ -18,6 +18,7 @@ import { useAuth } from "@/app/provider/AuthProvider";
 import { createNotification } from "@/lib/postServices";
 import { CircleUserRound } from "lucide-react-native";
 import { timeAgo } from "@/utils/date";
+import HashtagText from "./HashtagText";
 
 const COLORS = {
   text: "#1A1A2E",
@@ -224,7 +225,7 @@ const PostsCard = ({
 
       {content ? (
         <View style={styles.body}>
-          <Text style={styles.contentText}>{content}</Text>
+          <HashtagText text={content} style={styles.contentText} />
         </View>
       ) : null}
       {item?.file?.length > 0 && (
