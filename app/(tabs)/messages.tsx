@@ -97,40 +97,77 @@ const MessagesScreen = () => {
   });
 
   const startConversation = async (targetId: string) => {
-    // Check existing
-    const { data: myConvs } = await supabase
-      .from("conversation_participants")
-      .select("conversation_id")
-      .eq("user_id", user!.id);
-
-    const myIds = (myConvs || []).map((c: any) => c.conversation_id);
-    if (myIds.length > 0) {
-      const { data: shared } = await supabase
+    console.log("[MSG] Starting conversation with:", targetId);
+    try {
+      // Check existing
+      const { data: myConvs, error: err1 } = await supabase
         .from("conversation_participants")
         .select("conversation_id")
-        .eq("user_id", targetId)
-        .in("conversation_id", myIds);
-      if (shared?.length) {
-        setShowNew(false);
-        router.push("/(tabs)/messages");
+        .eq("user_id", user!.id);
+
+      if (err1) console.error("[MSG] Error fetching my convs:", err1);
+
+      const myIds = (myConvs || []).map((c: any) => c.conversation_id);
+      if (myIds.length > 0) {
+        const { data: shared, error: err2 } = await supabase
+          .from("conversation_participants")
+          .select("conversation_id")
+          .eq("user_id", targetId)
+          .in("conversation_id", myIds);
+        if (err2) console.error("[MSG] Error finding shared conv:", err2);
+        if (shared?.length) {
+          console.log("[MSG] Conv already exists:", shared[0].conversation_id);
+          setShowNew(false);
+          return;
+        }
+      }
+
+      // Create new
+      console.log("[MSG] Creating new conversation...");
+      const { data: conv, error: err3 } = await supabase
+        .from("conversations")
+        .insert({})
+        .select()
+        .single();
+
+      if (err3) {
+        console.error(
+          "[MSG] Error creating conversation:",
+          err3.code,
+          err3.message,
+        );
         return;
       }
-    }
+      if (!conv) {
+        console.error("[MSG] No conversation returned");
+        return;
+      }
 
-    // Create new
-    const { data: conv } = await supabase
-      .from("conversations")
-      .insert({})
-      .select()
-      .single();
-    if (conv) {
-      await supabase.from("conversation_participants").insert([
-        { conversation_id: conv.id, user_id: user!.id },
-        { conversation_id: conv.id, user_id: targetId },
-      ]);
+      console.log("[MSG] Conversation created:", conv.id);
+      const { error: err4 } = await supabase
+        .from("conversation_participants")
+        .insert([
+          { conversation_id: conv.id, user_id: user!.id },
+          { conversation_id: conv.id, user_id: targetId },
+        ]);
+
+      if (err4) {
+        console.error(
+          "[MSG] Error adding participants:",
+          err4.code,
+          err4.message,
+          err4.details,
+          err4.hint,
+        );
+      } else {
+        console.log("[MSG] Participants added successfully");
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      }
+    } catch (e) {
+      console.error("[MSG] Unexpected error:", e);
+    } finally {
+      setShowNew(false);
     }
-    setShowNew(false);
-    queryClient.invalidateQueries({ queryKey: ["conversations"] });
   };
 
   if (!session) {
