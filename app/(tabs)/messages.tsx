@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Modal,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../provider/AuthProvider";
@@ -12,54 +14,123 @@ import { useRouter } from "expo-router";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { CircleUserRound } from "lucide-react-native";
 import { Image } from "expo-image";
+import RemoteImage from "@/components/RemoteImage";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
+import { getFollowingList } from "@/lib/socialService";
 
 const MessagesScreen = () => {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const router = useRouter();
+  const [showNew, setShowNew] = useState(false);
 
-  const { data: conversations, isLoading } = useQuery({
+  const { data: conversations } = useQuery({
     queryKey: ["conversations", session?.user?.id],
     queryFn: async () => {
-      // Get conversations where user participates
-      const { data: parts } = await supabase
+      // Get my conversations
+      const { data: myParts } = await supabase
         .from("conversation_participants")
         .select("conversation_id")
         .eq("user_id", session!.user.id);
 
-      if (!parts?.length) return [];
+      if (!myParts?.length) return [];
 
-      const convIds = parts.map((p: any) => p.conversation_id);
+      const convIds = myParts.map((p: any) => p.conversation_id);
 
       // Get last message + other participant for each conversation
       const { data: msgs } = await supabase
         .from("messages")
-        .select("*, sender:profiles!sender_id(username, avatar_url, full_name)")
+        .select("content, read, created_at, conversation_id, sender_id")
         .in("conversation_id", convIds)
         .order("created_at", { ascending: false });
 
-      // Group and deduplicate by conversation
+      // Get other participants
+      const { data: allParts } = await supabase
+        .from("conversation_participants")
+        .select(
+          "conversation_id, user:profiles!user_id(id, username, full_name, avatar_url)",
+        )
+        .in("conversation_id", convIds)
+        .neq("user_id", session!.user.id);
+
+      // Build conversation list
       const grouped: Record<string, any> = {};
-      msgs?.forEach((m: any) => {
-        if (!grouped[m.conversation_id]) {
-          grouped[m.conversation_id] = {
-            id: m.conversation_id,
-            lastMsg: m.content,
-            time: new Date(m.created_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            sender: m.sender,
-            unread: m.read ? 0 : 1, // simplified
-          };
-        }
+      convIds.forEach((cid: number) => {
+        const other = allParts?.find((p: any) => p.conversation_id === cid);
+        const lastMsg = msgs?.find((m: any) => m.conversation_id === cid);
+        const unreadCount =
+          msgs?.filter(
+            (m: any) =>
+              m.conversation_id === cid &&
+              m.sender_id !== session!.user.id &&
+              !m.read,
+          ).length || 0;
+
+        grouped[cid] = {
+          id: cid,
+          otherUser: other?.user || null,
+          lastMsg: lastMsg?.content || "",
+          time: lastMsg
+            ? new Date(lastMsg.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "",
+          unread: unreadCount,
+        };
       });
 
-      return Object.values(grouped).slice(0, 20);
+      return Object.values(grouped).sort(
+        (a, b) =>
+          new Date(b.lastMsg?.created_at || 0).getTime() -
+          new Date(a.lastMsg?.created_at || 0).getTime(),
+      );
     },
     enabled: !!session?.user?.id,
   });
+
+  const { data: following } = useQuery({
+    queryKey: ["following-list", user?.id],
+    queryFn: () => getFollowingList(user!.id),
+    enabled: !!user?.id,
+  });
+
+  const startConversation = async (targetId: string) => {
+    // Check existing
+    const { data: myConvs } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", user!.id);
+
+    const myIds = (myConvs || []).map((c: any) => c.conversation_id);
+    if (myIds.length > 0) {
+      const { data: shared } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id")
+        .eq("user_id", targetId)
+        .in("conversation_id", myIds);
+      if (shared?.length) {
+        setShowNew(false);
+        router.push("/(tabs)/messages");
+        return;
+      }
+    }
+
+    // Create new
+    const { data: conv } = await supabase
+      .from("conversations")
+      .insert({})
+      .select()
+      .single();
+    if (conv) {
+      await supabase.from("conversation_participants").insert([
+        { conversation_id: conv.id, user_id: user!.id },
+        { conversation_id: conv.id, user_id: targetId },
+      ]);
+    }
+    setShowNew(false);
+    router.push("/(tabs)/messages");
+  };
 
   if (!session) {
     return (
@@ -93,11 +164,19 @@ const MessagesScreen = () => {
         keyExtractor={(item: any) => String(item.id)}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.chatRow}>
-            {item.sender?.avatar_url ? (
-              <Image
-                source={{ uri: item.sender.avatar_url }}
-                style={styles.avatar}
-              />
+            {item.otherUser?.avatar_url ? (
+              item.otherUser.avatar_url.startsWith("https://") ? (
+                <Image
+                  source={{ uri: item.otherUser.avatar_url }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <RemoteImage
+                  path={item.otherUser.avatar_url}
+                  fallback="profile-placeholder"
+                  style={styles.avatar}
+                />
+              )
             ) : (
               <View style={styles.avatarPlaceholder}>
                 <CircleUserRound color="#9CA3AF" size={24} />
@@ -106,8 +185,8 @@ const MessagesScreen = () => {
             <View style={styles.chatInfo}>
               <View style={styles.chatTop}>
                 <Text style={styles.chatName} numberOfLines={1}>
-                  {item.sender?.full_name ||
-                    item.sender?.username ||
+                  {item.otherUser?.full_name ||
+                    item.otherUser?.username ||
                     "Utilisateur"}
                 </Text>
                 <Text style={styles.chatTime}>{item.time}</Text>
@@ -130,12 +209,74 @@ const MessagesScreen = () => {
             <Feather name="inbox" size={48} color="#D1D5DB" />
             <Text style={styles.emptyTitle}>Aucun message</Text>
             <Text style={styles.emptySub}>
-              Vos conversations apparaîtront ici
+              Appuyez sur + pour démarrer une conversation
             </Text>
           </View>
         }
-        refreshing={isLoading}
       />
+
+      {/* FAB */}
+      <TouchableOpacity style={styles.fab} onPress={() => setShowNew(true)}>
+        <MaterialCommunityIcons name="pencil-plus" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
+
+      {/* New Message Modal */}
+      <Modal
+        visible={showNew}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowNew(false)}
+      >
+        <SafeAreaView style={styles.modalContainer} edges={["top"]}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowNew(false)}>
+              <Text style={styles.cancelText}>Annuler</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Nouveau message</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <FlatList
+            data={following || []}
+            keyExtractor={(item: any) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.userRow}
+                onPress={() => startConversation(item.id)}
+              >
+                {item.avatar_url ? (
+                  item.avatar_url.startsWith("https://") ? (
+                    <Image
+                      source={{ uri: item.avatar_url }}
+                      style={styles.avatar}
+                    />
+                  ) : (
+                    <RemoteImage
+                      path={item.avatar_url}
+                      fallback="profile-placeholder"
+                      style={styles.avatar}
+                    />
+                  )
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <CircleUserRound color="#9CA3AF" size={22} />
+                  </View>
+                )}
+                <View style={styles.userInfo}>
+                  <Text style={styles.userName}>
+                    {item.full_name || item.username}
+                  </Text>
+                  <Text style={styles.userHandle}>@{item.username}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Text style={styles.emptySub}>Vous ne suivez personne</Text>
+              </View>
+            }
+          />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -209,6 +350,49 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   loginBtnText: { color: "#FFFFFF", fontWeight: "700", fontSize: 15 },
+
+  fab: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: "#0D9488",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#0D9488",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+
+  modalContainer: { flex: 1, backgroundColor: "#FAFAF5" },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0EB",
+  },
+  cancelText: { fontSize: 15, color: "#6B7280" },
+  modalTitle: { fontSize: 17, fontWeight: "700", color: "#1A1A2E" },
+
+  userRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    marginHorizontal: 12,
+    marginBottom: 2,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    gap: 12,
+  },
+  userInfo: { flex: 1 },
+  userName: { fontSize: 15, fontWeight: "700", color: "#1A1A2E" },
+  userHandle: { fontSize: 13, color: "#9CA3AF" },
 });
 
 export default MessagesScreen;

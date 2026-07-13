@@ -30,6 +30,16 @@ export const getTrendingHashtags = async (limit = 6) => {
   return data || [];
 };
 
+// List of users I'm following (for messaging)
+export const getFollowingList = async (userId: string) => {
+  const { data } = await supabase
+    .from("follows")
+    .select("following:profiles!following_id(id, username, full_name, avatar_url)")
+    .eq("follower_id", userId)
+    .limit(50);
+  return (data || []).map((f: any) => f.following);
+};
+
 // Suggested users (random profiles you're not following)
 export const getSuggestedUsers = async (userId: string, limit = 4) => {
   const { data: followed } = await supabase.from("follows").select("following_id").eq("follower_id", userId);
