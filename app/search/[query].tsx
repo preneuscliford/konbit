@@ -1,107 +1,83 @@
+import React from "react";
 import {
-  Alert,
-  FlatList,
-  Image,
-  StyleSheet,
   View,
-  ScrollView,
-  TouchableOpacity,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import { Card, Text, Chip, Badge } from "react-native-paper";
-import { router, useLocalSearchParams } from "expo-router";
-import { supabase } from "@/lib/supabase";
-import ProductsImage from "@/components/ProductsImage";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { supabase } from "@/lib/supabase";
+import { useQuery } from "@tanstack/react-query";
+import PostsCard from "@/components/PostsCard";
+import { useAuth } from "../provider/AuthProvider";
+import BackAppbar from "@/components/AppBar";
+import { StatusBar } from "expo-status-bar";
 
-interface Product {
-  category: string;
-  price: number;
-  title: string;
-  desc: string;
-  imageUrl: string;
-}
-const search = () => {
-  const [resultats, setResultats] = useState<Product[]>([]);
-  const { query } = useLocalSearchParams();
+export default function SearchQuery() {
+  const { query } = useLocalSearchParams<{ query: string }>();
+  const { userData, user } = useAuth();
+  const router = useRouter();
 
-  useEffect(() => {
-    recherche();
-  }, []);
+  const searchTerm = (query || "").replace("#", "");
 
-  const recherche = async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .textSearch("title", `%${query}%`);
-    if (error) {
-      console.error(error);
-    } else {
-      setResultats(data as never[]);
-    }
-  };
+  const { data: results, isLoading } = useQuery({
+    queryKey: ["search", searchTerm],
+    queryFn: async () => {
+      const { data: posts } = await supabase
+        .from("posts")
+        .select("*, profiles(*), post_likes(*), comments(*)")
+        .or(`content.ilike.%${searchTerm}%,content.ilike.%#${searchTerm}%`)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      return posts || [];
+    },
+    enabled: !!searchTerm,
+  });
 
-  console.log(resultats);
   return (
-    <SafeAreaView className="h-full bg-white">
-      <View className="p-5">
-        <View className=" mt-5  " style={{ paddingBottom: 10 }}>
-          <Text className=" text-2xl font-bold">Resultats pour: {query}</Text>
-          <FlatList
-            data={resultats}
-            numColumns={2}
-            scrollEnabled={false}
-            renderItem={({ item, index }) => (
-              <ScrollView key={index} style={{ paddingBottom: 10 }}>
-                <TouchableOpacity
-                  onPress={() => router.navigate("/product/details" as any)}
-                >
-                  <View style={{ margin: 5, width: 180 }}>
-                    <Card style={{ width: "100%" }}>
-                      <ProductsImage
-                        path={item?.imageUrl}
-                        fallback={"product image"}
-                        style={{
-                          height: 200,
-                          width: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-
-                      <Chip
-                        onPress={() => console.log("Pressed")}
-                        style={{ marginVertical: 5, marginHorizontal: 5 }}
-                        className=" text-sm"
-                      >
-                        {item?.category}
-                      </Chip>
-                      <Card.Content>
-                        <Badge
-                          size={25}
-                          style={{ alignSelf: "flex-start" }}
-                          className="font-bold"
-                        >
-                          {item?.price ? `${item.price} €` : ""}
-                        </Badge>
-                        <Text variant="titleSmall" numberOfLines={1}>
-                          {item?.title}{" "}
-                        </Text>
-                        <Text variant="bodySmall" numberOfLines={1}>
-                          {item?.desc}{" "}
-                        </Text>
-                      </Card.Content>
-                    </Card>
-                  </View>
-                </TouchableOpacity>
-              </ScrollView>
-            )}
-          />
-        </View>
-      </View>
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <StatusBar style="dark" />
+      <BackAppbar title={`#${searchTerm}`} />
+      {isLoading ? (
+        <ActivityIndicator style={{ marginTop: 40 }} color="#0D9488" />
+      ) : (
+        <FlatList
+          data={results}
+          keyExtractor={(item: any) => String(item.id)}
+          renderItem={({ item }) => (
+            <PostsCard
+              item={item}
+              currentUser={userData || user}
+              router={router}
+              showMoreIcons
+            />
+          )}
+          contentContainerStyle={styles.list}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyTitle}>Aucun résultat</Text>
+              <Text style={styles.emptySub}>
+                Aucune publication trouvée pour #{searchTerm}
+              </Text>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
-};
+}
 
-export default search;
-
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#FAFAF5" },
+  list: { paddingTop: 8 },
+  empty: { alignItems: "center", paddingTop: 80, paddingHorizontal: 32 },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1A1A2E",
+    marginBottom: 6,
+  },
+  emptySub: { fontSize: 14, color: "#9CA3AF", textAlign: "center" },
+});

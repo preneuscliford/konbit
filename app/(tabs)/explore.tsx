@@ -102,7 +102,16 @@ const Explore = () => {
           <Text style={styles.sectionTitle}>Tendances</Text>
           <View style={styles.topicRow}>
             {hashtagsList.map((topic: string) => (
-              <TouchableOpacity key={topic} style={styles.topicChip}>
+              <TouchableOpacity
+                key={topic}
+                style={styles.topicChip}
+                onPress={() =>
+                  router.push({
+                    pathname: "/search/[query]",
+                    params: { query: topic },
+                  })
+                }
+              >
                 <Text style={styles.topicText}>{topic}</Text>
               </TouchableOpacity>
             ))}

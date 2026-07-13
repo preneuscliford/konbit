@@ -28,6 +28,16 @@ const COLORS = {
   like: "#EF4444",
 };
 
+const TYPE_CONFIG: Record<
+  string,
+  { label: string; icon: string; color: string }
+> = {
+  post: { label: "Publication", icon: "text", color: "#0D9488" },
+  help: { label: "Demande d'aide", icon: "hand-heart", color: "#F97316" },
+  announce: { label: "Annonce", icon: "bullhorn", color: "#6366F1" },
+  event: { label: "Événement", icon: "calendar-star", color: "#EC4899" },
+};
+
 const PostsCard = ({
   item,
   router,
@@ -40,8 +50,9 @@ const PostsCard = ({
   const heartScale = useRef(new Animated.Value(1)).current;
   const { user } = useAuth();
   const channelRef = useRef<any>(null);
-
-  const liked = likes?.some((like) => like.user_id === currentUser?.id);
+  const liked = likes?.some((like: any) => like.user_id === currentUser?.id);
+  const postType = item?.post_type || "post";
+  const typeMeta = TYPE_CONFIG[postType] || TYPE_CONFIG.post;
 
   const animateHeart = () => {
     Animated.sequence([
@@ -64,28 +75,23 @@ const PostsCard = ({
     try {
       if (liked) {
         const updatedLikes = likes.filter(
-          (like) => like.user_id !== currentUser.id,
+          (l: any) => l.user_id !== currentUser.id,
         );
         setLikes(updatedLikes);
-        const { error } = await supabase
+        await supabase
           .from("post_likes")
           .delete()
           .eq("user_id", currentUser.id)
           .eq("post_id", item.id);
-        if (error) {
-          setLikes(likes);
-          console.error("Unlike error:", error);
-        }
       } else {
-        const newLike = { post_id: item.id, user_id: currentUser.id };
-        setLikes([...likes, newLike]);
+        setLikes([...likes, { post_id: item.id, user_id: currentUser.id }]);
         animateHeart();
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from("post_likes")
           .insert({ post_id: item.id, user_id: currentUser.id })
           .select()
           .single();
-        if (!error && data) {
+        if (!error) {
           const { data: postOwner } = await supabase
             .from("posts")
             .select("user_id")
@@ -102,20 +108,14 @@ const PostsCard = ({
             });
           }
         }
-        if (error) {
-          setLikes(likes);
-          console.error("Like error:", error);
-        }
       }
-    } catch (error) {
-      console.error("Like handling error:", error);
     } finally {
       setIsLiking(false);
     }
   };
 
   useEffect(() => {
-    if (item?.id) {
+    if (item?.id)
       supabase
         .from("post_likes")
         .select("*")
@@ -123,14 +123,11 @@ const PostsCard = ({
         .then(({ data, error }) => {
           if (!error && data) setLikes(data);
         });
-    }
   }, [item?.id]);
 
-  // Realtime channel — only on feed (showMoreIcons=true), not on postDetails
   useEffect(() => {
     if (!item?.id || !showMoreIcons) return;
     if (channelRef.current) channelRef.current.unsubscribe();
-
     const name = `post-likes-${item.id}-${Math.random().toString(36).slice(2, 6)}`;
     const channel = supabase.channel(name);
     channel
@@ -152,7 +149,6 @@ const PostsCard = ({
       )
       .subscribe();
     channelRef.current = channel;
-
     return () => {
       channel.unsubscribe();
       channelRef.current = null;
@@ -160,28 +156,37 @@ const PostsCard = ({
   }, [item?.id, showMoreIcons]);
 
   const handleShare = async () => {
-    const text = (item?.content || item?.body || "").replace(
-      /<\/?[^>]+(>|$)/gm,
-      "",
-    );
-    Share.share({ message: text });
-  };
-
-  const handleProfilePress = () => {
-    router.push({
-      pathname: "/(tabs)/(community)/profile/[id]",
-      params: { id: item?.profiles?.id },
+    Share.share({
+      message: (item?.content || "").replace(/<\/?[^>]+(>|$)/gm, ""),
     });
   };
-
   const content = item?.content || item?.body;
 
   return (
     <View style={styles.card}>
+      {/* Type badge */}
+      <View
+        style={[styles.typeBadge, { backgroundColor: `${typeMeta.color}15` }]}
+      >
+        <MaterialCommunityIcons
+          name={typeMeta.icon as any}
+          size={14}
+          color={typeMeta.color}
+        />
+        <Text style={[styles.typeLabel, { color: typeMeta.color }]}>
+          {typeMeta.label}
+        </Text>
+      </View>
+
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.profileRow}
-          onPress={handleProfilePress}
+          onPress={() =>
+            router.push({
+              pathname: "/(community)/profile/[id]",
+              params: { id: item?.profiles?.id },
+            })
+          }
         >
           {item?.profiles?.avatar_url ? (
             item.profiles.avatar_url.startsWith("https://") ? (
@@ -222,8 +227,7 @@ const PostsCard = ({
           <Text style={styles.contentText}>{content}</Text>
         </View>
       ) : null}
-
-      {item?.file && item.file.length > 0 && (
+      {item?.file?.length > 0 && (
         <View style={styles.mediaWrap}>
           <ImageSlider images={item.file} />
         </View>
@@ -245,7 +249,7 @@ const PostsCard = ({
           </TouchableOpacity>
           <Link
             href={{
-              pathname: "/(tabs)/(community)/postDetails",
+              pathname: "/(community)/postDetails",
               params: { postId: item?.id },
             }}
             asChild
@@ -292,6 +296,17 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
   },
+  typeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  typeLabel: { fontSize: 11, fontWeight: "700" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
