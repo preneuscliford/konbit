@@ -16,12 +16,13 @@ import { CircleUserRound } from "lucide-react-native";
 import { Image } from "expo-image";
 import RemoteImage from "@/components/RemoteImage";
 import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getFollowingList } from "@/lib/socialService";
 
 const MessagesScreen = () => {
   const { session, user } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [showNew, setShowNew] = useState(false);
 
   const { data: conversations } = useQuery({
@@ -129,7 +130,7 @@ const MessagesScreen = () => {
       ]);
     }
     setShowNew(false);
-    router.push("/(tabs)/messages");
+    queryClient.invalidateQueries({ queryKey: ["conversations"] });
   };
 
   if (!session) {
