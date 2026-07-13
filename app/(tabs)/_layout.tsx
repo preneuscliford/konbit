@@ -1,9 +1,10 @@
 import { Tabs, usePathname } from "expo-router";
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Feather from "@expo/vector-icons/Feather";
 import { LogBox } from "react-native";
 
 LogBox.ignoreLogs([
@@ -12,37 +13,41 @@ LogBox.ignoreLogs([
   "Warning: TRenderEngineProvider",
 ]);
 
-const TAB_ICON_SIZE = 22;
-const ACTIVE_COLOR = "#0D9488";
-const INACTIVE_COLOR = "#9CA3AF";
+const ACTIVE = "#0D9488";
+const INACTIVE = "#9CA3AF";
 
 export default function TabLayout() {
-  const pathname = usePathname();
-  const hideTabBar = pathname.includes("/create");
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const compact = width < 380;
+  const iconSize = compact ? 20 : 22;
+  const createIconSize = compact ? 24 : 26;
+  // Hauteur : 50px + safe area bottom
+  const barHeight = 50 + (insets.bottom || 0);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          display: hideTabBar ? "none" : "flex",
           backgroundColor: "#FFFFFF",
-          borderTopWidth: 0,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: "#F0F0EB",
           elevation: 0,
           shadowOpacity: 0,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: barHeight,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
+          paddingTop: 6,
         },
-        tabBarActiveTintColor: ACTIVE_COLOR,
-        tabBarInactiveTintColor: INACTIVE_COLOR,
+        tabBarActiveTintColor: ACTIVE,
+        tabBarInactiveTintColor: INACTIVE,
         tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: "600",
-          marginTop: 2,
+          fontSize: compact ? 8 : 10,
+          fontWeight: "700",
+          marginTop: 0,
         },
         tabBarItemStyle: {
-          paddingVertical: 2,
+          paddingVertical: 0,
         },
       }}
       initialRouteName="index"
@@ -51,17 +56,17 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Accueil",
-          tabBarIcon: ({ color, focused }) => (
-            <AntDesign name="home" size={TAB_ICON_SIZE} color={color} />
+          tabBarIcon: ({ color }) => (
+            <AntDesign name="home" size={iconSize} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: "Explorer",
-          tabBarIcon: ({ color, focused }) => (
-            <MaterialIcons name="explore" size={TAB_ICON_SIZE} color={color} />
+          title: "Découvrir",
+          tabBarIcon: ({ color }) => (
+            <Feather name="compass" size={iconSize} color={color} />
           ),
         }}
       />
@@ -72,21 +77,21 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <View
               style={[
-                styles.createButton,
+                styles.circle,
                 { backgroundColor: focused ? "#0F766E" : "#0D9488" },
               ]}
             >
-              <MaterialIcons name="add" size={28} color="#FFFFFF" />
+              <MaterialIcons name="add" size={createIconSize} color="#FFFFFF" />
             </View>
           ),
         }}
       />
       <Tabs.Screen
-        name="(community)"
+        name="messages"
         options={{
-          title: "Commu",
-          tabBarIcon: ({ color, focused }) => (
-            <FontAwesome6 name="users" size={20} color={color} />
+          title: "Messages",
+          tabBarIcon: ({ color }) => (
+            <Feather name="message-circle" size={iconSize} color={color} />
           ),
         }}
       />
@@ -94,8 +99,8 @@ export default function TabLayout() {
         name="(profile)"
         options={{
           title: "Profil",
-          tabBarIcon: ({ color, focused }) => (
-            <AntDesign name="user" size={TAB_ICON_SIZE} color={color} />
+          tabBarIcon: ({ color }) => (
+            <AntDesign name="user" size={iconSize} color={color} />
           ),
         }}
       />
@@ -104,17 +109,17 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  createButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  circle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: -16,
     shadowColor: "#0D9488",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    marginTop: -2,
   },
 });

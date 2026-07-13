@@ -1,278 +1,287 @@
 import {
-  FlatList,
-  GestureResponderEvent,
-  ScrollView,
+  View,
   Text,
   TouchableOpacity,
-  View,
+  StyleSheet,
+  ScrollView,
 } from "react-native";
-import { Link, useRouter } from "expo-router";
+import { useRouter, Link } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import AntDesign from "@expo/vector-icons/AntDesign";
 import { useAuth } from "@/app/provider/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import RemoteImage from "@/components/RemoteImage";
-import {
-  MaterialIcons,
-  Feather,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
-import { useEffect, useState } from "react";
-import RenderHTML from "react-native-render-html";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { CircleUserRound } from "lucide-react-native";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
+import PostsCard from "@/components/PostsCard";
 import DeleteAccountButton from "@/components/account/deleteAccount";
+import { getFollowersCount, getFollowingCount } from "@/lib/socialService";
 
-type Post = {
-  id: string;
-  created_at: string;
-  body: string;
-  userId: string;
-};
-
-type Product = {
-  id: string;
-  title: string;
-  desc: string;
-  price: number;
-  imageUrl: string;
-  category: string;
-};
 const EditProfil = () => {
   const { session, user, userData } = useAuth();
-  // const [userData, setUserData] = useState<UserData | null>(null);
-
-  const [activeTab, setActiveTab] = useState<"posts" | "products">("products");
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [userProducts, setUserProducts] = useState<any[]>([]);
   const router = useRouter();
 
-  // ... Gardez les fonctions existantes getProfile et getUserProducts ...
-  useEffect(() => {
-    if (session?.user.id) {
-      if (activeTab === "products") {
-        loadProducts();
-      } else {
-        loadPosts();
-      }
-    }
-  }, [session, activeTab]);
+  const { data: userPosts } = useQuery({
+    queryKey: ["user-posts", session?.user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("posts")
+        .select("*, profiles(*), post_likes(*), comments(*)")
+        .eq("user_id", session!.user.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return data || [];
+    },
+    enabled: !!session?.user?.id,
+  });
 
-  const loadProducts = async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .eq("user_id", session!.user.id);
+  const { data: followersCount } = useQuery({
+    queryKey: ["followers-count", user?.id],
+    queryFn: () => getFollowersCount(user!.id),
+    enabled: !!user?.id,
+  });
 
-    if (!error) setProducts(data as Product[]);
-  };
-
-  const loadPosts = async () => {
-    const { data, error } = await supabase
-      .from("posts")
-      .select("*")
-      .eq("userId", session!.user.id)
-      .order("created_at", { ascending: false });
-
-    if (!error) setPosts(data as Post[]);
-  };
-
-  const renderProductItem = ({ item }: { item: Product }) => (
-    <TouchableOpacity className="p-4 bg-white rounded-xl shadow-md mb-4">
-      {/* <RemoteImage
-        path={item.imageUrl}
-        className="w-full h-48 rounded-lg mb-2"
-        fallback="product-placeholder"
-      />
-      <View className="flex-row justify-between items-start">
-        <Text className="text-lg font-semibold flex-1">{item.title}</Text>
-        <Text className="text-blue-600 font-bold">€{item.price}</Text>
-      </View>
-      <Text className="text-gray-500 text-sm">{item.category}</Text>
-      <Text className="text-gray-700 mt-1" numberOfLines={2}>
-        {item.desc}
-      </Text> */}
-    </TouchableOpacity>
-  );
-
-  const renderPostItem = ({ item }: { item: Post }) => (
-    <View className="p-4 bg-white rounded-xl shadow-md mb-4">
-      {/* <Text className="text-gray-500 text-sm mb-2">
-        {new Date(item.created_at).toLocaleDateString()}
-      </Text>
-      <RenderHTML
-        contentWidth={300}
-        source={{ html: item.body }}
-        baseStyle={{ fontSize: 16, lineHeight: 24 }}
-      /> */}
-    </View>
-  );
+  const { data: followingCount } = useQuery({
+    queryKey: ["following-count", user?.id],
+    queryFn: () => getFollowingCount(user!.id),
+    enabled: !!user?.id,
+  });
 
   const handleSignOut = async () => {
-    try {
-      // Déconnexion de Supabase
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      // Révocation du token Google
-      await GoogleSignin.signOut();
-
-      // Rediriger vers la page de connexion ou autre
-      router.push("/(auth)/signIn");
-    } catch (error) {
-      console.error("Erreur lors de la déconnexion :", error);
-    }
+    await supabase.auth.signOut();
+    router.push("/(auth)/signIn");
   };
 
-  return (
-    <View className="flex-1 bg-gray-100">
-      <StatusBar style="light" />
-      <View
-        style={{ height: hp("25%") }}
-        className="bg-slate-950 rounded-br-[80px] px-4"
-      >
-        <View
-          style={{ paddingTop: hp("8%") }}
-          className="flex-row justify-between items-center"
-        >
-          <Text style={{ fontSize: wp("5%") }} className="text-white font-bold">
-            Profil
-          </Text>
-          <Link href={"/(tabs)/(profile)/editProfile"}>
-            <AntDesign name="edit" size={wp("6%")} color="white" />
-          </Link>
+  if (!session) {
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.emptyState}>
+          <CircleUserRound color="#D1D5DB" size={64} />
+          <Text style={styles.emptyTitle}>Connectez-vous</Text>
+          <Text style={styles.emptySub}>Accédez à votre profil</Text>
+          <TouchableOpacity
+            style={styles.loginBtn}
+            onPress={() => router.push("/(auth)/signIn")}
+          >
+            <Text style={styles.loginBtnText}>Se connecter</Text>
+          </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
+    );
+  }
 
-      {/* Contenu principal */}
-      <ScrollView
-        scrollEnabled={true}
-        className="flex-1 px-4"
-        style={{ marginTop: -hp("10%") }}
-      >
-        {/* Carte profil */}
-        <View className="bg-white rounded-3xl shadow-lg p-6 mb-6">
-          <View className="items-center">
-            {userData?.avatar_url?.startsWith("https://") ? (
-              <View className="flex-col items-center">
+  return (
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <StatusBar style="dark" />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarWrap}>
+            {userData?.avatar_url ? (
+              userData.avatar_url.startsWith("https://") ? (
                 <Image
-                  source={{ uri: userData?.avatar_url }}
-                  style={{
-                    width: wp("10%"),
-                    height: wp("10%"),
-                    borderRadius: wp("5%"),
-                  }}
+                  source={{ uri: userData.avatar_url }}
+                  style={styles.avatar}
                 />
-                <Text
-                  style={{ fontSize: wp("6%") }}
-                  className="font-bold text-gray-900"
-                >
-                  {userData?.full_name || userData?.username}
-                </Text>
-              </View>
+              ) : (
+                <RemoteImage
+                  path={userData.avatar_url}
+                  fallback="profile-placeholder"
+                  style={styles.avatar}
+                />
+              )
             ) : (
-              <View className="flex-col items-center">
-                {userData?.avatar_url ? (
-                  <RemoteImage
-                    path={userData?.avatar_url}
-                    fallback="profile-placeholder"
-                    style={{
-                      width: wp("20%"),
-                      height: wp("20%"),
-                      borderRadius: wp("10%"),
-                    }}
-                  />
-                ) : (
-                  <CircleUserRound color="black" size={wp("8%")} />
-                )}
-                <Text
-                  style={{ fontSize: wp("6%") }}
-                  className="font-bold text-gray-900"
-                >
-                  {userData?.full_name || userData?.username}
-                </Text>
-              </View>
+              <CircleUserRound color="#9CA3AF" size={48} />
             )}
           </View>
-          <View className="items-center">
-            <Text className="text-gray-500 mt-1">{session?.user?.email}</Text>
+          <Text style={styles.displayName}>
+            {userData?.full_name || userData?.username}
+          </Text>
+          <Text style={styles.handle}>
+            @{userData?.username || "utilisateur"}
+          </Text>
+          {userData?.bio ? (
+            <Text style={styles.bio}>{userData.bio}</Text>
+          ) : null}
+
+          <View style={styles.statsRow}>
+            <View style={styles.stat}>
+              <Text style={styles.statNumber}>{userPosts?.length || 0}</Text>
+              <Text style={styles.statLabel}>Publications</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.stat}>
+              <Text style={styles.statNumber}>{followersCount || 0}</Text>
+              <Text style={styles.statLabel}>Abonnés</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.stat}>
+              <Text style={styles.statNumber}>{followingCount || 0}</Text>
+              <Text style={styles.statLabel}>Abonnements</Text>
+            </View>
           </View>
+
+          <Link href="/(tabs)/(profile)/editProfile" asChild>
+            <TouchableOpacity style={styles.editBtn}>
+              <Text style={styles.editBtnText}>Modifier le profil</Text>
+            </TouchableOpacity>
+          </Link>
         </View>
 
-        <View className="mb-8">
-          <Text
-            style={{ fontSize: wp("4.5%") }}
-            className="font-bold text-gray-900 mb-4"
-          >
-            Mon compte
-          </Text>
-
-          <View className="grid grid-cols-3 gap-4 mb-6">
-            {/* Bouton Paramètres */}
-            <TouchableOpacity
-              style={{ padding: wp("4%") }}
-              className="items-center bg-white rounded-xl shadow-sm"
-            >
-              <Feather name="settings" size={wp("6%")} color="#0a7ea4" />
-              <Text
-                style={{ fontSize: wp("3.5%") }}
-                className="text-gray-700 mt-2"
-              >
-                Paramètres
-              </Text>
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionTitle}>Paramètres</Text>
+          <View style={styles.settingsGrid}>
+            <TouchableOpacity style={styles.settingCard}>
+              <Feather name="settings" size={24} color="#0D9488" />
+              <Text style={styles.settingLabel}>Paramètres</Text>
             </TouchableOpacity>
-
-            {/* Bouton Favoris */}
-            <TouchableOpacity
-              className="items-center p-4 bg-white rounded-xl shadow-sm"
-              // onPress={() => router.push("/favorites")}
-            >
+            <TouchableOpacity style={styles.settingCard}>
               <MaterialCommunityIcons
                 name="heart-outline"
                 size={24}
-                color="#0a7ea4"
+                color="#0D9488"
               />
-              <Text className="text-sm text-gray-700 mt-2">Favoris</Text>
-              <View className="absolute top-2 right-2 bg-red-500 w-5 h-5 rounded-full items-center justify-center">
-                <Text className="text-white text-xs">3</Text>
-              </View>
+              <Text style={styles.settingLabel}>Favoris</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              className="items-center p-4 bg-white rounded-xl shadow-sm"
-              // onPress={() => router.push("/favorites")}
-            >
+            <TouchableOpacity style={styles.settingCard}>
               <MaterialCommunityIcons
                 name="post-outline"
                 size={24}
-                color="#0a7ea4"
+                color="#0D9488"
               />
-              <Text className="text-sm text-gray-700 mt-2">Mes Posts</Text>
-              <View className="absolute top-2 right-2 bg-red-500 w-5 h-5 rounded-full items-center justify-center">
-                <Text className="text-white text-xs">1</Text>
-              </View>
+              <Text style={styles.settingLabel}>Mes Posts</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Bouton de déconnexion */}
-        <TouchableOpacity
-          onPress={handleSignOut}
-          className="border border-red-500 rounded-xl py-4 mb-8"
-        >
-          <Text className="text-red-600 text-center font-semibold">
-            Se déconnecter
-          </Text>
+        <View style={styles.postsSection}>
+          <Text style={styles.sectionTitle}>Publications</Text>
+          {userPosts?.map((post: any) => (
+            <PostsCard
+              key={post.id}
+              item={post}
+              currentUser={userData || user}
+              router={router}
+              showMoreIcons
+            />
+          ))}
+        </View>
+
+        <TouchableOpacity onPress={handleSignOut} style={styles.signOutBtn}>
+          <Text style={styles.signOutText}>Se déconnecter</Text>
         </TouchableOpacity>
         <DeleteAccountButton />
+        <View style={{ height: 30 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#FAFAF5" },
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+    paddingTop: 80,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1A1A2E",
+    marginTop: 8,
+  },
+  emptySub: { fontSize: 14, color: "#9CA3AF" },
+  loginBtn: {
+    marginTop: 16,
+    backgroundColor: "#0D9488",
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  loginBtnText: { color: "#FFFFFF", fontWeight: "700", fontSize: 15 },
+  profileHeader: {
+    alignItems: "center",
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+  },
+  avatarWrap: { marginBottom: 12 },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 3,
+    borderColor: "#0D9488",
+  },
+  displayName: { fontSize: 20, fontWeight: "800", color: "#1A1A2E" },
+  handle: { fontSize: 14, color: "#9CA3AF", marginTop: 2 },
+  bio: {
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
+    marginTop: 8,
+    paddingHorizontal: 20,
+  },
+  statsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 18,
+    gap: 24,
+  },
+  stat: { alignItems: "center" },
+  statNumber: { fontSize: 18, fontWeight: "800", color: "#1A1A2E" },
+  statLabel: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
+  statDivider: { width: 1, height: 24, backgroundColor: "#E5E7EB" },
+  editBtn: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 9,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+  },
+  editBtnText: { fontSize: 14, fontWeight: "600", color: "#1A1A2E" },
+  settingsSection: { paddingHorizontal: 16, marginTop: 12 },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1A1A2E",
+    marginBottom: 12,
+  },
+  settingsGrid: { flexDirection: "row", gap: 10 },
+  settingCard: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    borderRadius: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+    gap: 8,
+  },
+  settingLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1A1A2E",
+    textAlign: "center",
+  },
+  postsSection: { paddingHorizontal: 16, marginTop: 24 },
+  signOutBtn: {
+    marginHorizontal: 16,
+    marginTop: 24,
+    borderWidth: 1,
+    borderColor: "#EF4444",
+    borderRadius: 14,
+    padding: 14,
+    alignItems: "center",
+  },
+  signOutText: { color: "#EF4444", fontSize: 15, fontWeight: "600" },
+});
 
 export default EditProfil;

@@ -131,7 +131,7 @@ const Index = () => {
 
         <Appbar.Action
           icon={() => <SquarePlus size={24} color="#9333EA" />}
-          onPress={() => router.push("/(tabs)/(community)/create")}
+          onPress={() => router.push("/(community)/create")}
         />
         <Appbar.Action
           icon={() => (
@@ -147,7 +147,7 @@ const Index = () => {
               )}
             </View>
           )}
-          onPress={() => router.push("/(tabs)/(community)/notifications")}
+          onPress={() => router.push("/(community)/notifications")}
         />
 
         <Appbar.Action
