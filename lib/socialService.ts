@@ -24,12 +24,6 @@ export const isFollowing = async (followerId: string, followingId: string) => {
   return !!data;
 };
 
-// Hashtags
-export const getTrendingHashtags = async (limit = 6) => {
-  const { data } = await supabase.from("hashtags").select("*").order("post_count", { ascending: false }).limit(limit);
-  return data || [];
-};
-
 // List of users I'm following (for messaging)
 export const getFollowingList = async (userId: string) => {
   const { data } = await supabase

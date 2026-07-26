@@ -11,19 +11,19 @@ import { supabase } from "@/lib/supabase";
 import { Feather } from "@expo/vector-icons";
 
 export const ModerationActions = ({
-  postId,
+  konbitId,
   userId,
   currentUserId,
 }: {
-  postId: string;
+  konbitId: string;
   userId: string;
   currentUserId?: string;
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleReport = async (reason: string) => {
-    const { error } = await supabase.from("reported_posts").insert({
-      post_id: postId,
+    const { error } = await supabase.from("reported_konbits").insert({
+      konbit_id: konbitId,
       reporter_id: currentUserId,
       reason,
     });
@@ -33,9 +33,12 @@ export const ModerationActions = ({
   };
 
   const handleDelete = async () => {
-    const { error } = await supabase.from("posts").delete().eq("id", postId);
+    const { error } = await supabase
+      .from("konbits")
+      .delete()
+      .eq("id", konbitId);
 
-    if (!error) Alert.alert("Post supprimé");
+    if (!error) Alert.alert("Konbit supprimée");
     setModalVisible(false);
   };
 
@@ -58,11 +61,11 @@ export const ModerationActions = ({
                 style={styles.modalButton}
                 onPress={handleDelete}
               >
-                <Text style={styles.deleteText}>Supprimer le post</Text>
+                <Text style={styles.deleteText}>Supprimer la Konbit</Text>
               </TouchableOpacity>
             ) : (
               <>
-                <Text style={styles.modalTitle}>Signaler le post</Text>
+                <Text style={styles.modalTitle}>Signaler la Konbit</Text>
                 {["Spam", "Contenu inapproprié", "Harcèlement"].map(
                   (reason) => (
                     <TouchableOpacity

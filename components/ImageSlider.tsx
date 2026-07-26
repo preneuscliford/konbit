@@ -9,10 +9,12 @@ import {
 } from "react-native";
 
 import { useColorScheme } from "react-native";
-import { PostImages } from "./Images";
+import { Image } from "expo-image";
+import { getKonbitMediaUrl } from "@/lib/konbitServices";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { X } from "lucide-react-native";
+import Colors from "@/constants/Colors";
 
 interface ImageSliderProps {
   images: string[];
@@ -25,6 +27,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ images }) => {
   const colorScheme = useColorScheme();
   const colors = {
     border: colorScheme === "dark" ? "#333" : "#ddd",
+    primary: Colors.primary,
   };
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -50,9 +53,8 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ images }) => {
         renderItem={({ item }) => (
           <TouchableWithoutFeedback onPress={() => setSelectedImage(item)}>
             <View className="mr-2  pt-4">
-              <PostImages
-                path={item}
-                fallback="product-placeholder"
+              <Image
+                source={{ uri: getKonbitMediaUrl(item) }}
                 style={[styles.image, { borderColor: colors.border }]}
               />
             </View>
@@ -84,7 +86,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ images }) => {
           <View style={styles.modalContainer}>
             <X
               size={28}
-              color="rgb(245,35,0.1)"
+              color="#FFFFFF"
               style={{
                 position: "absolute",
                 top: 20,
@@ -95,9 +97,8 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ images }) => {
                 padding: 4,
               }}
             />
-            <PostImages
-              path={selectedImage || ""}
-              fallback="product-placeholder"
+            <Image
+              source={{ uri: getKonbitMediaUrl(selectedImage || "") }}
               style={styles.fullScreenImage}
             />
           </View>

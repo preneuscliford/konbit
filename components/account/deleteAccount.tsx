@@ -26,25 +26,20 @@ const DeleteAccountButton: React.FC = () => {
                 throw new Error("Utilisateur non authentifié.");
               }
 
-              // Ici, nous effectuons un soft delete en mettant à jour un champ dans le profil.
-              // Assurez-vous que la table profiles contient un champ, par exemple, "is_deleted" (booléen)
-              const { error } = await supabase
-                .from("profiles")
-                .update({ is_deleted: true })
-                .eq("id", session.user.id);
-
+              // Suppression réelle du compte (auth.users + cascade sur toutes
+              // les données liées) via une Edge Function service_role.
+              const { error } = await supabase.functions.invoke(
+                "delete-account",
+              );
               if (error) throw error;
 
-              // Déconnecte l'utilisateur
-              const { error: signOutError } = await supabase.auth.signOut();
-              if (signOutError) throw signOutError;
+              await supabase.auth.signOut();
 
               Alert.alert(
                 "Compte supprimé",
                 "Votre compte a été supprimé avec succès."
               );
-              // Redirige vers la page de connexion
-              router.push("/(auth)/signIn");
+              router.replace("/(auth)/signIn");
             } catch (err: any) {
               Alert.alert("Erreur", err.message || "La suppression a échoué.");
             }

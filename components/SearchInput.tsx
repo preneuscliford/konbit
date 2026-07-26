@@ -18,7 +18,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 interface SearchResult {
   id: string;
   title: string;
-  type: "event" | "service";
+  category: string;
 }
 
 const SearchInput = () => {
@@ -35,26 +35,13 @@ const SearchInput = () => {
 
     setIsSearching(true);
     try {
-      // Recherche dans les événements
-      const { data: events } = await supabase
-        .from("events")
-        .select("id, title")
+      const { data: konbits } = await supabase
+        .from("konbits")
+        .select("id, title, category")
         .ilike("title", `%${query}%`)
-        .limit(5);
+        .limit(8);
 
-      // Recherche dans les services
-      const { data: services } = await supabase
-        .from("services")
-        .select("id, title")
-        .ilike("title", `%${query}%`)
-        .limit(5);
-
-      const combinedResults = [
-        ...(events?.map((e) => ({ ...e, type: "event" as const })) || []),
-        ...(services?.map((s) => ({ ...s, type: "service" as const })) || []),
-      ];
-
-      setResults(combinedResults);
+      setResults(konbits || []);
     } catch (error) {
       console.error("Erreur de recherche:", error);
     } finally {
@@ -63,11 +50,10 @@ const SearchInput = () => {
   };
 
   const handleResultPress = (result: SearchResult) => {
-    if (result.type === "event") {
-      router.push(`/events/details?id=${result.id}`);
-    } else {
-      router.push(`/services/details?id=${result.id}`);
-    }
+    router.push({
+      pathname: "/(community)/konbitDetails",
+      params: { konbitId: result.id },
+    });
     setSearchQuery("");
     setResults([]);
   };
@@ -89,7 +75,7 @@ const SearchInput = () => {
         <View style={styles.resultsContainer}>
           <FlatList
             data={results}
-            keyExtractor={(item) => `${item.type}-${item.id}`}
+            keyExtractor={(item) => String(item.id)}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.resultItem}
@@ -97,15 +83,12 @@ const SearchInput = () => {
               >
                 <View style={styles.resultContent}>
                   <MaterialCommunityIcons
-                    name={item.type === "event" ? "calendar-blank" : "tools"}
+                    name="account-group-outline"
                     size={wp("5%")}
-                    color="#9333EA"
+                    color="#0D9488"
                   />
                   <View style={styles.resultTextContainer}>
                     <Text style={styles.resultTitle}>{item.title}</Text>
-                    <Text style={styles.resultType}>
-                      {item.type === "event" ? "Événement" : "Service"}
-                    </Text>
                   </View>
                 </View>
               </TouchableOpacity>

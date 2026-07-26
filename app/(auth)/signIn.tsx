@@ -1,30 +1,18 @@
 import React, { useEffect, useState } from "react";
-import {
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  View,
-  AppState,
-  BackHandler,
-} from "react-native";
+import { Text, TouchableOpacity, View, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { Mail, Lock } from "lucide-react-native";
 import * as Burnt from "burnt";
 
 import SignInWithGoogleBotton from "@/components/SignInWithGoogleBotton";
+import AuthBranding from "@/components/auth/AuthBranding";
+import AuthTextField from "@/components/auth/AuthTextField";
+import AuthButton from "@/components/auth/AuthButton";
 import { supabase } from "@/lib/supabase";
 import { StatusBar } from "expo-status-bar";
 
-AppState.addEventListener("change", (state) => {
-  if (state === "active") {
-    supabase.auth.startAutoRefresh();
-  } else {
-    supabase.auth.stopAutoRefresh();
-  }
-});
-
-const signIn = () => {
+const SignInScreen = () => {
   const router = useRouter();
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
@@ -70,7 +58,6 @@ const signIn = () => {
     if (!validateFields()) return;
 
     setLoading(true);
-    console.log("[signIn] Tentative de connexion:", emailAddress);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: emailAddress,
@@ -78,10 +65,8 @@ const signIn = () => {
     });
 
     if (error) {
-      console.error("[signIn] Erreur:", error.code, error.message);
       if (error.message === "Invalid login credentials") {
         setPasswordError("Email ou mot de passe incorrect.");
-        setEmailError("...");
       } else if (error.code === "email_not_confirmed") {
         Burnt.toast({
           title: "Email non confirmé",
@@ -100,8 +85,6 @@ const signIn = () => {
       return;
     }
 
-    console.log("[signIn] Succès, user:", data.user?.id);
-
     Burnt.toast({
       title: "Connexion réussie",
       preset: "done",
@@ -111,85 +94,62 @@ const signIn = () => {
     setEmailAddress("");
     setPassword("");
     setLoading(false);
-    router.push("/");
+    router.replace("/");
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-ghost-white px-4 sm:px-6 justify-between">
+    <SafeAreaView className="flex-1 bg-surface-warm px-4 sm:px-6 justify-between">
       <StatusBar style="dark" />
       <View className="flex-1 justify-center">
-        <View className="mb-6 sm:mb-8">
-          <Text className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Se connecter
-          </Text>
-          <Text className="text-sm sm:text-base text-gray-500 mt-2">
-            Connectez-vous à votre compte
-          </Text>
-        </View>
+        <AuthBranding
+          title="Se connecter"
+          subtitle="Connectez-vous à votre compte"
+        />
 
-        <View className="space-y-4">
-          <View>
-            <Text className="text-sm sm:text-base text-gray-700 mb-1">
-              Email
-            </Text>
-            <TextInput
-              autoCapitalize="none"
-              value={emailAddress}
-              placeholder="exemple@email.com"
-              onChangeText={setEmailAddress}
-              className={`h-11 sm:h-12 text-base border ${
-                emailError ? "border-red-500" : "border-gray-200"
-              } rounded-lg px-3 sm:px-4`}
-              keyboardType="email-address"
-            />
-            {emailError ? (
-              <Text className="text-red-500 text-sm mt-1">{emailError}</Text>
-            ) : null}
-          </View>
+        <View>
+          <AuthTextField
+            label="Email"
+            value={emailAddress}
+            onChangeText={setEmailAddress}
+            placeholder="exemple@email.com"
+            error={emailError}
+            icon={Mail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+          />
 
-          <View>
-            <Text className="text-sm sm:text-base text-gray-700 mb-1">
-              Mot de passe
-            </Text>
-            <TextInput
-              value={password}
-              placeholder="••••••••"
-              secureTextEntry
-              onChangeText={setPassword}
-              className={`h-11 sm:h-12 text-base border ${
-                passwordError ? "border-red-500" : "border-gray-200"
-              } rounded-lg px-3 sm:px-4`}
-            />
-            {passwordError ? (
-              <Text className="text-red-500 text-sm mt-1">{passwordError}</Text>
-            ) : null}
-          </View>
+          <AuthTextField
+            label="Mot de passe"
+            value={password}
+            onChangeText={setPassword}
+            placeholder="••••••••"
+            error={passwordError}
+            icon={Lock}
+            secureTextEntry
+            editable={!loading}
+          />
+
           <TouchableOpacity
-            onPress={() => router.push("/")}
-            className="mt-2 self-end"
+            onPress={() => router.push("/(auth)/forgotPassword")}
+            className="mb-2 self-end"
           >
-            <Text className="text-center text-gray-500 underline">
+            <Text className="text-center text-charcoal-muted underline">
               Mot de passe oublié ?
             </Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
+        <AuthButton
+          title="Se connecter"
           onPress={signInWithEmail}
-          disabled={loading}
-          className="h-11 sm:h-12 bg-blue-500 rounded-lg justify-center items-center mt-6 sm:mt-8"
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text className="text-white font-medium">Se connecter</Text>
-          )}
-        </TouchableOpacity>
+          loading={loading}
+        />
 
         <View className="flex-row items-center my-6">
-          <View className="flex-1 h-px bg-gray-200" />
-          <Text className="mx-4 text-gray-400">Ou</Text>
-          <View className="flex-1 h-px bg-gray-200" />
+          <View className="flex-1 h-px bg-surface-muted" />
+          <Text className="mx-4 text-charcoal-muted">Ou</Text>
+          <View className="flex-1 h-px bg-surface-muted" />
         </View>
 
         <View>
@@ -200,9 +160,9 @@ const signIn = () => {
           onPress={() => router.push("/(auth)/signUp")}
           className="mt-6"
         >
-          <Text className="text-center text-gray-600 text-base">
+          <Text className="text-center text-charcoal text-base">
             Pas encore de compte ?{" "}
-            <Text className="text-blue-500 font-bold underline">
+            <Text className="text-primary font-bold underline">
               S'inscrire
             </Text>
           </Text>
@@ -210,17 +170,17 @@ const signIn = () => {
       </View>
 
       <View className="mt-auto pb-4 sm:pb-6">
-        <Text className="text-xs sm:text-sm text-center text-gray-500">
+        <Text className="text-xs sm:text-sm text-center text-charcoal-muted">
           En continuant, vous acceptez nos{" "}
-          <Text className="text-blue-500 underline">
+          <Text className="text-primary underline">
             Conditions d'utilisation
           </Text>{" "}
           et{" "}
-          <Text className="text-blue-500 underline">
+          <Text className="text-primary underline">
             Politique de confidentialité
           </Text>
         </Text>
-        <Text className="text-center text-gray-500 text-xs mt-2">
+        <Text className="text-center text-charcoal-muted text-xs mt-2">
           Version 1.0.0
         </Text>
       </View>
@@ -228,4 +188,4 @@ const signIn = () => {
   );
 };
 
-export default signIn;
+export default SignInScreen;

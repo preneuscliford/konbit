@@ -1,5 +1,11 @@
-import React from "react";
-import { View, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
+} from "react-native";
 import { Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -7,18 +13,34 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Image } from "expo-image";
 import RemoteImage from "@/components/RemoteImage";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons, FontAwesome6 } from "@expo/vector-icons";
 import BackAppbar from "@/components/AppBar";
-import PostsCard from "@/components/PostsCard";
+import KonbitCard from "@/components/KonbitCard";
 import { useAuth } from "@/app/provider/AuthProvider";
 import { CircleUserRound } from "lucide-react-native";
 import { isFollowing, followUser, unfollowUser } from "@/lib/socialService";
+import { getJoinedKonbits } from "@/lib/konbitServices";
+import ProfileTabSelector, {
+  ProfileTab,
+} from "@/components/ProfileTabSelector";
+import Colors from "@/constants/Colors";
+
+const PROFILE_TABS: { key: ProfileTab; label: string }[] = [
+  { key: "crees", label: "Créées" },
+  { key: "rejointes", label: "Rejointes" },
+];
+
+const normalizeUrl = (url: string) =>
+  /^https?:\/\//i.test(url) ? url : `https://${url}`;
+
+const stripAt = (handle: string) => handle.replace(/^@/, "");
 
 export default function UserProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, userData } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<ProfileTab>("crees");
 
   const { data: profile } = useQuery({
     queryKey: ["user-profile", id],
@@ -33,18 +55,26 @@ export default function UserProfile() {
     enabled: !!id,
   });
 
-  const { data: posts } = useQuery({
-    queryKey: ["user-posts", id],
+  const { data: konbits } = useQuery({
+    queryKey: ["user-konbits", id],
     queryFn: async () => {
       const { data } = await supabase
-        .from("posts")
-        .select("*, profiles(*), post_likes(*), comments(*)")
+        .from("konbits")
+        .select(
+          "*, profiles(*), konbit_participants(count), konbit_comments(count)",
+        )
         .eq("user_id", id)
         .order("created_at", { ascending: false })
         .limit(30);
       return data || [];
     },
     enabled: !!id,
+  });
+
+  const { data: joinedKonbits } = useQuery({
+    queryKey: ["joined-konbits", id],
+    queryFn: () => getJoinedKonbits(id),
+    enabled: !!id && activeTab === "rejointes",
   });
 
   const { data: following } = useQuery({
@@ -103,6 +133,11 @@ export default function UserProfile() {
   };
 
   const isMyProfile = user?.id === id;
+  const activeList = activeTab === "crees" ? konbits : joinedKonbits;
+  const emptyLabel =
+    activeTab === "crees"
+      ? "Aucune Konbit créée pour l'instant"
+      : "Aucune Konbit rejointe pour l'instant";
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -127,11 +162,65 @@ export default function UserProfile() {
               <CircleUserRound color="#9CA3AF" size={40} />
             </View>
           )}
-          <Text style={styles.name}>
-            {profile?.full_name || profile?.username}
-          </Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.name}>
+              {profile?.full_name || profile?.username}
+            </Text>
+            {profile?.innovation_badges ? (
+              <View style={styles.badge}>
+                <Feather name="award" size={12} color={Colors.secondary} />
+                <Text style={styles.badgeText}>
+                  {profile.innovation_badges}
+                </Text>
+              </View>
+            ) : null}
+          </View>
           <Text style={styles.handle}>@{profile?.username}</Text>
           {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+
+          {profile?.website ? (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(normalizeUrl(profile.website))}
+            >
+              <Text style={styles.link}>{profile.website}</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {profile?.social_links?.instagram ||
+          profile?.social_links?.twitter ? (
+            <View style={styles.socialRow}>
+              {profile.social_links.instagram ? (
+                <TouchableOpacity
+                  onPress={() =>
+                    Linking.openURL(
+                      `https://instagram.com/${stripAt(profile.social_links.instagram)}`,
+                    )
+                  }
+                >
+                  <FontAwesome6
+                    name="square-instagram"
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
+              ) : null}
+              {profile.social_links.twitter ? (
+                <TouchableOpacity
+                  onPress={() =>
+                    Linking.openURL(
+                      `https://x.com/${stripAt(profile.social_links.twitter)}`,
+                    )
+                  }
+                >
+                  <FontAwesome6
+                    name="square-x-twitter"
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          ) : null}
 
           {!isMyProfile && user?.id && (
             <View style={styles.actionRow}>
@@ -164,17 +253,26 @@ export default function UserProfile() {
           )}
         </View>
 
+        <ProfileTabSelector
+          tabs={PROFILE_TABS}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
+
         <View style={styles.postsSection}>
-          <Text style={styles.sectionTitle}>Publications</Text>
-          {posts?.map((post: any) => (
-            <PostsCard
-              key={post.id}
-              item={post}
-              currentUser={userData || user}
-              router={router}
-              showMoreIcons
-            />
-          ))}
+          {activeList?.length ? (
+            activeList.map((konbit: any) => (
+              <KonbitCard
+                key={konbit.id}
+                item={konbit}
+                currentUser={userData || user}
+                router={router}
+                showMoreIcons
+              />
+            ))
+          ) : (
+            <Text style={styles.emptyListText}>{emptyLabel}</Text>
+          )}
         </View>
         <View style={{ height: 30 }} />
       </ScrollView>
@@ -207,7 +305,23 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#0D9488",
   },
-  name: { fontSize: 20, fontWeight: "800", color: "#1A1A2E", marginTop: 12 },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12,
+  },
+  name: { fontSize: 20, fontWeight: "800", color: "#1A1A2E" },
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: `${Colors.secondary}15`,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  badgeText: { fontSize: 11, fontWeight: "700", color: Colors.secondary },
   handle: { fontSize: 14, color: "#9CA3AF", marginTop: 2 },
   bio: {
     fontSize: 14,
@@ -216,6 +330,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingHorizontal: 20,
   },
+  link: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.primary,
+    marginTop: 8,
+  },
+  socialRow: { flexDirection: "row", gap: 16, marginTop: 10 },
   actionRow: { flexDirection: "row", gap: 10, marginTop: 16 },
   actionBtn: {
     flexDirection: "row",
@@ -229,11 +350,11 @@ const styles = StyleSheet.create({
   followingBtn: { backgroundColor: "#F0F0EB" },
   msgBtn: { backgroundColor: "#F0FDFA" },
   actionText: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
-  postsSection: { paddingHorizontal: 16, marginTop: 16 },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#1A1A2E",
-    marginBottom: 12,
+  postsSection: { paddingHorizontal: 16, marginTop: 8 },
+  emptyListText: {
+    textAlign: "center",
+    color: "#9CA3AF",
+    fontSize: 13,
+    paddingVertical: 24,
   },
 });

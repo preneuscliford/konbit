@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from "react";
-import {
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  View,
-  BackHandler,
-} from "react-native";
+import { Text, TouchableOpacity, View, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { Mail, Lock, User } from "lucide-react-native";
 import * as Burnt from "burnt";
 
 import SignInWithGoogleBotton from "@/components/SignInWithGoogleBotton";
+import AuthBranding from "@/components/auth/AuthBranding";
+import AuthTextField from "@/components/auth/AuthTextField";
+import AuthButton from "@/components/auth/AuthButton";
 import { supabase } from "@/lib/supabase";
 import { StatusBar } from "expo-status-bar";
 
-const signUp = () => {
+const SignUpScreen = () => {
   const router = useRouter();
 
   const [username, setUsername] = useState("");
@@ -66,9 +63,8 @@ const signUp = () => {
     if (!validateFields()) return;
 
     setLoading(true);
-    console.log("[signUp] Tentative inscription:", emailAddress, username);
 
-    // Vérifier si le username existe déjà
+    // Vérifier si le username existe déjà (feedback rapide côté UX)
     const { data: existingUsers, error: checkError } = await supabase
       .from("profiles")
       .select("id")
@@ -76,11 +72,6 @@ const signUp = () => {
       .single();
 
     if (checkError && checkError.code !== "PGRST116") {
-      console.error(
-        "[signUp] Erreur check username:",
-        checkError.code,
-        checkError.message,
-      );
       Burnt.toast({
         title: "Erreur",
         preset: "error",
@@ -111,39 +102,32 @@ const signUp = () => {
     );
 
     if (signUpError) {
-      console.error(
-        "[signUp] Erreur signUp:",
-        signUpError.code,
-        signUpError.message,
-      );
-      Burnt.toast({
-        title: "Échec de l'inscription",
-        message: signUpError.message,
-        preset: "error",
-      });
+      // Filet de sécurité en cas de course entre le check ci-dessus et le
+      // signUp réel (contrainte UNIQUE en base sur profiles.username).
+      const message = signUpError.message?.toLowerCase() || "";
+      if (message.includes("duplicate") || message.includes("username")) {
+        setUsernameError(
+          "Ce nom d'utilisateur vient d'être pris, veuillez en choisir un autre.",
+        );
+      } else {
+        Burnt.toast({
+          title: "Échec de l'inscription",
+          message: signUpError.message,
+          preset: "error",
+        });
+      }
       setLoading(false);
       return;
     }
 
     const user = signUpData.user;
-    console.log("[signUp] Succès auth, user:", user?.id);
 
     // S'assurer que le profil a bien le username (le trigger handle_new_user le fait aussi)
     if (user) {
-      const { error: updateError } = await supabase
+      await supabase
         .from("profiles")
         .update({ username: username, full_name: username })
         .eq("id", user.id);
-
-      if (updateError) {
-        console.error(
-          "[signUp] Erreur update profile:",
-          updateError.code,
-          updateError.message,
-        );
-      } else {
-        console.log("[signUp] Profil mis à jour avec username:", username);
-      }
     }
 
     Burnt.toast({
@@ -156,102 +140,71 @@ const signUp = () => {
     setEmailAddress("");
     setPassword("");
     setLoading(false);
-    router.push("/(auth)/signIn");
+    router.replace("/(auth)/signIn");
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-ghost-white px-4 sm:px-6 justify-between">
+    <SafeAreaView className="flex-1 bg-surface-warm px-4 sm:px-6 justify-between">
       <StatusBar style="dark" />
       <View className="flex-1 justify-center">
-        <View className="mb-6 sm:mb-8">
-          <Text className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Créer un compte
-          </Text>
-          <Text className="text-sm sm:text-base text-gray-500 mt-2">
-            Rejoignez notre communauté
-          </Text>
+        <AuthBranding
+          title="Créer un compte"
+          subtitle="Rejoignez notre communauté"
+        />
+
+        <View>
+          <AuthTextField
+            label="Nom d'utilisateur"
+            value={username}
+            onChangeText={setUsername}
+            placeholder="Votre pseudo"
+            error={usernameError}
+            icon={User}
+            autoCapitalize="none"
+            editable={!loading}
+          />
+          <AuthTextField
+            label="Email"
+            value={emailAddress}
+            onChangeText={setEmailAddress}
+            placeholder="exemple@email.com"
+            error={emailError}
+            icon={Mail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+          />
+          <AuthTextField
+            label="Mot de passe"
+            value={password}
+            onChangeText={setPassword}
+            placeholder="••••••••"
+            error={passwordError}
+            icon={Lock}
+            secureTextEntry
+            editable={!loading}
+          />
         </View>
 
-        <View className="space-y-4">
-          <View>
-            <Text className="text-sm sm:text-base text-gray-700 mb-1">
-              Nom d'utilisateur
-            </Text>
-            <TextInput
-              value={username}
-              placeholder="Votre pseudo"
-              onChangeText={setUsername}
-              className={`h-11 sm:h-12 text-base border ${
-                usernameError ? "border-red-500" : "border-gray-200"
-              } rounded-lg px-3 sm:px-4`}
-              autoCapitalize="none"
-            />
-            {usernameError ? (
-              <Text className="text-red-500 text-sm mt-1">{usernameError}</Text>
-            ) : null}
-          </View>
-          <View>
-            <Text className="text-sm sm:text-base text-gray-700 mb-1">
-              Email
-            </Text>
-            <TextInput
-              autoCapitalize="none"
-              value={emailAddress}
-              placeholder="exemple@email.com"
-              onChangeText={setEmailAddress}
-              className={`h-11 sm:h-12 text-base border ${
-                emailError ? "border-red-500" : "border-gray-200"
-              } rounded-lg px-3 sm:px-4`}
-              keyboardType="email-address"
-            />
-            {emailError ? (
-              <Text className="text-red-500 text-sm mt-1">{emailError}</Text>
-            ) : null}
-          </View>
-          <View>
-            <Text className="text-sm sm:text-base text-gray-700 mb-1">
-              Mot de passe
-            </Text>
-            <TextInput
-              value={password}
-              placeholder="••••••••"
-              secureTextEntry
-              onChangeText={setPassword}
-              className={`h-11 sm:h-12 text-base border ${
-                passwordError ? "border-red-500" : "border-gray-200"
-              } rounded-lg px-3 sm:px-4`}
-            />
-            {passwordError ? (
-              <Text className="text-red-500 text-sm mt-1">{passwordError}</Text>
-            ) : null}
-          </View>
-        </View>
-
-        <TouchableOpacity
+        <AuthButton
+          title="Créer mon compte"
           onPress={signUpWithEmail}
-          disabled={loading}
-          className="h-11 sm:h-12 bg-blue-500 rounded-lg justify-center items-center mt-6 sm:mt-8"
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text className="text-white font-medium">Créer mon compte</Text>
-          )}
-        </TouchableOpacity>
+          loading={loading}
+        />
 
         <View className="flex-row items-center my-6">
-          <View className="flex-1 h-px bg-gray-200" />
-          <Text className="mx-4 text-gray-400">Ou</Text>
-          <View className="flex-1 h-px bg-gray-200" />
+          <View className="flex-1 h-px bg-surface-muted" />
+          <Text className="mx-4 text-charcoal-muted">Ou</Text>
+          <View className="flex-1 h-px bg-surface-muted" />
         </View>
         <SignInWithGoogleBotton />
         <TouchableOpacity
           onPress={() => router.push("/(auth)/signIn")}
           className="mt-6"
         >
-          <Text className="text-center text-gray-600 text-base">
+          <Text className="text-center text-charcoal text-base">
             Déjà un compte ?{" "}
-            <Text className="text-blue-500 font-bold underline">
+            <Text className="text-primary font-bold underline">
               Se connecter
             </Text>
           </Text>
@@ -259,17 +212,17 @@ const signUp = () => {
       </View>
 
       <View className="mt-auto pb-4 sm:pb-6">
-        <Text className="text-xs sm:text-sm text-center text-gray-500">
+        <Text className="text-xs sm:text-sm text-center text-charcoal-muted">
           En continuant, vous acceptez nos{" "}
-          <Text className="text-blue-500 underline">
+          <Text className="text-primary underline">
             Conditions d'utilisation
           </Text>{" "}
           et{" "}
-          <Text className="text-blue-500 underline">
+          <Text className="text-primary underline">
             Politique de confidentialité
           </Text>
         </Text>
-        <Text className="text-center text-gray-500 text-xs mt-2">
+        <Text className="text-center text-charcoal-muted text-xs mt-2">
           Version 1.0.0
         </Text>
       </View>
@@ -277,4 +230,4 @@ const signUp = () => {
   );
 };
 
-export default signUp;
+export default SignUpScreen;

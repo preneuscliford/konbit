@@ -1,98 +1,121 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Feather } from "@expo/vector-icons";
-import { getProfile, useAuth } from "@/app/provider/AuthProvider";
+import { useAuth } from "@/app/provider/AuthProvider";
+import { useRouter } from "expo-router";
 import { ActivityIndicator } from "react-native-paper";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { timeAgo } from "@/utils/date";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { fetchNotifications } from "@/lib/postServices";
+import { fetchKonbitNotifications } from "@/lib/konbitServices";
+import Colors from "@/constants/Colors";
+
+const NOTIFICATION_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
+  join: "user-plus",
+  help_offer: "life-buoy",
+  comment: "message-circle",
+  like: "heart",
+  status_change: "flag",
+};
 
 const Notifications = () => {
-  const { user, userData } = useAuth();
+  const { user } = useAuth();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   const { data: notifications, isLoading } = useQuery({
-    queryKey: ["posts_notifications"],
+    queryKey: ["konbit_notifications"],
     queryFn: () =>
-      user?.id ? fetchNotifications(user.id) : Promise.reject("No user ID"),
-    enabled: !!user?.id, //
+      user?.id
+        ? fetchKonbitNotifications(user.id)
+        : Promise.reject("No user ID"),
+    enabled: !!user?.id,
   });
 
   const markAsRead = useMutation({
     mutationFn: async (notificationId: string) => {
       const { error } = await supabase
-        .from("posts_notifications")
-        .update({ is_read: true })
+        .from("konbit_notifications")
+        .update({ read: true })
         .eq("id", notificationId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["posts_notifications"] as any);
+      queryClient.invalidateQueries({ queryKey: ["konbit_notifications"] });
+      queryClient.invalidateQueries({
+        queryKey: ["unread-konbit-notifications", user?.id],
+      });
     },
   });
 
   if (isLoading)
     return (
-      <ActivityIndicator style={{ flex: 1, backgroundColor: "#F5F8FD" }} />
+      <ActivityIndicator
+        style={{ flex: 1, backgroundColor: Colors.surfaceWarm }}
+      />
     );
 
   if (notifications?.length === 0)
     return (
-      <SafeAreaView className="flex-1 bg-[#F5F8FD]">
-        <Text className="text-center text-gray-500 mt-40">
+      <SafeAreaView className="flex-1 bg-surface-warm">
+        <Text className="text-center text-charcoal-muted mt-40">
           Aucune notification
         </Text>
       </SafeAreaView>
     );
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F5F8FD]">
+    <SafeAreaView className="flex-1 bg-surface-warm">
       <ScrollView className="p-4 flex-1">
         {notifications?.map((notification: any) => (
-          <View
+          <TouchableOpacity
             key={notification.id}
-            className={`p-4 mb-3 rounded-lg ${
-              !notification.is_read ? "bg-blue-50" : "bg-gray-50"
+            activeOpacity={0.8}
+            onPress={() =>
+              router.push({
+                pathname: "/(community)/konbitDetails",
+                params: { konbitId: notification.konbit_id },
+              })
+            }
+            className={`p-4 mb-3 rounded-2xl ${
+              !notification.read ? "bg-primary-50" : "bg-surface-muted"
             }`}
           >
             <View className="flex-row justify-between items-start mb-2">
               <View className="flex-row items-center gap-2">
                 <Feather
-                  name={
-                    notification.type === "like"
-                      ? "heart"
-                      : notification.type === "comment"
-                      ? "message-circle"
-                      : "users"
-                  }
+                  name={NOTIFICATION_ICONS[notification.type] || "bell"}
                   size={20}
-                  color={notification.type === "like" ? "red" : " #6b7280"}
+                  color={
+                    notification.type === "like"
+                      ? Colors.error
+                      : Colors.textMuted
+                  }
                 />
-                <Text className="font-medium">
-                  {notification.sender?.username ||
+                <Text className="font-medium text-charcoal">
+                  {notification.sender_id?.username ||
                     notification.sender_id?.full_name}
                 </Text>
               </View>
-              <Text className="text-gray-500 text-xs">
+              <Text className="text-charcoal-muted text-xs">
                 {timeAgo(notification.created_at)}
               </Text>
             </View>
 
-            <Text className="text-gray-600">
+            <Text className="text-charcoal-muted">
               {notification.data?.preview || "Nouvelle interaction"}
             </Text>
 
-            {!notification.is_read && (
+            {!notification.read && (
               <TouchableOpacity
                 onPress={() => markAsRead.mutate(notification.id)}
                 className="mt-2 self-end"
               >
-                <Text className="text-blue-500 text-xs">Marquer comme lu</Text>
+                <Text className="text-primary text-xs">Marquer comme lu</Text>
               </TouchableOpacity>
             )}
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </SafeAreaView>

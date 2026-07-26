@@ -1,4 +1,4 @@
-import { Post, PostsResponse } from "@/types/postTypes";
+import { Konbit } from "@/types/konbitTypes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 
@@ -23,84 +23,89 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 export const PAGE_SIZE = 10;
-export const getNewPosts = async (pageParam: number = 1) => {
-  // 1. Modifier la fonction de service pour accepter la pagination
+const KONBIT_SELECT =
+  "*, profiles(*), konbit_participants(count), konbit_comments(count)";
 
+export const getNewKonbits = async (pageParam: number = 1) => {
   const from = (pageParam - 1) * PAGE_SIZE;
 
   const { data, error, count } = await supabase
-    .from("posts")
-    .select("*, profiles(*), post_likes(*), comments(*)", { count: "exact" })
+    .from("konbits")
+    .select(KONBIT_SELECT, { count: "exact" })
     .order("created_at", { ascending: false })
     .range(from, from + PAGE_SIZE - 1);
 
   if (error) throw new Error(error.message);
   return {
-    data: (data || []) as Post[],
+    data: (data || []) as Konbit[],
     totalCount: count || 0,
     currentPage: pageParam,
   };
 };
 
-export const getTrendingPosts = async (pageParam: number = 1) => {
-  const from = (pageParam - 1) * PAGE_SIZE;
+const TRENDING_LIMIT = 100;
+
+export const getTrendingKonbits = async () => {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  // Étape 1 : Récupération brute
-  const { data, error, count } = await supabase
-    .from("posts")
-    .select("*, profiles(*), post_likes(*), comments(*)", { count: "exact" })
+  const { data, error } = await supabase
+    .from("konbits")
+    .select(
+      "*, profiles(*), konbit_participants(count), konbit_comments(count), konbit_likes(count)",
+    )
     .gt("created_at", oneWeekAgo.toISOString())
-    .range(from, from + PAGE_SIZE - 1);
+    .order("created_at", { ascending: false })
+    .limit(TRENDING_LIMIT);
 
   if (error) throw new Error(error.message);
 
-  // Étape 2 : Calcul côté client
-  const scoredPosts = (data || []).map((post) => ({
-    ...post,
-    score: calculatePostScore(post), // Fonction de scoring
+  const scoredKonbits = (data || []).map((konbit) => ({
+    ...konbit,
+    score: calculateKonbitScore(konbit),
   }));
 
-  return {
-    data: scoredPosts.sort((a, b) => b.score - a.score) as Post[],
-    totalCount: count || 0,
-    currentPage: pageParam,
-  };
+  return scoredKonbits.sort(
+    (a, b) => (b.score || 0) - (a.score || 0),
+  ) as Konbit[];
 };
 
-// Fonction dédiée aux posts de l'utilisateur
-export const getUserPosts = async (pageParam: number = 1, userId: string) => {
+// Fonction dédiée aux Konbits de l'utilisateur
+export const getUserKonbits = async (
+  pageParam: number = 1,
+  userId: string,
+) => {
   if (!userId) throw new Error("User ID required");
 
   const from = (pageParam - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
   const { data, error, count } = await supabase
-    .from("posts")
-    .select("*, profiles(*), post_likes(*), comments(*)", {
-      count: "exact",
-    })
-    .eq("userId", userId)
+    .from("konbits")
+    .select(KONBIT_SELECT, { count: "exact" })
+    .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  const currentPageSize = (data || []).length;
-
   if (error) throw new Error(error.message);
+
   return {
-    data: data as Post[],
+    data: (data || []) as Konbit[],
     totalCount: count || 0,
     currentPage: pageParam,
-    currentPageSize,
+    currentPageSize: (data || []).length,
   };
 };
 
-// Helper pour le calcul de score
-const calculatePostScore = (post: Post) => {
-  const timeDiff = Date.now() - new Date(post.created_at).getTime();
+// Helper pour le calcul de score (Tendances) — participants/commentaires/likes
+// sont des agrégats `{ count }` renvoyés par PostgREST.
+const calculateKonbitScore = (konbit: Konbit) => {
+  const timeDiff = Date.now() - new Date(konbit.created_at).getTime();
   const hoursDiff = timeDiff / (1000 * 60 * 60);
+  const participantCount = konbit.konbit_participants?.[0]?.count ?? 0;
+  const commentCount = konbit.konbit_comments?.[0]?.count ?? 0;
+  const likeCount = konbit.konbit_likes?.[0]?.count ?? 0;
   return (
-    (post.post_likes.length * 2 + post.comments.length) /
+    (participantCount * 3 + commentCount * 2 + likeCount) /
     Math.pow(hoursDiff + 1, 1.8)
   );
 };

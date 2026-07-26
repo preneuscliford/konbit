@@ -11,6 +11,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import NotificationBell from "./NotificationBell";
 
 const Header = () => {
   const { userData, session } = useAuth();
@@ -65,6 +66,7 @@ const Header = () => {
             </>
           )}
         </View>
+        {session ? <NotificationBell /> : null}
       </View>
 
       {/* Search Bar */}

@@ -1,41 +1,37 @@
-import {
-  AppState,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Text, TouchableOpacity } from "react-native";
+import { useEffect } from "react";
 
 import { Image } from "expo-image";
 import {
   GoogleSignin,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
+import * as Burnt from "burnt";
 import { supabase } from "@/lib/supabase";
-AppState.addEventListener("change", (state) => {
-  if (state === "active") {
-    supabase.auth.startAutoRefresh();
-  } else {
-    supabase.auth.stopAutoRefresh();
-  }
-});
 
 const SignInWithGoogleBotton = () => {
-  GoogleSignin.configure({
-    scopes: ["https://www.googleapis.com/auth/drive.readonly"],
-    webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
-  });
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
+    });
+  }, []);
 
   const handleSignIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       if (userInfo?.data?.idToken) {
-        const { data, error } = await supabase.auth.signInWithIdToken({
+        const { error } = await supabase.auth.signInWithIdToken({
           provider: "google",
           token: userInfo.data.idToken,
         });
-        console.log(error, data);
+        if (error) {
+          Burnt.toast({
+            title: "Connexion Google impossible",
+            preset: "error",
+            message: error.message,
+          });
+        }
       } else {
         throw new Error("no ID token present!");
       }
@@ -45,9 +41,17 @@ const SignInWithGoogleBotton = () => {
       } else if (error.code === statusCodes.IN_PROGRESS) {
         // operation (e.g. sign in) is in progress already
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // play services not available or outdated
+        Burnt.toast({
+          title: "Google Play Services indisponible",
+          preset: "error",
+          message: "Mettez à jour Google Play Services et réessayez.",
+        });
       } else {
-        // some other error happened
+        Burnt.toast({
+          title: "Connexion Google impossible",
+          preset: "error",
+          message: error.message || "Une erreur est survenue.",
+        });
       }
     }
   };
@@ -55,7 +59,7 @@ const SignInWithGoogleBotton = () => {
   return (
     <TouchableOpacity
       onPress={handleSignIn}
-      className="h-12 border border-gray-200 rounded-lg flex-row items-center justify-center space-x-2"
+      className="h-12 border border-surface-muted rounded-lg flex-row items-center justify-center space-x-2"
     >
       <Image
         source={require("../assets/icons/logo-google.svg")}
@@ -65,11 +69,9 @@ const SignInWithGoogleBotton = () => {
           objectFit: "contain",
         }}
       />
-      <Text className="text-gray-700 font-medium"> Continuer avec Google</Text>
+      <Text className="text-charcoal font-medium"> Continuer avec Google</Text>
     </TouchableOpacity>
   );
 };
 
 export default SignInWithGoogleBotton;
-
-const styles = StyleSheet.create({});

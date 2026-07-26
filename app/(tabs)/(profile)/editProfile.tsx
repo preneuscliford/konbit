@@ -17,7 +17,8 @@ import { StatusBar } from "expo-status-bar";
 import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import { Redirect } from "expo-router";
 import Animated, { FadeInUp, FadeOutDown } from "react-native-reanimated";
-import { Profile, ProfileForm } from "@/types/postTypes";
+import { Profile, ProfileForm } from "@/types/konbitTypes";
+import Colors from "@/constants/Colors";
 // import type { Profile, ProfileForm } from "../types/profile";
 
 const INITIAL_FORM: ProfileForm = {
@@ -27,18 +28,33 @@ const INITIAL_FORM: ProfileForm = {
   bio: "",
   website: "",
   socials: { instagram: "", twitter: "" },
-  businessInfo: {},
   innovationBadges: "",
 };
 
 export default function AccountScreen() {
-  const { session, userData } = useAuth();
+  const { session, userData, initializing } = useAuth();
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState("");
   const [form, setForm] = useState<ProfileForm>(INITIAL_FORM);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  useEffect(() => {
+    if (!userData) return;
+    setForm({
+      username: userData.username || "",
+      phone: userData.phone || "",
+      address: userData.address || "",
+      bio: userData.bio || "",
+      website: userData.website || "",
+      socials: {
+        instagram: userData.social_links?.instagram || "",
+        twitter: userData.social_links?.twitter || "",
+      },
+      innovationBadges: userData.innovation_badges || "",
+    });
+  }, [userData]);
 
   const handleUpdate = async () => {
     if (!form.username.trim() && !userData?.full_name && !userData?.username) {
@@ -48,15 +64,13 @@ export default function AccountScreen() {
     // Vérification si aucune modification n'a été effectuée
     if (
       form.username === userData?.username &&
-      form.phone === userData?.phone &&
-      form.address === userData?.address &&
-      form.bio === userData?.bio &&
-      form.website === userData?.website &&
+      form.phone === (userData?.phone || "") &&
+      form.address === (userData?.address || "") &&
+      form.bio === (userData?.bio || "") &&
+      form.website === (userData?.website || "") &&
       JSON.stringify(form?.socials) ===
-        JSON.stringify(userData?.social_links) &&
-      JSON.stringify(form?.businessInfo) ===
-        JSON.stringify(userData?.business_info) &&
-      form.innovationBadges === userData?.innovation_badges
+        JSON.stringify(userData?.social_links || {}) &&
+      form.innovationBadges === (userData?.innovation_badges || "")
     ) {
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 3000);
@@ -91,13 +105,12 @@ export default function AccountScreen() {
       const updates: Partial<Profile> = {
         id: session?.user?.id,
         username: form.username || userData?.username,
-        phone: form.phone || userData?.phone,
-        address: form.address || userData?.address,
-        bio: form.bio || userData?.bio,
-        website: form.website || userData?.website,
-        social_links: form.socials || userData?.social_links,
-        business_info: form.businessInfo || userData?.business_info,
-        innovation_badges: form.innovationBadges || userData?.innovation_badges,
+        phone: form.phone,
+        address: form.address,
+        bio: form.bio,
+        website: form.website,
+        social_links: form.socials,
+        innovation_badges: form.innovationBadges,
         updated_at: new Date().toISOString(),
       };
 
@@ -137,6 +150,7 @@ export default function AccountScreen() {
     return () => backHandler.remove();
   }, [form.username]);
 
+  if (initializing) return null;
   if (!session) return <Redirect href="/" />;
 
   return (
@@ -168,12 +182,16 @@ export default function AccountScreen() {
               }}
             />
           </Pressable>
+          <Text style={styles.avatarHint}>Toucher pour changer la photo</Text>
         </View>
 
         <View style={styles.formContainer}>
           <Section title="Informations de base">
             <TextInput
               mode="outlined"
+            outlineColor={Colors.tabBarBorder}
+            activeOutlineColor={Colors.primary}
+            textColor={Colors.text}
               label="Nom d'utilisateur"
               value={
                 form.username || userData?.username || userData?.full_name || ""
@@ -192,6 +210,9 @@ export default function AccountScreen() {
 
             <TextInput
               mode="outlined"
+            outlineColor={Colors.tabBarBorder}
+            activeOutlineColor={Colors.primary}
+            textColor={Colors.text}
               label="Email"
               value={session.user.email}
               disabled
@@ -203,6 +224,9 @@ export default function AccountScreen() {
           <Section title="Coordonnées">
             <TextInput
               mode="outlined"
+            outlineColor={Colors.tabBarBorder}
+            activeOutlineColor={Colors.primary}
+            textColor={Colors.text}
               label="Téléphone"
               value={form.phone}
               onChangeText={(text) => setForm({ ...form, phone: text })}
@@ -213,6 +237,9 @@ export default function AccountScreen() {
 
             <TextInput
               mode="outlined"
+            outlineColor={Colors.tabBarBorder}
+            activeOutlineColor={Colors.primary}
+            textColor={Colors.text}
               label="Adresse"
               value={form.address}
               onChangeText={(text) => setForm({ ...form, address: text })}
@@ -224,6 +251,9 @@ export default function AccountScreen() {
           <Section title="À propos">
             <TextInput
               mode="outlined"
+            outlineColor={Colors.tabBarBorder}
+            activeOutlineColor={Colors.primary}
+            textColor={Colors.text}
               label="Bio"
               value={form.bio}
               onChangeText={(text) => setForm({ ...form, bio: text })}
@@ -233,9 +263,12 @@ export default function AccountScreen() {
             />
           </Section>
 
-          <Section title="Informations professionnelles">
+          <Section title="Site web & badge">
             <TextInput
               mode="outlined"
+            outlineColor={Colors.tabBarBorder}
+            activeOutlineColor={Colors.primary}
+            textColor={Colors.text}
               label="Site Web"
               value={form.website}
               onChangeText={(text) => setForm({ ...form, website: text })}
@@ -244,6 +277,9 @@ export default function AccountScreen() {
             />
             <TextInput
               mode="outlined"
+            outlineColor={Colors.tabBarBorder}
+            activeOutlineColor={Colors.primary}
+            textColor={Colors.text}
               label="Badge d'innovation"
               placeholder="ex: Créativité, Excellence, Innovation"
               value={form.innovationBadges}
@@ -275,6 +311,7 @@ export default function AccountScreen() {
                   socials: { ...form.socials, twitter: val },
                 })
               }
+              last
             />
           </Section>
 
@@ -310,7 +347,7 @@ const Section: React.FC<{
 }> = ({ title, children }) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>{title}</Text>
-    <View style={styles.sectionContent}>{children}</View>
+    <View style={styles.sectionCard}>{children}</View>
   </View>
 );
 
@@ -318,16 +355,20 @@ const SocialInput: React.FC<{
   icon: string;
   value: string;
   onChange: (value: string) => void;
-}> = ({ icon, value, onChange }) => (
-  <View style={styles.socialInputContainer}>
-    <FontAwesome6 name={icon as any} size={20} color="#64748b" />
+  last?: boolean;
+}> = ({ icon, value, onChange, last }) => (
+  <View style={[styles.socialInputRow, last && styles.socialInputRowLast]}>
+    <FontAwesome6 name={icon as any} size={18} color={Colors.textMuted} />
     <TextInput
       value={value}
       onChangeText={onChange}
-      placeholder={`@nom_utilisateur`}
+      placeholder="@nom_utilisateur"
+      placeholderTextColor={Colors.textMuted}
       style={styles.socialInput}
       underlineColor="transparent"
       activeUnderlineColor="transparent"
+      textColor={Colors.text}
+      dense
     />
   </View>
 );
@@ -335,7 +376,7 @@ const SocialInput: React.FC<{
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: Colors.surfaceWarm,
   },
   scrollView: {
     flex: 1,
@@ -345,6 +386,12 @@ const styles = StyleSheet.create({
   avatarContainer: {
     alignItems: "center",
     marginBottom: 32,
+    gap: 10,
+  },
+  avatarHint: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    fontWeight: "500",
   },
   avatarWrapper: {
     borderRadius: 60,
@@ -360,53 +407,66 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   formContainer: {
-    gap: 24,
+    gap: 22,
     marginBottom: 100,
   },
   section: {
-    marginBottom: 6,
+    marginBottom: 2,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#334155",
-    marginBottom: 16,
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 10,
+    marginLeft: 4,
   },
-  sectionContent: {
+  sectionCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 14,
     gap: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   input: {
-    backgroundColor: "#fff",
+    backgroundColor: "transparent",
   },
   errorText: {
-    color: "#ef4444",
+    color: Colors.error,
     fontSize: 12,
-    marginTop: 4,
+    marginTop: -6,
   },
-  socialInputContainer: {
+  socialInputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    gap: 10,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.tabBarBorder,
+  },
+  socialInputRowLast: {
+    paddingBottom: 0,
+    borderBottomWidth: 0,
   },
   socialInput: {
     flex: 1,
-    marginLeft: 8,
     backgroundColor: "transparent",
+    height: 40,
   },
   saveButton: {
-    borderRadius: 12,
+    borderRadius: 14,
     marginTop: 8,
-    backgroundColor: "#4f46e5",
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 4,
   },
   saveButtonContent: {
     paddingVertical: 8,
@@ -416,7 +476,7 @@ const styles = StyleSheet.create({
     bottom: 24,
     left: 24,
     right: 24,
-    backgroundColor: "#10b981",
+    backgroundColor: Colors.success,
     borderRadius: 12,
     padding: 16,
     flexDirection: "row",

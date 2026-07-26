@@ -13,20 +13,17 @@ import { TextInput } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
-import {
-  createCommentNotification,
-  createNotification,
-} from "@/lib/postServices";
+import { createCommentNotification } from "@/lib/konbitServices";
 import { heightPercentageToDP } from "react-native-responsive-screen";
 
 interface CommentInputProps {
-  postId: string;
+  konbitId: string;
   currentUser: any;
   onCommentAdded: (success: boolean) => void;
 }
 
 const CommentInput: React.FC<CommentInputProps> = ({
-  postId,
+  konbitId,
   currentUser,
   onCommentAdded,
 }) => {
@@ -56,10 +53,10 @@ const CommentInput: React.FC<CommentInputProps> = ({
     animateInput();
     try {
       const { data, error } = await supabase
-        .from("comments")
+        .from("konbit_comments")
         .insert({
           content: newComment.trim(),
-          post_id: parseInt(postId, 10),
+          konbit_id: parseInt(konbitId, 10),
           user_id: currentUser.id,
         })
         .select()
@@ -70,17 +67,17 @@ const CommentInput: React.FC<CommentInputProps> = ({
       setNewComment("");
       onCommentAdded(true);
 
-      const { data: postOwner } = await supabase
-        .from("posts")
+      const { data: konbitOwner } = await supabase
+        .from("konbits")
         .select("user_id")
-        .eq("id", parseInt(postId, 10))
+        .eq("id", parseInt(konbitId, 10))
         .single();
 
-      if (postOwner?.user_id && postOwner.user_id !== currentUser.id) {
+      if (konbitOwner?.user_id && konbitOwner.user_id !== currentUser.id) {
         await createCommentNotification(
           currentUser,
-          postOwner.user_id,
-          parseInt(postId, 10),
+          konbitOwner.user_id,
+          parseInt(konbitId, 10),
           data.id,
           newComment.trim(),
         );
@@ -109,7 +106,7 @@ const CommentInput: React.FC<CommentInputProps> = ({
           underlineColor="transparent"
           theme={{
             colors: {
-              primary: "#9333EA",
+              primary: "#0D9488",
               placeholder: "#94A3B8",
             },
             roundness: 12,
@@ -122,12 +119,12 @@ const CommentInput: React.FC<CommentInputProps> = ({
                   disabled={isSubmitting || !newComment.trim()}
                 >
                   {isSubmitting ? (
-                    <ActivityIndicator color="#9333EA" />
+                    <ActivityIndicator color="#0D9488" />
                   ) : (
                     <MaterialCommunityIcons
                       name="send-circle"
                       size={32}
-                      color={newComment.trim() ? "#9333EA" : "#CBD5E1"}
+                      color={newComment.trim() ? "#0D9488" : "#CBD5E1"}
                     />
                   )}
                 </TouchableOpacity>

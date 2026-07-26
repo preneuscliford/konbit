@@ -2,19 +2,18 @@ import React, { useState } from "react";
 import { StyleSheet, View, ScrollView, TouchableOpacity } from "react-native";
 import { Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import SearchInput from "@/components/SearchInput";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../provider/AuthProvider";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getTrendingHashtags,
   getSuggestedUsers,
   followUser,
   unfollowUser,
   isFollowing,
 } from "@/lib/socialService";
+import { KONBIT_CATEGORIES } from "@/components/CategorySelector";
 import RemoteImage from "@/components/RemoteImage";
 import { Image } from "expo-image";
 import { CircleUserRound } from "lucide-react-native";
@@ -23,11 +22,6 @@ const Explore = () => {
   const router = useRouter();
   const { user, userData } = useAuth();
   const queryClient = useQueryClient();
-
-  const { data: hashtags } = useQuery({
-    queryKey: ["trending-hashtags"],
-    queryFn: () => getTrendingHashtags(6),
-  });
 
   const { data: suggestedUsers } = useQuery({
     queryKey: ["suggested-users", user?.id],
@@ -74,16 +68,6 @@ const Explore = () => {
     }
   };
 
-  const hashtagsList = hashtags?.length
-    ? hashtags.map((h: any) => `#${h.name}`)
-    : [
-        "#Konbit2026",
-        "#HaïtiTech",
-        "#Entrepreneuriat",
-        "#Diaspora",
-        "#Solidarité",
-      ];
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -97,22 +81,22 @@ const Explore = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        {/* Trending */}
+        {/* Catégories */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Tendances</Text>
+          <Text style={styles.sectionTitle}>Catégories</Text>
           <View style={styles.topicRow}>
-            {hashtagsList.map((topic: string) => (
+            {KONBIT_CATEGORIES.map((category) => (
               <TouchableOpacity
-                key={topic}
+                key={category.key}
                 style={styles.topicChip}
                 onPress={() =>
                   router.push({
                     pathname: "/search/[query]",
-                    params: { query: topic },
+                    params: { query: category.label },
                   })
                 }
               >
-                <Text style={styles.topicText}>{topic}</Text>
+                <Text style={styles.topicText}>{category.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -172,22 +156,6 @@ const Explore = () => {
           </View>
         )}
 
-        {/* Communities */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Communautés</Text>
-          <View style={styles.communityGrid}>
-            {["Technologie", "Sport", "Musique", "Cuisine"].map((c) => (
-              <TouchableOpacity key={c} style={styles.communityCard}>
-                <MaterialCommunityIcons
-                  name="account-group"
-                  size={28}
-                  color="#0D9488"
-                />
-                <Text style={styles.communityName}>{c}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
         <View style={{ height: 20 }} />
       </ScrollView>
     </SafeAreaView>
@@ -250,26 +218,6 @@ const styles = StyleSheet.create({
   followingBtn: { backgroundColor: "#F0F0EB" },
   followText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
   followingText: { color: "#1A1A2E" },
-  communityGrid: { flexDirection: "row", gap: 10 },
-  communityCard: {
-    width: 80,
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    padding: 12,
-    borderRadius: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-    gap: 6,
-  },
-  communityName: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#1A1A2E",
-    textAlign: "center",
-  },
 });
 
 export default Explore;

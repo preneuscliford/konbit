@@ -4,37 +4,72 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Linking,
 } from "react-native";
+import { useState } from "react";
 import { useRouter, Link } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "@/app/provider/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import RemoteImage from "@/components/RemoteImage";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather, FontAwesome6 } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { CircleUserRound } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
-import PostsCard from "@/components/PostsCard";
-import DeleteAccountButton from "@/components/account/deleteAccount";
+import KonbitCard from "@/components/KonbitCard";
 import { getFollowersCount, getFollowingCount } from "@/lib/socialService";
+import {
+  getJoinedKonbits,
+  getBookmarkedKonbits,
+} from "@/lib/konbitServices";
+import ProfileTabSelector, {
+  ProfileTab,
+} from "@/components/ProfileTabSelector";
+import Colors from "@/constants/Colors";
+
+const PROFILE_TABS: { key: ProfileTab; label: string }[] = [
+  { key: "crees", label: "Créées" },
+  { key: "rejointes", label: "Rejointes" },
+  { key: "enregistrees", label: "Enregistrées" },
+];
+
+const normalizeUrl = (url: string) =>
+  /^https?:\/\//i.test(url) ? url : `https://${url}`;
+
+const stripAt = (handle: string) => handle.replace(/^@/, "");
 
 const EditProfil = () => {
   const { session, user, userData } = useAuth();
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<ProfileTab>("crees");
 
-  const { data: userPosts } = useQuery({
-    queryKey: ["user-posts", session?.user?.id],
+  const { data: userKonbits } = useQuery({
+    queryKey: ["user-konbits", session?.user?.id],
     queryFn: async () => {
       const { data } = await supabase
-        .from("posts")
-        .select("*, profiles(*), post_likes(*), comments(*)")
+        .from("konbits")
+        .select(
+          "*, profiles(*), konbit_participants(count), konbit_comments(count)",
+        )
         .eq("user_id", session!.user.id)
         .order("created_at", { ascending: false })
         .limit(20);
       return data || [];
     },
     enabled: !!session?.user?.id,
+  });
+
+  const { data: joinedKonbits } = useQuery({
+    queryKey: ["joined-konbits", user?.id],
+    queryFn: () => getJoinedKonbits(user!.id),
+    enabled: !!user?.id && activeTab === "rejointes",
+  });
+
+  const { data: bookmarkedKonbits } = useQuery({
+    queryKey: ["bookmarked-konbits", user?.id],
+    queryFn: () => getBookmarkedKonbits(user!.id),
+    enabled: !!user?.id && activeTab === "enregistrees",
   });
 
   const { data: followersCount } = useQuery({
@@ -49,10 +84,19 @@ const EditProfil = () => {
     enabled: !!user?.id,
   });
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/(auth)/signIn");
-  };
+  const activeList =
+    activeTab === "crees"
+      ? userKonbits
+      : activeTab === "rejointes"
+        ? joinedKonbits
+        : bookmarkedKonbits;
+
+  const emptyLabel =
+    activeTab === "crees"
+      ? "Aucune Konbit créée pour l'instant"
+      : activeTab === "rejointes"
+        ? "Aucune Konbit rejointe pour l'instant"
+        : "Aucune Konbit enregistrée pour l'instant";
 
   if (!session) {
     return (
@@ -75,6 +119,17 @@ const EditProfil = () => {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar style="dark" />
+      <View style={styles.topBar}>
+        <View style={{ width: 36 }} />
+        <Text style={styles.topBarTitle}>Profil</Text>
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/(profile)/settings")}
+          style={styles.settingsBtn}
+          hitSlop={8}
+        >
+          <Feather name="settings" size={22} color={Colors.text} />
+        </TouchableOpacity>
+      </View>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.profileHeader}>
           <View style={styles.avatarWrap}>
@@ -95,9 +150,19 @@ const EditProfil = () => {
               <CircleUserRound color="#9CA3AF" size={48} />
             )}
           </View>
-          <Text style={styles.displayName}>
-            {userData?.full_name || userData?.username}
-          </Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.displayName}>
+              {userData?.full_name || userData?.username}
+            </Text>
+            {userData?.innovation_badges ? (
+              <View style={styles.badge}>
+                <Feather name="award" size={12} color={Colors.secondary} />
+                <Text style={styles.badgeText}>
+                  {userData.innovation_badges}
+                </Text>
+              </View>
+            ) : null}
+          </View>
           <Text style={styles.handle}>
             @{userData?.username || "utilisateur"}
           </Text>
@@ -105,10 +170,54 @@ const EditProfil = () => {
             <Text style={styles.bio}>{userData.bio}</Text>
           ) : null}
 
+          {userData?.website ? (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(normalizeUrl(userData.website))}
+            >
+              <Text style={styles.link}>{userData.website}</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {userData?.social_links?.instagram ||
+          userData?.social_links?.twitter ? (
+            <View style={styles.socialRow}>
+              {userData.social_links.instagram ? (
+                <TouchableOpacity
+                  onPress={() =>
+                    Linking.openURL(
+                      `https://instagram.com/${stripAt(userData.social_links.instagram)}`,
+                    )
+                  }
+                >
+                  <FontAwesome6
+                    name="square-instagram"
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
+              ) : null}
+              {userData.social_links.twitter ? (
+                <TouchableOpacity
+                  onPress={() =>
+                    Linking.openURL(
+                      `https://x.com/${stripAt(userData.social_links.twitter)}`,
+                    )
+                  }
+                >
+                  <FontAwesome6
+                    name="square-x-twitter"
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          ) : null}
+
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <Text style={styles.statNumber}>{userPosts?.length || 0}</Text>
-              <Text style={styles.statLabel}>Publications</Text>
+              <Text style={styles.statNumber}>{userKonbits?.length || 0}</Text>
+              <Text style={styles.statLabel}>Konbits créées</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
@@ -129,49 +238,28 @@ const EditProfil = () => {
           </Link>
         </View>
 
-        <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Paramètres</Text>
-          <View style={styles.settingsGrid}>
-            <TouchableOpacity style={styles.settingCard}>
-              <Feather name="settings" size={24} color="#0D9488" />
-              <Text style={styles.settingLabel}>Paramètres</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingCard}>
-              <MaterialCommunityIcons
-                name="heart-outline"
-                size={24}
-                color="#0D9488"
-              />
-              <Text style={styles.settingLabel}>Favoris</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingCard}>
-              <MaterialCommunityIcons
-                name="post-outline"
-                size={24}
-                color="#0D9488"
-              />
-              <Text style={styles.settingLabel}>Mes Posts</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <ProfileTabSelector
+          tabs={PROFILE_TABS}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
 
         <View style={styles.postsSection}>
-          <Text style={styles.sectionTitle}>Publications</Text>
-          {userPosts?.map((post: any) => (
-            <PostsCard
-              key={post.id}
-              item={post}
-              currentUser={userData || user}
-              router={router}
-              showMoreIcons
-            />
-          ))}
+          {activeList?.length ? (
+            activeList.map((konbit: any) => (
+              <KonbitCard
+                key={konbit.id}
+                item={konbit}
+                currentUser={userData || user}
+                router={router}
+                showMoreIcons
+              />
+            ))
+          ) : (
+            <Text style={styles.emptyListText}>{emptyLabel}</Text>
+          )}
         </View>
 
-        <TouchableOpacity onPress={handleSignOut} style={styles.signOutBtn}>
-          <Text style={styles.signOutText}>Se déconnecter</Text>
-        </TouchableOpacity>
-        <DeleteAccountButton />
         <View style={{ height: 30 }} />
       </ScrollView>
     </SafeAreaView>
@@ -202,6 +290,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   loginBtnText: { color: "#FFFFFF", fontWeight: "700", fontSize: 15 },
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  topBarTitle: { fontSize: 16, fontWeight: "800", color: Colors.text },
+  settingsBtn: {
+    width: 36,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   profileHeader: {
     alignItems: "center",
     paddingTop: 24,
@@ -216,7 +318,18 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#0D9488",
   },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   displayName: { fontSize: 20, fontWeight: "800", color: "#1A1A2E" },
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: `${Colors.secondary}15`,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  badgeText: { fontSize: 11, fontWeight: "700", color: Colors.secondary },
   handle: { fontSize: 14, color: "#9CA3AF", marginTop: 2 },
   bio: {
     fontSize: 14,
@@ -225,6 +338,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingHorizontal: 20,
   },
+  link: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.primary,
+    marginTop: 8,
+  },
+  socialRow: { flexDirection: "row", gap: 16, marginTop: 10 },
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -244,44 +364,13 @@ const styles = StyleSheet.create({
     borderColor: "#D1D5DB",
   },
   editBtnText: { fontSize: 14, fontWeight: "600", color: "#1A1A2E" },
-  settingsSection: { paddingHorizontal: 16, marginTop: 12 },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#1A1A2E",
-    marginBottom: 12,
-  },
-  settingsGrid: { flexDirection: "row", gap: 10 },
-  settingCard: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderRadius: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-    gap: 8,
-  },
-  settingLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#1A1A2E",
+  postsSection: { paddingHorizontal: 16, marginTop: 8, minHeight: 60 },
+  emptyListText: {
     textAlign: "center",
+    color: "#9CA3AF",
+    fontSize: 13,
+    paddingVertical: 24,
   },
-  postsSection: { paddingHorizontal: 16, marginTop: 24 },
-  signOutBtn: {
-    marginHorizontal: 16,
-    marginTop: 24,
-    borderWidth: 1,
-    borderColor: "#EF4444",
-    borderRadius: 14,
-    padding: 14,
-    alignItems: "center",
-  },
-  signOutText: { color: "#EF4444", fontSize: 15, fontWeight: "600" },
 });
 
 export default EditProfil;

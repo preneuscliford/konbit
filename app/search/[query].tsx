@@ -10,28 +10,31 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
-import PostsCard from "@/components/PostsCard";
+import KonbitCard from "@/components/KonbitCard";
 import { useAuth } from "../provider/AuthProvider";
 import BackAppbar from "@/components/AppBar";
 import { StatusBar } from "expo-status-bar";
+import Colors from "@/constants/Colors";
 
 export default function SearchQuery() {
   const { query } = useLocalSearchParams<{ query: string }>();
   const { userData, user } = useAuth();
   const router = useRouter();
 
-  const searchTerm = (query || "").replace("#", "");
+  const searchTerm = query || "";
 
   const { data: results, isLoading } = useQuery({
     queryKey: ["search", searchTerm],
     queryFn: async () => {
-      const { data: posts } = await supabase
-        .from("posts")
-        .select("*, profiles(*), post_likes(*), comments(*)")
-        .or(`content.ilike.%${searchTerm}%,content.ilike.%#${searchTerm}%`)
+      const { data: konbits } = await supabase
+        .from("konbits")
+        .select(
+          "*, profiles(*), konbit_participants(count), konbit_comments(count)",
+        )
+        .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
         .order("created_at", { ascending: false })
         .limit(30);
-      return posts || [];
+      return konbits || [];
     },
     enabled: !!searchTerm,
   });
@@ -39,15 +42,15 @@ export default function SearchQuery() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar style="dark" />
-      <BackAppbar title={`#${searchTerm}`} />
+      <BackAppbar title={searchTerm} />
       {isLoading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color="#0D9488" />
+        <ActivityIndicator style={{ marginTop: 40 }} color={Colors.primary} />
       ) : (
         <FlatList
           data={results}
           keyExtractor={(item: any) => String(item.id)}
           renderItem={({ item }) => (
-            <PostsCard
+            <KonbitCard
               item={item}
               currentUser={userData || user}
               router={router}
@@ -59,7 +62,7 @@ export default function SearchQuery() {
             <View style={styles.empty}>
               <Text style={styles.emptyTitle}>Aucun résultat</Text>
               <Text style={styles.emptySub}>
-                Aucune publication trouvée pour #{searchTerm}
+                Aucune Konbit trouvée pour "{searchTerm}"
               </Text>
             </View>
           }
@@ -70,14 +73,14 @@ export default function SearchQuery() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FAFAF5" },
+  container: { flex: 1, backgroundColor: Colors.surfaceWarm },
   list: { paddingTop: 8 },
   empty: { alignItems: "center", paddingTop: 80, paddingHorizontal: 32 },
   emptyTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1A1A2E",
+    color: Colors.text,
     marginBottom: 6,
   },
-  emptySub: { fontSize: 14, color: "#9CA3AF", textAlign: "center" },
+  emptySub: { fontSize: 14, color: Colors.textMuted, textAlign: "center" },
 });
