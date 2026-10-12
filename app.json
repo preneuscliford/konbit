@@ -1,27 +1,27 @@
 {
   "expo": {
-    "name": "konbit",
+    "name": "Konbit 509",
     "slug": "konbit",
     "owner": "cliford",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/brand/icon.png",
     "scheme": "konbit",
     "newArchEnabled": true,
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/icons/splash-icon-dark.png",
+      "image": "./assets/brand/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFFFFF"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/adaptive-icon.png",
-        "monochromeImage": "./assets/icons/adaptive-icon.png",
-        "backgroundColor": "#F5F8FD"
+        "foregroundImage": "./assets/brand/adaptive-icon-foreground.png",
+        "monochromeImage": "./assets/brand/adaptive-icon-monochrome.png",
+        "backgroundColor": "#00209F"
       },
       "package": "com.cliford.konbit",
       "permissions": [
@@ -32,7 +32,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/brand/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -41,13 +41,13 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F5F8FD",
-          "image": "./assets/icons/splash-icon-dark.png",
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/brand/splash-icon.png",
           "dark": {
-            "image": "./assets/icons/splash-icon-light.png",
-            "backgroundColor": "#181F27"
+            "image": "./assets/brand/splash-icon.png",
+            "backgroundColor": "#0B1238"
           },
-          "imageWidth": 200,
+          "imageWidth": 280,
           "resizeMode": "contain"
         }
       ],

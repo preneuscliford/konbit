@@ -9,12 +9,12 @@ export const KONBIT_CATEGORIES: {
   icon: string;
   color: string;
 }[] = [
-  { key: "aide", label: "Aide", icon: "hand-heart", color: "#F97316" },
+  { key: "aide", label: "Aide", icon: "hand-heart", color: "#D21034" },
   {
     key: "projet",
     label: "Projet",
     icon: "rocket-launch-outline",
-    color: "#0D9488",
+    color: "#00209F",
   },
   {
     key: "idee",

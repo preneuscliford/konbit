@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  topicText: { fontSize: 13, fontWeight: "600", color: "#0D9488" },
+  topicText: { fontSize: 13, fontWeight: "600", color: "#00209F" },
   userRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   userName: { fontSize: 14, fontWeight: "700", color: "#1A1A2E" },
   userHandle: { fontSize: 12, color: "#9CA3AF" },
   followBtn: {
-    backgroundColor: "#0D9488",
+    backgroundColor: "#00209F",
     paddingHorizontal: 16,
     paddingVertical: 7,
     borderRadius: 10,

@@ -106,7 +106,7 @@ const CommentInput: React.FC<CommentInputProps> = ({
           underlineColor="transparent"
           theme={{
             colors: {
-              primary: "#0D9488",
+              primary: "#00209F",
               placeholder: "#94A3B8",
             },
             roundness: 12,
@@ -119,12 +119,12 @@ const CommentInput: React.FC<CommentInputProps> = ({
                   disabled={isSubmitting || !newComment.trim()}
                 >
                   {isSubmitting ? (
-                    <ActivityIndicator color="#0D9488" />
+                    <ActivityIndicator color="#00209F" />
                   ) : (
                     <MaterialCommunityIcons
                       name="send-circle"
                       size={32}
-                      color={newComment.trim() ? "#0D9488" : "#CBD5E1"}
+                      color={newComment.trim() ? "#00209F" : "#CBD5E1"}
                     />
                   )}
                 </TouchableOpacity>

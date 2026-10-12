@@ -13,7 +13,7 @@ LogBox.ignoreLogs([
   "Warning: TRenderEngineProvider",
 ]);
 
-const ACTIVE = "#0D9488";
+const ACTIVE = "#00209F";
 const INACTIVE = "#9CA3AF";
 
 export default function TabLayout() {
@@ -78,7 +78,7 @@ export default function TabLayout() {
             <View
               style={[
                 styles.circle,
-                { backgroundColor: focused ? "#0F766E" : "#0D9488" },
+                { backgroundColor: focused ? "#001A80" : "#00209F" },
               ]}
             >
               <MaterialIcons name="add" size={createIconSize} color="#FFFFFF" />
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#0D9488",
+    shadowColor: "#00209F",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,

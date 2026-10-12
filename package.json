@@ -1,5 +1,5 @@
 {
-  "name": "konbit",
+  "name": "konbit509",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
@@ -64,7 +64,6 @@
     "react-native-gesture-handler": "~2.31.1",
     "react-native-get-random-values": "^1.11.0",
     "react-native-google-mobile-ads": "^15.8.3",
-    "react-native-image-colors": "^2.4.0",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-pager-view": "8.0.1",
     "react-native-paper": "^5.13.1",

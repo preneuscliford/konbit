@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 21,
     borderWidth: 2,
-    borderColor: "#0D9488",
+    borderColor: "#00209F",
   },
   avatarPlaceholder: {
     width: 42,
@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#0D9488",
+    borderColor: "#00209F",
   },
   nameCol: { justifyContent: "center" },
   username: { fontSize: 14, fontWeight: "700", color: "#1A1A2E" },
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   joinBtnActive: {
-    backgroundColor: "#F0FDFA",
+    backgroundColor: "#EEF1FB",
   },
   joinBtnDisabled: {
     backgroundColor: "#E5E7EB",

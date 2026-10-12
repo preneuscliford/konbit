@@ -85,7 +85,7 @@ const SearchInput = () => {
                   <MaterialCommunityIcons
                     name="account-group-outline"
                     size={wp("5%")}
-                    color="#0D9488"
+                    color="#00209F"
                   />
                   <View style={styles.resultTextContainer}>
                     <Text style={styles.resultTitle}>{item.title}</Text>

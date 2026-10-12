@@ -35,7 +35,7 @@ const AuthButton = ({
       } ${variant !== "ghost" ? "shadow-card" : ""}`}
     >
       {loading ? (
-        <ActivityIndicator color={variant === "ghost" ? "#0D9488" : "#fff"} />
+        <ActivityIndicator color={variant === "ghost" ? "#00209F" : "#fff"} />
       ) : (
         <Text className={`font-semibold text-base ${textClass}`}>{title}</Text>
       )}

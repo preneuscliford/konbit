@@ -175,8 +175,8 @@ const KonbitDetails = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor="#0D9488"
-            colors={["#0D9488"]}
+            tintColor="#00209F"
+            colors={["#00209F"]}
           />
         }
       >

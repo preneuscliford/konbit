@@ -65,13 +65,7 @@ export default function RootLayout() {
 
   if (!appIsReady || !animationFinished) {
     return (
-      <AnimationScreen
-        onAnimationFinish={(isCancelled) => {
-          if (!isCancelled) {
-            setAnimationFinished(true);
-          }
-        }}
-      />
+      <AnimationScreen onAnimationFinish={() => setAnimationFinished(true)} />
     );
   }
 

@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderWidth: 2,
-    borderColor: "#0D9488",
+    borderColor: "#00209F",
   },
   avatarPlaceholder: {
     width: 44,
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#0D9488",
+    borderColor: "#00209F",
   },
   userInfo: {
     justifyContent: "center",
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   signInLink: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#0D9488",
+    color: "#00209F",
   },
   searchWrapper: {
     width: "100%",

@@ -1,24 +1,24 @@
 /**
- * Konbit Design System - Color Palette
+ * Konbit 509 Design System - Color Palette
  *
- * Primary: Teal-green (warm, caribbean feel)
- * Secondary: Orange-coral (energy, accent)
+ * Primary: Bleu Konbit 509 (#00209F)
+ * Secondary: Rouge Konbit 509 (#D21034)
  * Surface: Warm whites for backgrounds
  * Charcoal: Dark tones for text
  */
 
 const Colors = {
   // Primary palette
-  primary: "#0D9488",
-  primaryLight: "#14B8A6",
-  primaryDark: "#0F766E",
-  primary50: "#F0FDFA",
-  primary100: "#CCFBF1",
+  primary: "#00209F",
+  primaryLight: "#3350C4",
+  primaryDark: "#001A80",
+  primary50: "#EEF1FB",
+  primary100: "#D4DBF5",
 
   // Secondary palette
-  secondary: "#F97316",
-  secondaryLight: "#FB923C",
-  secondaryDark: "#EA580C",
+  secondary: "#D21034",
+  secondaryLight: "#E54563",
+  secondaryDark: "#A80D2A",
 
   // Surface palette
   surface: "#FFFFFF",
@@ -41,22 +41,22 @@ const Colors = {
   tabBarBackground: "#FFFFFF",
   tabBarBorder: "#F0F0EB",
   tabIconDefault: "#9CA3AF",
-  tabIconActive: "#0D9488",
+  tabIconActive: "#00209F",
 
   // Legacy compatibility
   light: {
     text: "#1A1A2E",
     background: "#FAFAF5",
-    tint: "#0D9488",
+    tint: "#00209F",
     tabIconDefault: "#9CA3AF",
-    tabIconSelected: "#0D9488",
+    tabIconSelected: "#00209F",
   },
   dark: {
     text: "#F5F5F0",
     background: "#1A1A2E",
-    tint: "#14B8A6",
+    tint: "#3350C4",
     tabIconDefault: "#6B7280",
-    tabIconSelected: "#14B8A6",
+    tabIconSelected: "#3350C4",
   },
 };
 

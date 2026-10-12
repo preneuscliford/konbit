@@ -224,7 +224,7 @@ const CreateKonbit = () => {
 
         <View style={styles.footer}>
           <TouchableOpacity onPress={pickImages} style={styles.mediaBtn}>
-            <MaterialIcons name="image" size={24} color="#0D9488" />
+            <MaterialIcons name="image" size={24} color="#00209F" />
           </TouchableOpacity>
         </View>
 
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   },
   closeBtn: { padding: 4 },
   headerTitle: { fontSize: 18, fontWeight: "700", color: "#1A1A2E" },
-  publishBtn: { borderRadius: 20, backgroundColor: "#0D9488" },
+  publishBtn: { borderRadius: 20, backgroundColor: "#00209F" },
   publishLabel: { fontSize: 14, fontWeight: "600" },
   titleInput: {
     fontSize: 18,

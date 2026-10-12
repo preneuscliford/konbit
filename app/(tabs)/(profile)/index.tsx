@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   emptySub: { fontSize: 14, color: "#9CA3AF" },
   loginBtn: {
     marginTop: 16,
-    backgroundColor: "#0D9488",
+    backgroundColor: "#00209F",
     paddingHorizontal: 28,
     paddingVertical: 12,
     borderRadius: 12,
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     height: 88,
     borderRadius: 44,
     borderWidth: 3,
-    borderColor: "#0D9488",
+    borderColor: "#00209F",
   },
   nameRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   displayName: { fontSize: 20, fontWeight: "800", color: "#1A1A2E" },

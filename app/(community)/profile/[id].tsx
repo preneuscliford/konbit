@@ -243,9 +243,9 @@ export default function UserProfile() {
                 <MaterialCommunityIcons
                   name="message-outline"
                   size={18}
-                  color="#0D9488"
+                  color="#00209F"
                 />
-                <Text style={[styles.actionText, { color: "#0D9488" }]}>
+                <Text style={[styles.actionText, { color: "#00209F" }]}>
                   Message
                 </Text>
               </TouchableOpacity>
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     height: 88,
     borderRadius: 44,
     borderWidth: 3,
-    borderColor: "#0D9488",
+    borderColor: "#00209F",
   },
   avatarPlace: {
     width: 88,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,
-    borderColor: "#0D9488",
+    borderColor: "#00209F",
   },
   nameRow: {
     flexDirection: "row",
@@ -344,11 +344,11 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: "#0D9488",
+    backgroundColor: "#00209F",
     borderRadius: 20,
   },
   followingBtn: { backgroundColor: "#F0F0EB" },
-  msgBtn: { backgroundColor: "#F0FDFA" },
+  msgBtn: { backgroundColor: "#EEF1FB" },
   actionText: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
   postsSection: { paddingHorizontal: 16, marginTop: 8 },
   emptyListText: {

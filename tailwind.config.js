@@ -5,21 +5,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Palette Konbit
+        // Palette Konbit 509 (bleu #00209F, rouge #D21034)
         primary: {
-          DEFAULT: "#0D9488",
-          light: "#14B8A6",
-          dark: "#0F766E",
-          50: "#F0FDFA",
-          100: "#CCFBF1",
-          500: "#0D9488",
-          600: "#0F766E",
-          700: "#115E59",
+          DEFAULT: "#00209F",
+          light: "#3350C4",
+          dark: "#001A80",
+          50: "#EEF1FB",
+          100: "#D4DBF5",
+          500: "#00209F",
+          600: "#001A80",
+          700: "#00145F",
         },
         secondary: {
-          DEFAULT: "#F97316",
-          light: "#FB923C",
-          dark: "#EA580C",
+          DEFAULT: "#D21034",
+          light: "#E54563",
+          dark: "#A80D2A",
         },
         surface: {
           DEFAULT: "#FFFFFF",
@@ -34,8 +34,8 @@ module.exports = {
         // Legacy aliases for existing code
         "ghost-white": "#FAFAF5",
         "rich-black": "#1A1A2E",
-        "emerald-green": "#0D9488",
-        "mango-orange": "#F97316",
+        "emerald-green": "#00209F",
+        "mango-orange": "#D21034",
       },
       fontFamily: {
         sans: ["System"],
@@ -49,7 +49,7 @@ module.exports = {
       boxShadow: {
         card: "0px 2px 8px rgba(0, 0, 0, 0.06)",
         "card-lg": "0px 4px 16px rgba(0, 0, 0, 0.08)",
-        float: "0px 8px 24px rgba(13, 148, 136, 0.15)",
+        float: "0px 8px 24px rgba(0, 32, 159, 0.15)",
       },
     },
   },
