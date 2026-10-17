@@ -1,107 +1,67 @@
-import { Tabs, usePathname } from "expo-router";
 import React from "react";
-import { View, StyleSheet, useWindowDimensions } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import Feather from "@expo/vector-icons/Feather";
-import { LogBox } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Tabs, useRouter } from "expo-router";
+import { Handshake, House, Megaphone, Plus, Settings } from "lucide-react-native";
+import Colors from "@/constants/Colors";
+import { useI18n } from "@/lib/i18n";
 
-LogBox.ignoreLogs([
-  "Warning: TNodeChildrenRenderer",
-  "Warning: MemoizedTNodeRenderer",
-  "Warning: TRenderEngineProvider",
-]);
-
-const ACTIVE = "#00209F";
-const INACTIVE = "#9CA3AF";
-
+// Barre du bas façon X : Accueil, Konbit (écran d'ouverture), +, Signalement, Paramètres.
 export default function TabLayout() {
-  const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  const compact = width < 380;
-  const iconSize = compact ? 20 : 22;
-  const createIconSize = compact ? 24 : 26;
-  // Hauteur : 50px + safe area bottom
-  const barHeight = 50 + (insets.bottom || 0);
+  const { t } = useI18n();
+  const router = useRouter();
 
   return (
     <Tabs
+      initialRouteName="index"
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: "#F0F0EB",
-          elevation: 0,
-          shadowOpacity: 0,
-          height: barHeight,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
-          paddingTop: 6,
-        },
-        tabBarActiveTintColor: ACTIVE,
-        tabBarInactiveTintColor: INACTIVE,
-        tabBarLabelStyle: {
-          fontSize: compact ? 8 : 10,
-          fontWeight: "700",
-          marginTop: 0,
-        },
-        tabBarItemStyle: {
-          paddingVertical: 0,
-        },
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: "#6B7280",
+        tabBarLabelStyle: { fontFamily: "Poppins_600SemiBold", fontSize: 11 },
+        tabBarStyle: { backgroundColor: Colors.surface, borderTopColor: "#E5E7EB" },
       }}
-      initialRouteName="index"
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          title: "Accueil",
-          tabBarIcon: ({ color }) => (
-            <AntDesign name="home" size={iconSize} color={color} />
-          ),
-        }}
+        name="home"
+        options={{ title: t("App.tabs.home"), tabBarIcon: ({ color, size }) => <House color={color} size={size} /> }}
       />
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Découvrir",
-          tabBarIcon: ({ color }) => (
-            <Feather name="compass" size={iconSize} color={color} />
-          ),
-        }}
+        name="index"
+        options={{ title: "Konbit", tabBarIcon: ({ color, size }) => <Handshake color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="create"
         options={{
           title: "",
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={[
-                styles.circle,
-                { backgroundColor: focused ? "#001A80" : "#00209F" },
-              ]}
-            >
-              <MaterialIcons name="add" size={createIconSize} color="#FFFFFF" />
+          tabBarAccessibilityLabel: t("App.compose.title"),
+          // Le "+" n'est pas un onglet : il ouvre la fenêtre de création.
+          tabBarButton: ({ style }) => (
+            <View style={[style, styles.createSlot]}>
+              <Pressable
+                onPress={() => router.push("/compose")}
+                style={styles.createButton}
+                accessibilityRole="button"
+                accessibilityLabel={t("App.compose.title")}
+                android_ripple={{ color: "rgba(255,255,255,0.3)", borderless: true }}
+              >
+                <Plus color="#FFFFFF" size={28} strokeWidth={2.5} />
+              </Pressable>
             </View>
           ),
         }}
       />
       <Tabs.Screen
-        name="messages"
+        name="signalement"
         options={{
-          title: "Messages",
-          tabBarIcon: ({ color }) => (
-            <Feather name="message-circle" size={iconSize} color={color} />
-          ),
+          title: t("App.tabs.report"),
+          tabBarIcon: ({ color, size }) => <Megaphone color={color} size={size} />,
         }}
       />
       <Tabs.Screen
-        name="(profile)"
+        name="settings"
         options={{
-          title: "Profil",
-          tabBarIcon: ({ color }) => (
-            <AntDesign name="user" size={iconSize} color={color} />
-          ),
+          title: t("App.tabs.settings"),
+          tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
         }}
       />
     </Tabs>
@@ -109,17 +69,19 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  circle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
+  createSlot: { alignItems: "center", justifyContent: "center" },
+  createButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: Colors.primary,
     alignItems: "center",
-    shadowColor: "#00209F",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    justifyContent: "center",
+    overflow: "hidden",
     elevation: 4,
-    marginTop: -2,
+    shadowColor: Colors.primary,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
   },
 });

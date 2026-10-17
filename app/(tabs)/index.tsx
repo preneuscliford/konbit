@@ -1,172 +1,89 @@
-import React, { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  RefreshControl,
-} from "react-native";
+import React, { useMemo, useState } from "react";
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
-import Header from "@/components/Header";
-import KonbitCard from "@/components/KonbitCard";
-import FeedTabSelector, { FeedTab } from "@/components/FeedTabSelector";
-import { useAuth } from "../provider/AuthProvider";
-import { useRouter } from "expo-router";
-import { useKonbitFeed } from "@/hooks/useKonbitFeed";
 import { StatusBar } from "expo-status-bar";
+import { useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
+import AppHeader from "@/components/AppHeader";
+import OfflineBanner from "@/components/konbit/OfflineBanner";
+import KonbitCard from "@/components/konbit509/KonbitCard";
+import { Text } from "@/components/ui/Text";
+import { useFeed } from "@/hooks/useKonbits";
+import { useI18n } from "@/lib/i18n";
 
-export default function HomeScreen() {
-  const { user, userData } = useAuth();
+// Fil Konbit : écran d'ouverture de l'app.
+export default function KonbitFeedScreen() {
+  const { t } = useI18n();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<FeedTab>("nouveaux");
+  const feed = useFeed();
   const [refreshing, setRefreshing] = useState(false);
 
-  const feed = useKonbitFeed(activeTab, user?.id);
+  const konbits = useMemo(() => feed.data?.pages.flat() ?? [], [feed.data]);
 
-  const onRefresh = useCallback(async () => {
+  async function onRefresh() {
     setRefreshing(true);
     await feed.refetch();
     setRefreshing(false);
-  }, [feed.refetch]);
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar style="dark" />
+      <AppHeader />
+      <OfflineBanner />
+
       <FlatList
-        data={feed.data}
-        keyExtractor={(item: any) => String(item.id)}
-        ListHeaderComponent={
-          <>
-            <Header />
-            <TouchableOpacity
-              style={styles.createBanner}
-              onPress={() => router.push("/(tabs)/create")}
-              activeOpacity={0.85}
-            >
-              <View style={styles.createBannerIcon}>
-                <Feather name="plus" size={18} color="#FFFFFF" />
-              </View>
-              <Text style={styles.createBannerText}>Créer une Konbit</Text>
-            </TouchableOpacity>
-            <FeedTabSelector activeTab={activeTab} onChange={setActiveTab} />
-          </>
-        }
+        data={konbits}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => <KonbitCard konbit={item} />}
+        onEndReached={() => feed.hasNextPage && !feed.isFetchingNextPage && feed.fetchNextPage()}
+        onEndReachedThreshold={0.5}
+        initialNumToRender={8}
+        windowSize={7}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
         ListEmptyComponent={
           feed.isLoading ? (
-            <View style={styles.loading}>
-              <ActivityIndicator color={Colors.primary} />
-            </View>
+            <ActivityIndicator color={Colors.primary} style={styles.loader} />
           ) : feed.isError ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>Erreur de chargement</Text>
-              <Text style={styles.emptySub}>
-                Impossible de charger les Konbits.
-              </Text>
-              <TouchableOpacity
-                onPress={() => feed.refetch()}
-                style={styles.retryButton}
-              >
-                <Text style={styles.retryText}>Réessayer</Text>
-              </TouchableOpacity>
+              <Text style={styles.emptyText}>{t("App.feed.loadError")}</Text>
+              <Pressable onPress={() => feed.refetch()} style={styles.button}>
+                <Text style={styles.buttonText}>{t("App.retry")}</Text>
+              </Pressable>
             </View>
           ) : (
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>
-                {activeTab === "mesKonbits" && !user?.id
-                  ? "Connectez-vous pour voir vos Konbits"
-                  : "Aucune Konbit"}
-              </Text>
-              {activeTab !== "mesKonbits" && (
-                <Text style={styles.emptySub}>
-                  Soyez le premier à créer une Konbit dans votre communauté !
-                </Text>
-              )}
+              <Text style={styles.emptyText}>{t("App.feed.empty")}</Text>
+              <Pressable onPress={() => router.push("/compose")} style={styles.button}>
+                <Text style={styles.buttonText}>{t("App.compose.title")}</Text>
+              </Pressable>
             </View>
           )
         }
-        renderItem={({ item }) => (
-          <KonbitCard
-            item={item}
-            currentUser={userData || user}
-            router={router}
-            showMoreIcons={true}
-          />
-        )}
-        onEndReached={() => {
-          if (feed.hasNextPage) feed.fetchNextPage();
-        }}
-        onEndReachedThreshold={0.5}
         ListFooterComponent={
           feed.isFetchingNextPage ? (
-            <View style={styles.footerLoading}>
-              <ActivityIndicator size="small" color={Colors.primary} />
-            </View>
-          ) : !feed.hasNextPage && feed.data.length > 0 ? (
-            <View style={styles.footerEnd}>
-              <Text style={styles.footerEndText}>Fin des résultats</Text>
-            </View>
+            <ActivityIndicator color={Colors.primary} style={styles.loader} />
+          ) : konbits.length > 0 && !feed.hasNextPage ? (
+            <Text style={styles.end}>{t("App.feed.end")}</Text>
           ) : null
         }
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={Colors.primary}
-            colors={[Colors.primary]}
-          />
-        }
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.surfaceWarm },
-  list: { paddingBottom: 20 },
-  createBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    padding: 14,
-    borderRadius: 16,
+  container: { flex: 1, backgroundColor: Colors.surface },
+  loader: { marginVertical: 24 },
+  empty: { alignItems: "center", gap: 16, paddingHorizontal: 32, paddingTop: 64 },
+  emptyText: { fontSize: 15, color: Colors.textMuted, textAlign: "center", lineHeight: 22 },
+  button: {
     backgroundColor: Colors.primary,
+    borderRadius: 22,
+    paddingHorizontal: 22,
+    paddingVertical: 11,
+    overflow: "hidden",
   },
-  createBannerIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  createBannerText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
-  loading: { paddingTop: 80, alignItems: "center" },
-  empty: { alignItems: "center", paddingTop: 80, paddingHorizontal: 32 },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 6,
-    textAlign: "center",
-  },
-  emptySub: { fontSize: 14, color: Colors.textMuted, textAlign: "center" },
-  retryButton: {
-    marginTop: 16,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  retryText: { color: "#FFFFFF", fontWeight: "600" },
-  footerLoading: { paddingVertical: 16 },
-  footerEnd: { paddingVertical: 16, alignItems: "center" },
-  footerEndText: { color: Colors.textMuted },
+  buttonText: { color: "#FFFFFF", fontWeight: "700", fontSize: 15 },
+  end: { textAlign: "center", color: Colors.textMuted, fontSize: 13, paddingVertical: 24 },
 });
