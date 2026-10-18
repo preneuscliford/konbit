@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import type { PublicProfile } from "@/lib/konbits";
 import {
+  deleteNotification,
+  dismissAnnouncement,
+  fetchAnnouncement,
   fetchFollowList,
   fetchFollowState,
   fetchNotifications,
@@ -10,6 +13,7 @@ import {
   markAllNotificationsRead,
   setFollowNotify,
   unfollow,
+  type AppNotification,
   type FollowListKind,
   type FollowState,
 } from "@/lib/social";
@@ -110,5 +114,36 @@ export function useMarkAllRead() {
   return useMutation({
     mutationFn: markAllNotificationsRead,
     onSuccess: () => queryClient.setQueryData(["notifications-unread", userId], 0),
+  });
+}
+
+export function useAnnouncement(id: number) {
+  return useQuery({ queryKey: ["announcement", id], queryFn: () => fetchAnnouncement(id), enabled: id > 0 });
+}
+
+// Effacer une notification : disparaît tout de suite de la liste.
+export function useDeleteNotification() {
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
+  return useMutation({
+    mutationFn: (id: number) => deleteNotification(id),
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<AppNotification[]>(["notifications", userId], (list) => list?.filter((n) => n.id !== id));
+      queryClient.invalidateQueries({ queryKey: ["notifications-unread"] });
+    },
+  });
+}
+
+export function useDismissAnnouncement() {
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
+  return useMutation({
+    mutationFn: (announcementId: number) => dismissAnnouncement(announcementId),
+    onSuccess: (_data, announcementId) => {
+      queryClient.setQueryData<AppNotification[]>(["notifications", userId], (list) =>
+        list?.filter((n) => n.announcement_id !== announcementId),
+      );
+      queryClient.invalidateQueries({ queryKey: ["notifications-unread"] });
+    },
   });
 }

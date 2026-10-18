@@ -4,8 +4,18 @@ Règle automatique : quand **3 comptes différents** signalent le même konbit o
 même réponse, il est masqué (`status = 'hidden'`) en attendant une revue.
 L'auteur le voit encore, les autres non.
 
-En attendant une page d'administration, la revue se fait dans
-Supabase → projet `konbit` (wnwyohyfjofdegyvjkfb) → SQL Editor.
+La revue se fait dans l'app : **Paramèt → Administrasyon** (rôles `moderator`
+et `admin`). Signalements, sanctions (avertir, limiter, suspendre), annonces et
+statistiques passent par les fonctions de `*_admin_moderation.sql`, qui
+revérifient le rôle. Les requêtes SQL ci-dessous restent utiles en secours,
+dans Supabase → projet `konbit` (wnwyohyfjofdegyvjkfb) → SQL Editor.
+
+Donner un rôle : admin → depuis la fiche d'un compte dans l'app. Le rôle
+`admin` lui-même ne se donne qu'en SQL :
+
+```sql
+update profiles set role = 'admin' where lower(pseudo) = lower('son_pseudo');
+```
 
 ## Voir ce qui attend une revue
 

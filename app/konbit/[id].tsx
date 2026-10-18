@@ -8,6 +8,7 @@ import { ArrowLeft, Ellipsis, Send } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
 import KonbitCard from "@/components/konbit509/KonbitCard";
+import RestrictionBanner, { useRestriction } from "@/components/konbit509/RestrictionBanner";
 import ActionSheet, { type SheetOption } from "@/components/ui/ActionSheet";
 import { Text, TextInput } from "@/components/ui/Text";
 import { useAccountGate } from "@/hooks/useAccountGate";
@@ -35,6 +36,7 @@ export default function KonbitDetailScreen() {
   const queryClient = useQueryClient();
   const requireAccount = useAccountGate();
   const [draft, setDraft] = useState("");
+  const restriction = useRestriction();
   const [sending, setSending] = useState(false);
 
   const errorText = (e: unknown) => t(`App.konbitErrors.${e instanceof KonbitError ? e.code : "failed"}`);
@@ -90,7 +92,12 @@ export default function KonbitDetailScreen() {
           />
         )}
 
-        {konbit.data && (
+        {konbit.data && restriction.blocked && (
+          <View style={styles.restriction}>
+            <RestrictionBanner message={restriction.message} />
+          </View>
+        )}
+        {konbit.data && !restriction.blocked && (
           <View style={styles.composer}>
             <TextInput
               value={draft}
@@ -214,6 +221,7 @@ const styles = StyleSheet.create({
   replyPseudo: { fontSize: 14, fontWeight: "700", color: Colors.text },
   replyTime: { fontSize: 13, color: Colors.textMuted },
   replyBody: { fontSize: 15, lineHeight: 21, color: Colors.text, marginTop: 2 },
+  restriction: { padding: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E7EB" },
   composer: {
     flexDirection: "row",
     alignItems: "flex-end",

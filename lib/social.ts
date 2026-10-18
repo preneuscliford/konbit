@@ -21,12 +21,29 @@ export type FollowListKind = "followers" | "following";
 
 export interface AppNotification {
   id: number;
-  type: "new_konbit" | "new_follower";
+  type:
+    | "new_konbit"
+    | "new_follower"
+    | "new_like"
+    | "new_reply"
+    | "new_participant"
+    | "moderation"
+    | "announcement";
   konbit_id: number | null;
+  announcement_id: number | null;
   read_at: string | null;
   created_at: string;
   actor: FollowListItem | null;
   konbit: { id: number; body: string } | null;
+  reply: { body: string } | null;
+  // Décision de l'équipe (sans son auteur) ou annonce à tous.
+  moderation: {
+    action: "warn" | "restrict" | "suspend" | "lift" | "remove_content" | "restore_content";
+    reason: string | null;
+    note: string | null;
+    until: string | null;
+  } | null;
+  announcement: { title: string; body: string } | null;
 }
 
 const PROFILE_FIELDS = "id, pseudo, display_name, avatar_path, bio";
@@ -90,9 +107,12 @@ export async function fetchNotifications(): Promise<AppNotification[]> {
   const { data, error } = await supabase
     .from("notifications")
     .select(
-      `id, type, konbit_id, read_at, created_at,
+      `id, type, konbit_id, announcement_id, read_at, created_at,
        actor:profiles!notifications_actor_id_fkey(${PROFILE_FIELDS}),
-       konbit:konbits(id, body)`,
+       konbit:konbits(id, body),
+       reply:konbit_replies(body),
+       moderation:moderation_actions(action, reason, note, until),
+       announcement:announcements(title, body)`,
     )
     .order("created_at", { ascending: false })
     .limit(60);
@@ -114,5 +134,36 @@ export async function markAllNotificationsRead() {
     .from("notifications")
     .update({ read_at: new Date().toISOString() })
     .is("read_at", null);
+  if (error) fail(error);
+}
+
+// Effacer une notification de sa propre liste (le serveur limite à ses notifications).
+export async function deleteNotification(id: number) {
+  const { error } = await supabase.from("notifications").delete().eq("id", id);
+  if (error) fail(error);
+}
+
+// Annonce de l'équipe, lue en entier depuis la notification.
+export interface AnnouncementDetail {
+  id: number;
+  title: string;
+  body: string;
+  created_at: string;
+}
+
+export async function fetchAnnouncement(id: number): Promise<AnnouncementDetail> {
+  const { data, error } = await supabase
+    .from("announcements")
+    .select("id, title, body, created_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) fail(error);
+  if (!data) throw new KonbitError("not_found");
+  return data as AnnouncementDetail;
+}
+
+// Retirer une annonce de ses notifications (sans la supprimer pour les autres).
+export async function dismissAnnouncement(announcementId: number) {
+  const { error } = await supabase.from("notifications").delete().eq("announcement_id", announcementId);
   if (error) fail(error);
 }

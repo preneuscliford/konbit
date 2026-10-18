@@ -13,6 +13,7 @@ import PushManager from "@/components/PushManager";
 import { FONT_ASSETS } from "@/components/ui/Text";
 import { useAppState } from "@/hooks/useAppState";
 import { useOnlineManager } from "@/hooks/useOnlineManager";
+import { useUsagePing } from "@/hooks/useUsagePing";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { LocalStateProvider, useLocalState } from "@/lib/localState";
@@ -60,6 +61,7 @@ function AppGate() {
   const local = useLocalState();
   const auth = useAuth();
   const [animationFinished, setAnimationFinished] = useState(false);
+  useUsagePing(auth.ready ? auth.userId : null);
 
   useEffect(() => {
     SplashScreen.hideAsync();
@@ -82,7 +84,14 @@ function AppGate() {
         <Stack.Screen name="user/[id]/index" />
         <Stack.Screen name="user/[id]/follows" />
         <Stack.Screen name="notifications" />
+        <Stack.Screen name="announcement/[id]" />
         <Stack.Screen name="activity" />
+        <Stack.Screen name="admin/index" />
+        <Stack.Screen name="admin/reports" />
+        <Stack.Screen name="admin/report" />
+        <Stack.Screen name="admin/users" />
+        <Stack.Screen name="admin/user/[id]" />
+        <Stack.Screen name="admin/announce" />
         <Stack.Screen name="profile-edit" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
         <Stack.Screen name="delete-account" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
         <Stack.Screen name="rates" />

@@ -93,6 +93,9 @@ interface AuthValue {
   canPost: boolean;
   // Compte créé avec e-mail + mot de passe (sinon : Google uniquement).
   hasPassword: boolean;
+  // Accès à l'administration (affichage seulement : le serveur revérifie le rôle).
+  isModerator: boolean;
+  isAdmin: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   // needsConfirmation : un code de confirmation a été envoyé, pas encore de session.
@@ -308,6 +311,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profile,
       canPost: !!userId && !!profile?.pseudo,
       hasPassword,
+      isModerator: profile?.role === "moderator" || profile?.role === "admin",
+      isAdmin: profile?.role === "admin",
       signInWithGoogle,
       signInWithEmail,
       signUpWithEmail,

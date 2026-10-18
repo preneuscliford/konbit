@@ -130,11 +130,16 @@ Ces conditions sont régies par les lois de la République d'Haïti. En cas de d
 | Abonnements (qui tu suis, qui te suit) | Quand tu suis quelqu'un | Oui (listes d'abonnés) |
 | Signalements d'abus | Quand tu signales un konbit | Non |
 | Notifications et jeton de notification push | Si tu actives les notifications | Non |
+| Date de ta dernière activité | Quand tu utilises l'application connecté | Non |
+| Décisions de modération te concernant (avertissement, limitation, contenu retiré) et leur motif | En cas de non-respect des règles | Non (tu les reçois en notification) |
+| Identifiant d'installation (tiré au hasard) et jours d'utilisation | Quand l'application est ouverte, avec ou sans compte | Non |
 | Données techniques : adresse IP, modèle d'appareil, journaux d'erreurs | Automatiquement, à chaque connexion au serveur | Non |
 
 Si tu te connectes avec Google, nous recevons seulement ton adresse e-mail et les informations de base de ton compte Google. Nous n'avons accès ni à tes contacts, ni à tes e-mails, ni à tes fichiers.
 
 **Onglet Signalement :** un incident (catégorie, commune, note facultative) est envoyé avec un identifiant anonyme créé au hasard sur ton téléphone. Cet identifiant n'est **jamais relié** à ton compte Konbit 509.
+
+**Mesure d'utilisation :** pour savoir combien de personnes utilisent l'application, ton téléphone envoie un identifiant tiré au hasard, au plus une fois par jour et par période d'utilisation. Nous ne gardons que le jour, la version de l'application et le fait qu'un compte était connecté ou non. Cet identifiant n'est **pas relié** à ton compte ni au Signalement.
 
 Certaines préférences (langue, commune choisie pour la météo) restent seulement sur ton téléphone.
 
@@ -170,6 +175,8 @@ Ces prestataires peuvent stocker les données hors d'Haïti, notamment aux État
 - **Copies de sauvegarde :** les données supprimées peuvent rester quelques semaines dans des sauvegardes techniques, puis sont effacées automatiquement.
 - **Signalements anonymes :** conservés pour les statistiques communautaires, puisqu'ils ne sont liés à aucun compte.
 - **Journaux techniques :** gardés pour une durée courte, pour la sécurité et la correction des bugs.
+- **Comptes supprimés :** nous gardons seulement la date de suppression et l'ancienneté du compte (en jours), pour nos statistiques, sans aucune donnée permettant de t'identifier.
+- **Mesure d'utilisation :** les jours d'utilisation, liés seulement à l'identifiant d'installation tiré au hasard.
 
 ## 6. Tes droits
 

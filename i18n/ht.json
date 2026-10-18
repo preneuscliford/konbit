@@ -247,7 +247,22 @@
       "title": "Notifikasyon",
       "empty": "Ou poko gen notifikasyon. Swiv moun epi aktive klòch la pou w konnen lè yo pibliye.",
       "newKonbit": "lanse yon nouvo konbit",
-      "newFollower": "kòmanse swiv ou"
+      "newFollower": "kòmanse swiv ou",
+      "team": "Ekip Konbit 509",
+      "moderation": {
+        "warn": "Ou resevwa yon avètisman pou: {reason}.",
+        "restrict": "Kont ou limite jiska {until} pou: {reason}. Ou ka li, men ou pa ka pibliye.",
+        "suspend": "Kont ou sispann pou: {reason}.",
+        "lift": "Restriksyon sou kont ou leve. Ou ka pibliye ankò.",
+        "remove_content": "Youn nan piblikasyon ou yo retire pou: {reason}.",
+        "restore_content": "Piblikasyon ou an retabli.",
+        "help": "Ou panse se yon erè? Ekri konbit@haitiscope.com."
+      },
+      "delete": "Efase notifikasyon an",
+      "readMore": "Li tout mesaj la",
+      "newLike": "renmen konbit ou a",
+      "newReply": "reponn konbit ou a",
+      "newParticipant": "di « Mwen ladan » pou konbit ou a"
     },
     "activity": {
       "title": "Aktivite mwen",
@@ -287,6 +302,138 @@
       "confirmGoogle": "Konfime ak Google epi efase",
       "wrongPassword": "Modpas la pa bon.",
       "wrongGoogle": "Se pa menm kont Google la. Chwazi kont ou te itilize pou konekte a."
+    },
+    "admin": {
+      "title": "Administrasyon",
+      "done": "Fèt.",
+      "reports": {
+        "title": "Siyalman",
+        "empty": "Pa gen anyen pou revize. 👍",
+        "count": "{count} siyalman",
+        "deleted": "(kontni an efase)",
+        "type": {
+          "konbit": "Konbit",
+          "reply": "Repons"
+        }
+      },
+      "report": {
+        "title": "Siyalman",
+        "gone": "Siyalman sa a deja trete.",
+        "openInApp": "Wè l nan aplikasyon an",
+        "decision": "Desizyon sou kontni an",
+        "keep": "Kenbe l",
+        "remove": "Retire l",
+        "keepConfirm": "Kontni an rete (oswa vin parèt ankò) epi siyalman yo fèmen.",
+        "removeConfirm": "Kontni an retire pou tout moun. Otè a ap resevwa yon notifikasyon.",
+        "removed": "Kontni an retire.",
+        "kept": "Kontni an kenbe.",
+        "sanctionAuthor": "Otè a",
+        "sanctionHint": "Si sa nesesè, ou ka avèti l oswa limite kont li. L ap resevwa yon notifikasyon."
+      },
+      "users": {
+        "title": "Itilizatè",
+        "search": "Chèche yon tinon oswa yon non",
+        "none": "Pa gen kont ki koresponn."
+      },
+      "user": {
+        "suspended": "Sispann",
+        "restricted": "Limite",
+        "since": "manm depi {date}",
+        "lastSeen": "Dènye aktivite {when}",
+        "neverSeen": "Poko gen aktivite anrejistre",
+        "openProfile": "Wè pwofil piblik la",
+        "suspendedSince": "Kont sispann depi {date}",
+        "restrictedUntil": "Kont limite jiska {date}",
+        "lift": "Leve sanksyon an",
+        "liftConfirm": "Kont lan ap ka pibliye ankò. Kontni ki te retire yo pa tounen otomatikman.",
+        "reportsReceived": "Siyalman resevwa",
+        "role": "Wòl",
+        "roleConfirm": "Bay kont sa a wòl « {role} » ?",
+        "roleApply": "Konfime",
+        "sanction": "Sanksyon",
+        "history": "Istorik",
+        "noHistory": "Okenn desizyon pou kont sa a.",
+        "until": "jiska {date}"
+      },
+      "roles": {
+        "user": "Itilizatè",
+        "tester": "Testè",
+        "moderator": "Moderatè",
+        "admin": "Admin"
+      },
+      "actions": {
+        "warn": "Avètisman",
+        "restrict": "Limite",
+        "suspend": "Sispann",
+        "lift": "Sanksyon leve",
+        "remove_content": "Kontni retire",
+        "restore_content": "Kontni retabli"
+      },
+      "sanction": {
+        "reason": "Rezon",
+        "pickReason": "Chwazi yon rezon anvan.",
+        "note": "Mesaj pou moun nan (opsyonèl)",
+        "notePlaceholder": "Egzanp: Tanpri respekte lòt moun nan repons ou yo.",
+        "warn": "Voye yon avètisman",
+        "days": "{days} j",
+        "restrictFor": "Limite pou {days} jou",
+        "suspend": "Sispann kont lan",
+        "confirm": {
+          "warn": "Moun nan ap resevwa yon notifikasyon ak rezon an. Pa gen anyen ki bloke.",
+          "restrict": "Moun nan ap ka li, men li p ap ka pibliye, reponn, patisipe ni swiv moun pandan peryòd sa a.",
+          "suspend": "Kont lan p ap ka pibliye ankò e tout konbit ak repons li yo ap retire. Se ou sèlman ki ka leve sa."
+        }
+      },
+      "announce": {
+        "title": "Anons",
+        "hint": "Mesaj sa a ap parèt nan notifikasyon tout moun ki gen yon kont, epi kòm notifikasyon sou telefòn yo.",
+        "titleLabel": "Tit",
+        "titlePlaceholder": "Egzanp: Nouvo fonksyon",
+        "bodyLabel": "Mesaj",
+        "bodyPlaceholder": "Kisa ki chanje, an kout.",
+        "preview": "Apèsi",
+        "send": "Voye bay tout moun",
+        "confirm": "Anons lan pral voye bay {count} kont. Ou pa ka anile l apre.",
+        "sent": "Anons voye bay {count} kont.",
+        "history": "Anons ki deja voye",
+        "none": "Poko gen anons.",
+        "delete": "Efase anons lan",
+        "deleteConfirm": "Anons lan ap efase pou tout moun, menm nan notifikasyon yo. Ou pa ka jwenn li ankò.",
+        "deleted": "Anons lan efase."
+      },
+      "stats": {
+        "accounts": "Kont",
+        "total": "Total",
+        "new7d": "Nouvo (7 j)",
+        "active24h": "Aktif (24 è)",
+        "active7d": "Aktif (7 j)",
+        "devices": "Telefòn ki itilize app la",
+        "devicesHint": "Ak oswa san kont, yon fwa pa jou.",
+        "today": "Jodi a",
+        "days7": "7 jou",
+        "days30": "30 jou",
+        "dailyActive": "Telefòn aktif pa jou",
+        "dailySignups": "Nouvo kont pa jou",
+        "content": "Kontni",
+        "konbitsVisible": "Konbit vizib",
+        "konbits7d": "Konbit (7 j)",
+        "replies7d": "Repons (7 j)",
+        "moderation": "Moderasyon",
+        "reportsOpen": "Siyalman ouvè",
+        "restricted": "Kont limite",
+        "suspended": "Kont sispann",
+        "deletions30d": "Kont efase (30 j)",
+        "deletionsTotal": "{count} kont efase an tout."
+      }
+    },
+    "restriction": {
+      "restricted": "Kont ou limite jiska {date} : ou ka li, men ou pa ka pibliye ni reponn pou kounye a.",
+      "suspended": "Kont ou sispann : ou pa ka pibliye ni reponn ankò."
+    },
+    "announcement": {
+      "deleteConfirm": "Mesaj sa a ap efase nan notifikasyon ou yo.",
+      "deleted": "Notifikasyon an efase.",
+      "gone": "Mesaj sa a pa disponib ankò."
     }
   },
   "Konbit": {

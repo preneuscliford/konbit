@@ -18,6 +18,7 @@ import { CalendarDays, Ellipsis, ImagePlus, X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import CommunePicker from "@/components/konbit/CommunePicker";
 import Avatar from "@/components/konbit509/Avatar";
+import RestrictionBanner, { useRestriction } from "@/components/konbit509/RestrictionBanner";
 import LinkedText from "@/components/ui/LinkedText";
 import { Text, TextInput } from "@/components/ui/Text";
 import { useCommunes } from "@/hooks/useKonbit";
@@ -66,7 +67,8 @@ export default function ComposeScreen() {
   const showKind = isEnabled("compose.kind");
   const showMedia = isEnabled("compose.media");
   const remaining = KONBIT_MAX_LENGTH - body.length;
-  const canSubmit = body.trim().length > 0 && !!communeSlug && !sending && !preparing;
+  const restriction = useRestriction();
+  const canSubmit = body.trim().length > 0 && !!communeSlug && !sending && !preparing && !restriction.blocked;
 
   async function pickImages() {
     const slots = MAX_IMAGES - images.length;
@@ -129,6 +131,7 @@ export default function ComposeScreen() {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <RestrictionBanner message={restriction.message} />
           <View style={styles.editorRow}>
             <Avatar
               pseudo={profile?.pseudo ?? null}

@@ -247,7 +247,22 @@
       "title": "Notifications",
       "empty": "Pas encore de notification. Suis des personnes et active la cloche pour savoir quand elles publient.",
       "newKonbit": "a lancé un nouveau konbit",
-      "newFollower": "a commencé à te suivre"
+      "newFollower": "a commencé à te suivre",
+      "team": "Équipe Konbit 509",
+      "moderation": {
+        "warn": "Tu as reçu un avertissement pour : {reason}.",
+        "restrict": "Ton compte est limité jusqu'au {until} pour : {reason}. Tu peux lire, mais pas publier.",
+        "suspend": "Ton compte est suspendu pour : {reason}.",
+        "lift": "La restriction de ton compte est levée. Tu peux de nouveau publier.",
+        "remove_content": "Une de tes publications a été retirée pour : {reason}.",
+        "restore_content": "Ta publication a été rétablie.",
+        "help": "Tu penses que c'est une erreur ? Écris à konbit@haitiscope.com."
+      },
+      "delete": "Supprimer la notification",
+      "readMore": "Lire le message en entier",
+      "newLike": "a aimé ton konbit",
+      "newReply": "a répondu à ton konbit",
+      "newParticipant": "a dit « Mwen ladan » pour ton konbit"
     },
     "activity": {
       "title": "Mon activité",
@@ -287,6 +302,138 @@
       "confirmGoogle": "Confirmer avec Google et supprimer",
       "wrongPassword": "Mot de passe incorrect.",
       "wrongGoogle": "Ce n’est pas le même compte Google. Choisis celui que tu utilises pour te connecter."
+    },
+    "admin": {
+      "title": "Administration",
+      "done": "C'est fait.",
+      "reports": {
+        "title": "Signalements",
+        "empty": "Rien à examiner. 👍",
+        "count": "{count} signalements",
+        "deleted": "(contenu supprimé)",
+        "type": {
+          "konbit": "Konbit",
+          "reply": "Réponse"
+        }
+      },
+      "report": {
+        "title": "Signalement",
+        "gone": "Ce signalement a déjà été traité.",
+        "openInApp": "Voir dans l'application",
+        "decision": "Décision sur le contenu",
+        "keep": "Garder",
+        "remove": "Retirer",
+        "keepConfirm": "Le contenu reste (ou réapparaît) et ses signalements sont clos.",
+        "removeConfirm": "Le contenu est retiré pour tout le monde. L'auteur recevra une notification.",
+        "removed": "Contenu retiré.",
+        "kept": "Contenu gardé.",
+        "sanctionAuthor": "L'auteur",
+        "sanctionHint": "Si nécessaire, tu peux l'avertir ou limiter son compte. Il recevra une notification."
+      },
+      "users": {
+        "title": "Utilisateurs",
+        "search": "Chercher un pseudo ou un nom",
+        "none": "Aucun compte ne correspond."
+      },
+      "user": {
+        "suspended": "Suspendu",
+        "restricted": "Limité",
+        "since": "membre depuis le {date}",
+        "lastSeen": "Dernière activité {when}",
+        "neverSeen": "Aucune activité enregistrée",
+        "openProfile": "Voir le profil public",
+        "suspendedSince": "Compte suspendu depuis le {date}",
+        "restrictedUntil": "Compte limité jusqu'au {date}",
+        "lift": "Lever la sanction",
+        "liftConfirm": "Le compte pourra de nouveau publier. Les contenus retirés ne reviennent pas automatiquement.",
+        "reportsReceived": "Signalements reçus",
+        "role": "Rôle",
+        "roleConfirm": "Donner le rôle « {role} » à ce compte ?",
+        "roleApply": "Confirmer",
+        "sanction": "Sanction",
+        "history": "Historique",
+        "noHistory": "Aucune décision pour ce compte.",
+        "until": "jusqu'au {date}"
+      },
+      "roles": {
+        "user": "Utilisateur",
+        "tester": "Testeur",
+        "moderator": "Modérateur",
+        "admin": "Admin"
+      },
+      "actions": {
+        "warn": "Avertissement",
+        "restrict": "Limité",
+        "suspend": "Suspendu",
+        "lift": "Sanction levée",
+        "remove_content": "Contenu retiré",
+        "restore_content": "Contenu rétabli"
+      },
+      "sanction": {
+        "reason": "Motif",
+        "pickReason": "Choisis d'abord un motif.",
+        "note": "Message à la personne (facultatif)",
+        "notePlaceholder": "Exemple : Merci de rester respectueux dans tes réponses.",
+        "warn": "Envoyer un avertissement",
+        "days": "{days} j",
+        "restrictFor": "Limiter {days} jours",
+        "suspend": "Suspendre le compte",
+        "confirm": {
+          "warn": "La personne reçoit une notification avec le motif. Rien n'est bloqué.",
+          "restrict": "La personne peut lire, mais ne peut plus publier, répondre, participer ni suivre pendant cette période.",
+          "suspend": "Le compte ne peut plus publier et tous ses konbits et réponses sont retirés. Toi seul peux lever cette suspension."
+        }
+      },
+      "announce": {
+        "title": "Annonces",
+        "hint": "Ce message apparaît dans les notifications de tous les comptes, et en notification sur leur téléphone.",
+        "titleLabel": "Titre",
+        "titlePlaceholder": "Exemple : Nouvelle fonction",
+        "bodyLabel": "Message",
+        "bodyPlaceholder": "Ce qui change, en bref.",
+        "preview": "Aperçu",
+        "send": "Envoyer à tout le monde",
+        "confirm": "L'annonce va être envoyée à {count} comptes. Impossible de l'annuler ensuite.",
+        "sent": "Annonce envoyée à {count} comptes.",
+        "history": "Annonces envoyées",
+        "none": "Pas encore d'annonce.",
+        "delete": "Supprimer l’annonce",
+        "deleteConfirm": "L’annonce sera supprimée pour tout le monde, y compris dans leurs notifications. Impossible de la récupérer.",
+        "deleted": "Annonce supprimée."
+      },
+      "stats": {
+        "accounts": "Comptes",
+        "total": "Total",
+        "new7d": "Nouveaux (7 j)",
+        "active24h": "Actifs (24 h)",
+        "active7d": "Actifs (7 j)",
+        "devices": "Téléphones qui utilisent l'app",
+        "devicesHint": "Avec ou sans compte, une fois par jour.",
+        "today": "Aujourd'hui",
+        "days7": "7 jours",
+        "days30": "30 jours",
+        "dailyActive": "Téléphones actifs par jour",
+        "dailySignups": "Nouveaux comptes par jour",
+        "content": "Contenus",
+        "konbitsVisible": "Konbits visibles",
+        "konbits7d": "Konbits (7 j)",
+        "replies7d": "Réponses (7 j)",
+        "moderation": "Modération",
+        "reportsOpen": "Signalements ouverts",
+        "restricted": "Comptes limités",
+        "suspended": "Comptes suspendus",
+        "deletions30d": "Comptes supprimés (30 j)",
+        "deletionsTotal": "{count} comptes supprimés au total."
+      }
+    },
+    "restriction": {
+      "restricted": "Ton compte est limité jusqu'au {date} : tu peux lire, mais pas publier ni répondre pour l'instant.",
+      "suspended": "Ton compte est suspendu : tu ne peux plus publier ni répondre."
+    },
+    "announcement": {
+      "deleteConfirm": "Ce message sera retiré de tes notifications.",
+      "deleted": "Notification supprimée.",
+      "gone": "Ce message n’est plus disponible."
     }
   },
   "Konbit": {
