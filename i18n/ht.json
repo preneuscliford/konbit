@@ -54,7 +54,8 @@
       "imageError": "Nou pa ka prepare imaj sa a. Eseye yon lòt.",
       "removeImage": "Retire imaj la",
       "addImages": "Ajoute imaj (maksimòm {max})",
-      "imagesHint": "{count}/{max} imaj · konprese pou yo ka chaje vit"
+      "imagesHint": "{count}/{max} imaj · konprese pou yo ka chaje vit",
+      "rules": "Pibliye ak respè: pa gen rayisman, eskwokri ni fo enfòmasyon. Li {rules}."
     },
     "feed": {
       "empty": "Poko gen konbit. Lanse premye a!",
@@ -131,6 +132,7 @@
       },
       "resetCodeText": "Si adrès {email} gen yon kont, nou voye yon kòd 6 chif ba li. Antre kòd la ak nouvo modpas ou.",
       "changePassword": "Chanje modpas la",
+      "consent": "Lè w kontinye, ou dakò ak {terms} ak {privacy} Konbit 509 yo.",
       "checkEmail": "Gade imèl ou: nou voye yon lyen pou konfime kont ou.",
       "resetSent": "Si adrès sa a gen yon kont, nou voye yon lyen pou chanje modpas la.",
       "emailConfirmed": "Kont ou konfime!",
@@ -151,6 +153,11 @@
         "failed": "Gen yon erè. Eseye ankò."
       }
     },
+    "legal": {
+      "terms": "Kondisyon itilizasyon",
+      "privacy": "Politik konfidansyalite",
+      "communityRules": "règ kominote a"
+    },
     "settings": {
       "title": "Paramèt",
       "language": "Lang",
@@ -167,8 +174,10 @@
       "myKonbits": "Konbit mwen yo",
       "none": "Ou poko lanse okenn konbit.",
       "deleteAccount": "Efase kont mwen",
-      "deleteConfirm": "Efase kont ou ak tout konbit ou yo? Ou p ap ka jwenn yo ankò.",
-      "deleted": "Kont ou efase."
+      "deleteConfirm": "Efase kont ou? Pwofil ou, konbit ou yo, repons, foto, patisipasyon ak abònman w yo ap efase nèt. Ou p ap ka jwenn yo ankò.",
+      "deleted": "Kont ou efase.",
+      "deleteInfo": "Pwofil ou, konbit ou yo, repons ou yo ak abònman w yo ap efase nèt. {more}",
+      "deleteInfoLink": "An savwa plis"
     },
     "konbitErrors": {
       "offline": "Pa gen entènèt. Eseye ankò pita.",
@@ -239,6 +248,45 @@
       "empty": "Ou poko gen notifikasyon. Swiv moun epi aktive klòch la pou w konnen lè yo pibliye.",
       "newKonbit": "lanse yon nouvo konbit",
       "newFollower": "kòmanse swiv ou"
+    },
+    "activity": {
+      "title": "Aktivite mwen",
+      "settingsSub": "Konbit, repons, patisipasyon ak j’aime ou yo",
+      "sections": {
+        "konbits": "Konbit",
+        "replies": "Repons",
+        "joined": "Mwen ladan",
+        "liked": "J’aime"
+      },
+      "received": "Sou konbit ou yo: {participants} moun ladan · {likes} j’aime · {replies} repons",
+      "follows": "{following} abònman · {followers} abòne",
+      "reportsSent": "{count} siyalman abi ou voye (yo rete prive)",
+      "replyOn": "Sou: {body}",
+      "konbitStats": "{participants} ladan · {likes} j’aime · {replies} repons",
+      "status": {
+        "hidden": "An revizyon",
+        "removed": "Retire pa moderasyon"
+      },
+      "leave": "Kite",
+      "unlike": "Retire",
+      "deleted": "Efase.",
+      "deleteKonbitConfirm": "Efase konbit sa a? Repons, foto ak patisipasyon li yo ap efase tou. Ou p ap ka jwenn li ankò.",
+      "deleteReplyConfirm": "Efase repons sa a? Ou p ap ka jwenn li ankò.",
+      "empty": {
+        "konbits": "Ou poko lanse okenn konbit.",
+        "replies": "Ou poko reponn okenn konbit.",
+        "joined": "Ou poko di « Mwen ladan » pou okenn konbit.",
+        "liked": "Ou poko renmen okenn konbit."
+      }
+    },
+    "deleteAccount": {
+      "more": "Kont ou ap efase touswit, pou tout tan. {more}",
+      "passwordLabel": "Antre modpas ou pou konfime",
+      "googleLabel": "Pou konfime, chwazi kont Google ou ankò.",
+      "confirm": "Efase kont mwen pou tout tan",
+      "confirmGoogle": "Konfime ak Google epi efase",
+      "wrongPassword": "Modpas la pa bon.",
+      "wrongGoogle": "Se pa menm kont Google la. Chwazi kont ou te itilize pou konekte a."
     }
   },
   "Konbit": {
@@ -300,7 +348,8 @@
     "deleteButton": "Efase",
     "deleting": "L ap efase…",
     "deleteConfirmPrompt": "Efase siyalman w lan? Sa posib sèlman nan 24è apre w voye l.",
-    "ownReportNote": "Se siyalman pa w"
+    "ownReportNote": "Se siyalman pa w",
+    "anonymousNote": "Siyalman w anonim: li pa janm konekte ak kont ou. Li pa ranplase sèvis ijans yo. {privacy}"
   },
   "Home": {
     "noData": "Poko gen done disponib — eseye ankò nan kèk minit.",

@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { AppState } from "react-native";
 import type { Session } from "@supabase/supabase-js";
 import { GoogleSignin, isErrorWithCode, statusCodes } from "@react-native-google-signin/google-signin";
 import * as Linking from "expo-linking";
@@ -79,6 +80,10 @@ function fromSupabaseAuth(error: { code?: string; message?: string; status?: num
 export const EMAIL_CONFIRM_URL = Linking.createURL("auth-callback");
 export const PASSWORD_RESET_URL = Linking.createURL("reset-password");
 
+// Preuve d'identité exigée pour supprimer le compte : le mot de passe pour un
+// compte e-mail, une nouvelle confirmation Google sinon.
+export type DeleteProof = { password: string } | { google: true };
+
 interface AuthValue {
   ready: boolean;
   session: Session | null;
@@ -86,6 +91,8 @@ interface AuthValue {
   profile: Profile | null;
   // Connecté avec un pseudo : peut publier, répondre, rejoindre.
   canPost: boolean;
+  // Compte créé avec e-mail + mot de passe (sinon : Google uniquement).
+  hasPassword: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   // needsConfirmation : un code de confirmation a été envoyé, pas encore de session.
@@ -98,11 +105,50 @@ interface AuthValue {
   sendPasswordReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  deleteAccount: () => Promise<void>;
+  deleteAccount: (proof: DeleteProof) => Promise<void>;
   updateProfile: (changes: ProfileChanges) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
+
+// Après le sélecteur de compte Google, l'app revient au premier plan : on
+// attend ce retour (et un court instant) avant d'appeler le réseau.
+function waitForForeground(): Promise<void> {
+  const settle = () => new Promise<void>((resolve) => setTimeout(resolve, 300));
+  if (AppState.currentState === "active") return settle();
+  return new Promise((resolve) => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state !== "active") return;
+      sub.remove();
+      settle().then(resolve);
+    });
+  });
+}
+
+// Ouvre le sélecteur de compte Google et renvoie le jeton d'identité.
+// Sert à la connexion et à la reconfirmation avant de supprimer le compte.
+async function getGoogleIdToken(): Promise<string> {
+  try {
+    await GoogleSignin.hasPlayServices();
+    const result = await GoogleSignin.signIn();
+    if (result.type === "cancelled") throw new AuthError("cancelled");
+    const idToken = result.data.idToken;
+    if (!idToken) throw new AuthError("failed");
+    return idToken;
+  } catch (e) {
+    if (e instanceof AuthError) throw e;
+    // DEVELOPER_ERROR (10) = SHA-1 de la clé de signature ou client OAuth mal configuré.
+    if (__DEV__) console.warn("Connexion Google échouée", isErrorWithCode(e) ? e.code : e);
+    if (isErrorWithCode(e)) {
+      if (e.code === statusCodes.SIGN_IN_CANCELLED || e.code === statusCodes.IN_PROGRESS) {
+        throw new AuthError("cancelled");
+      }
+      if (e.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) throw new AuthError("play_services");
+    }
+    throw new AuthError("failed");
+  }
+}
+
 
 GoogleSignin.configure({ webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID });
 
@@ -136,26 +182,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const signInWithGoogle = useCallback(async () => {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const result = await GoogleSignin.signIn();
-      if (result.type === "cancelled") throw new AuthError("cancelled");
-      const idToken = result.data.idToken;
-      if (!idToken) throw new AuthError("failed");
-      const { error } = await supabase.auth.signInWithIdToken({ provider: "google", token: idToken });
-      if (error) throw new AuthError("failed");
-    } catch (e) {
-      if (e instanceof AuthError) throw e;
-      // DEVELOPER_ERROR (10) = SHA-1 de la clé de signature ou client OAuth mal configuré.
-      if (__DEV__) console.warn("Connexion Google échouée", isErrorWithCode(e) ? e.code : e);
-      if (isErrorWithCode(e)) {
-        if (e.code === statusCodes.SIGN_IN_CANCELLED || e.code === statusCodes.IN_PROGRESS) {
-          throw new AuthError("cancelled");
-        }
-        if (e.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) throw new AuthError("play_services");
-      }
-      throw new AuthError("failed");
-    }
+    const idToken = await getGoogleIdToken();
+    const { error } = await supabase.auth.signInWithIdToken({ provider: "google", token: idToken });
+    if (error) throw new AuthError("failed");
   }, []);
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
@@ -219,11 +248,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Exigence Google Play : supprimer son compte depuis l'app. La fonction Edge
   // delete-account (supabase/functions) supprime l'utilisateur ; profil,
   // konbits, réponses et participations suivent par cascade.
-  const deleteAccount = useCallback(async () => {
-    const { error } = await supabase.functions.invoke("delete-account", { method: "POST" });
-    if (error) throw new AuthError("failed");
-    await signOut();
-  }, [signOut]);
+  // La fonction Edge revérifie la preuve côté serveur avant de supprimer.
+  const deleteAccount = useCallback(
+    async (proof: DeleteProof) => {
+      let body: { password: string } | { googleIdToken: string };
+      if ("password" in proof) {
+        body = { password: proof.password };
+      } else {
+        // Force le choix du compte : sinon Google peut renvoyer un ancien jeton.
+        await GoogleSignin.signOut().catch(() => {});
+        body = { googleIdToken: await getGoogleIdToken() };
+        await waitForForeground();
+      }
+      const invoke = () => supabase.functions.invoke("delete-account", { method: "POST", body });
+      let { error } = await invoke();
+      // Échec d'envoi (pas de réponse du serveur) : une seconde tentative.
+      if (error?.name === "FunctionsFetchError") {
+        if (__DEV__) console.warn("delete-account : envoi échoué, nouvel essai", error, (error as { context?: unknown }).context);
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        ({ error } = await invoke());
+      }
+      if (error) {
+        if (__DEV__) console.warn("delete-account : erreur", error.name, error.message, (error as { context?: unknown }).context);
+        const status = (error as { context?: { status?: number } }).context?.status;
+        if (status === 403) throw new AuthError("invalid_credentials");
+        if (error.message?.includes("Failed to send")) throw new AuthError("offline");
+        throw new AuthError("failed");
+      }
+      await signOut();
+    },
+    [signOut],
+  );
 
   const updateProfile = useCallback(
     async (changes: ProfileChanges) => {
@@ -243,6 +298,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const profile = profileQuery.data ?? null;
+  const providers = (session?.user.app_metadata?.providers as string[] | undefined) ?? [];
+  const hasPassword = providers.includes("email");
   const value = useMemo<AuthValue>(
     () => ({
       ready,
@@ -250,6 +307,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       userId,
       profile,
       canPost: !!userId && !!profile?.pseudo,
+      hasPassword,
       signInWithGoogle,
       signInWithEmail,
       signUpWithEmail,
@@ -267,6 +325,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session,
       userId,
       profile,
+      hasPassword,
       signInWithGoogle,
       signInWithEmail,
       signUpWithEmail,

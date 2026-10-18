@@ -58,7 +58,7 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
         style: "destructive",
         onPress: async () => {
           try {
-            await deleteKonbit(konbit.id);
+            await deleteKonbit(konbit.id, konbit.media);
             await queryClient.invalidateQueries({ queryKey: ["konbits"] });
             if (detailed) router.back();
           } catch (e) {

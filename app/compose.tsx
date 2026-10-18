@@ -18,11 +18,13 @@ import { CalendarDays, Ellipsis, ImagePlus, X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import CommunePicker from "@/components/konbit/CommunePicker";
 import Avatar from "@/components/konbit509/Avatar";
+import LinkedText from "@/components/ui/LinkedText";
 import { Text, TextInput } from "@/components/ui/Text";
 import { useCommunes } from "@/hooks/useKonbit";
 import { useFlags } from "@/hooks/useKonbits";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { COMMUNITY_RULES_URL } from "@/lib/legal";
 import { compressImage, type CompressedImage } from "@/lib/imageCompression";
 import {
   createKonbit,
@@ -226,6 +228,11 @@ export default function ComposeScreen() {
             <Text style={styles.hint}>{t("App.compose.imagesHint", { count: images.length, max: MAX_IMAGES })}</Text>
           )}
           {error && <Text style={styles.error}>{error}</Text>}
+          <LinkedText
+            style={styles.rules}
+            text={t("App.compose.rules")}
+            links={{ rules: { label: t("App.legal.communityRules"), url: COMMUNITY_RULES_URL } }}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -293,6 +300,7 @@ const styles = StyleSheet.create({
   toolButton: { padding: 4 },
   toolDisabled: { opacity: 0.35 },
   counter: { fontSize: 13, color: Colors.textMuted },
+  rules: { fontSize: 12, lineHeight: 18, color: Colors.textMuted },
   counterWarn: { color: Colors.secondary, fontWeight: "700" },
   option: {
     flexDirection: "row",

@@ -82,7 +82,9 @@ function AppGate() {
         <Stack.Screen name="user/[id]/index" />
         <Stack.Screen name="user/[id]/follows" />
         <Stack.Screen name="notifications" />
+        <Stack.Screen name="activity" />
         <Stack.Screen name="profile-edit" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="delete-account" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
         <Stack.Screen name="rates" />
         <Stack.Screen name="weather" />
         <Stack.Screen name="auth-callback" />

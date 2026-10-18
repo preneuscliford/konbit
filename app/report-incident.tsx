@@ -6,8 +6,10 @@ import * as Burnt from "burnt";
 import { X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import ReportForm from "@/components/konbit/ReportForm";
+import LinkedText from "@/components/ui/LinkedText";
 import { Text } from "@/components/ui/Text";
 import { useI18n } from "@/lib/i18n";
+import { PRIVACY_URL } from "@/lib/legal";
 
 // Formulaire du Signalement HaïtiScope, ouvert depuis le bouton "Siyale" de
 // l'onglet Signalement. Se referme après l'envoi : le signalement apparaît
@@ -33,6 +35,11 @@ export default function ReportIncidentScreen() {
               router.back();
             }}
           />
+          <LinkedText
+            style={styles.note}
+            text={t("Konbit.anonymousNote")}
+            links={{ privacy: { label: t("App.legal.privacy"), url: PRIVACY_URL } }}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -54,4 +61,5 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: "800", color: Colors.text },
   content: { padding: 16, gap: 14 },
   intro: { fontSize: 14, lineHeight: 20, color: Colors.textLight },
+  note: { fontSize: 12, lineHeight: 18, color: Colors.textMuted },
 });

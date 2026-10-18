@@ -7,11 +7,13 @@ import { Image } from "expo-image";
 import { X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import CommunePicker from "@/components/konbit/CommunePicker";
+import LinkedText from "@/components/ui/LinkedText";
 import PasswordInput, { MIN_PASSWORD } from "@/components/ui/PasswordInput";
 import { Text, TextInput } from "@/components/ui/Text";
 import { useCommunes } from "@/hooks/useKonbit";
 import { AuthError, useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { PRIVACY_URL, TERMS_URL } from "@/lib/legal";
 
 const PSEUDO_PATTERN = /^[A-Za-z0-9_]{3,20}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -367,6 +369,14 @@ export default function AccountScreen() {
               )}
             </View>
 
+            <LinkedText
+              style={styles.small}
+              text={t("App.account.consent")}
+              links={{
+                terms: { label: t("App.legal.terms"), url: TERMS_URL },
+                privacy: { label: t("App.legal.privacy"), url: PRIVACY_URL },
+              }}
+            />
             <Text style={styles.small}>{t("App.account.privacy")}</Text>
           </>
         ) : (
@@ -449,7 +459,7 @@ const styles = StyleSheet.create({
   googleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   googleLogo: { width: 22, height: 22 },
   googleText: { fontSize: 16, fontWeight: "700", color: Colors.text },
-  small: { fontSize: 12, color: Colors.textMuted, textAlign: "center" },
+  small: { fontSize: 12, lineHeight: 18, color: Colors.textMuted, textAlign: "center" },
   pseudoField: {
     flexDirection: "row",
     alignItems: "center",

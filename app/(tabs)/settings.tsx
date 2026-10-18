@@ -1,14 +1,15 @@
 import React from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import Constants from "expo-constants";
-import { Check, ChevronRight, LogOut, UserRound } from "lucide-react-native";
+import { Activity, Check, ChevronRight, LogOut, UserRound, UserX } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import AppHeader from "@/components/AppHeader";
 import { Text } from "@/components/ui/Text";
 import { useAuth } from "@/lib/auth";
 import { LANGUAGES, useI18n } from "@/lib/i18n";
+import { PRIVACY_URL, TERMS_URL } from "@/lib/legal";
 
 // Paramètres : langue, compte, (notifications quand le flag
 // "settings.notifications" sera activé et la fonction livrée). Le profil s'ouvre d'ici.
@@ -61,6 +62,18 @@ export default function SettingsScreen() {
                 <ChevronRight size={18} color={Colors.textMuted} />
               </Pressable>
               <Pressable
+                onPress={() => router.push("/activity")}
+                style={[styles.row, styles.rowBorder]}
+                android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+              >
+                <Activity size={18} color={Colors.text} />
+                <View style={styles.rowMain}>
+                  <Text style={styles.rowText}>{t("App.activity.title")}</Text>
+                  <Text style={styles.rowSub}>{t("App.activity.settingsSub")}</Text>
+                </View>
+                <ChevronRight size={18} color={Colors.textMuted} />
+              </Pressable>
+              <Pressable
                 onPress={confirmSignOut}
                 style={[styles.row, styles.rowBorder]}
                 android_ripple={{ color: "rgba(0,0,0,0.04)" }}
@@ -69,6 +82,17 @@ export default function SettingsScreen() {
                 <Text style={[styles.rowText, styles.rowMain, { color: Colors.secondary }]}>
                   {t("App.settings.signOut")}
                 </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push("/delete-account")}
+                style={[styles.row, styles.rowBorder]}
+                android_ripple={{ color: "rgba(210,16,52,0.06)" }}
+              >
+                <UserX size={18} color={Colors.secondary} />
+                <Text style={[styles.rowText, styles.rowMain, { color: Colors.secondary }]}>
+                  {t("App.profile.deleteAccount")}
+                </Text>
+                <ChevronRight size={18} color={Colors.textMuted} />
               </Pressable>
             </>
           ) : (
@@ -90,6 +114,20 @@ export default function SettingsScreen() {
         <View style={[styles.card, styles.about]}>
           <Text style={styles.paragraph}>{t("App.settings.aboutText")}</Text>
           <Text style={styles.muted}>{t("App.dataSource")}</Text>
+        </View>
+        <View style={styles.card}>
+          <Pressable onPress={() => Linking.openURL(TERMS_URL)} style={styles.row} android_ripple={{ color: "rgba(0,0,0,0.04)" }}>
+            <Text style={[styles.rowText, styles.rowMain]}>{t("App.legal.terms")}</Text>
+            <ChevronRight size={18} color={Colors.textMuted} />
+          </Pressable>
+          <Pressable
+            onPress={() => Linking.openURL(PRIVACY_URL)}
+            style={[styles.row, styles.rowBorder]}
+            android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+          >
+            <Text style={[styles.rowText, styles.rowMain]}>{t("App.legal.privacy")}</Text>
+            <ChevronRight size={18} color={Colors.textMuted} />
+          </Pressable>
         </View>
 
         <Text style={styles.version}>

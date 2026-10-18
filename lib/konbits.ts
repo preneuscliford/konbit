@@ -174,9 +174,16 @@ export async function createKonbit(
   return data.id as number;
 }
 
-export async function deleteKonbit(id: number) {
+// Supprime aussi les photos du konbit : sans ça, elles resteraient en ligne.
+export async function deleteKonbit(id: number, media: KonbitImage[] = []) {
   const { error } = await supabase.from("konbits").delete().eq("id", id);
   if (error) throw toKonbitError(error);
+  if (media.length > 0) {
+    await supabase.storage
+      .from(MEDIA_BUCKET)
+      .remove(media.map((m) => m.path))
+      .catch(() => {});
+  }
 }
 
 export async function setParticipation(konbitId: number, userId: string, join: boolean) {

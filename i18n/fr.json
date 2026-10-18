@@ -54,7 +54,8 @@
       "imageError": "Impossible de préparer cette image. Essaie une autre.",
       "removeImage": "Retirer l’image",
       "addImages": "Ajouter des images ({max} maximum)",
-      "imagesHint": "{count}/{max} images · compressées pour charger vite"
+      "imagesHint": "{count}/{max} images · compressées pour charger vite",
+      "rules": "Publie avec respect : pas de haine, d’arnaque ni de fausses informations. Lis les {rules}."
     },
     "feed": {
       "empty": "Pas encore de konbit. Lance le premier !",
@@ -131,6 +132,7 @@
       },
       "resetCodeText": "Si l'adresse {email} a un compte, nous lui avons envoyé un code à 6 chiffres. Saisis-le avec ton nouveau mot de passe.",
       "changePassword": "Changer le mot de passe",
+      "consent": "En continuant, tu acceptes les {terms} et la {privacy} de Konbit 509.",
       "checkEmail": "Vérifie tes e-mails : nous t'avons envoyé un lien pour confirmer ton compte.",
       "resetSent": "Si cette adresse a un compte, nous t'avons envoyé un lien pour changer le mot de passe.",
       "emailConfirmed": "Ton compte est confirmé !",
@@ -151,6 +153,11 @@
         "failed": "Une erreur est survenue. Réessaie."
       }
     },
+    "legal": {
+      "terms": "Conditions d'utilisation",
+      "privacy": "Politique de confidentialité",
+      "communityRules": "règles de la communauté"
+    },
     "settings": {
       "title": "Paramètres",
       "language": "Langue",
@@ -167,8 +174,10 @@
       "myKonbits": "Mes konbits",
       "none": "Tu n'as encore lancé aucun konbit.",
       "deleteAccount": "Supprimer mon compte",
-      "deleteConfirm": "Supprimer ton compte et tous tes konbits ? Ils seront perdus définitivement.",
-      "deleted": "Ton compte est supprimé."
+      "deleteConfirm": "Supprimer ton compte ? Ton profil, tes konbits, réponses, photos, participations et abonnements seront supprimés définitivement. Impossible de les récupérer.",
+      "deleted": "Ton compte est supprimé.",
+      "deleteInfo": "Ton profil, tes konbits, tes réponses et tes abonnements seront supprimés définitivement. {more}",
+      "deleteInfoLink": "En savoir plus"
     },
     "konbitErrors": {
       "offline": "Pas d'Internet. Réessaie plus tard.",
@@ -239,6 +248,45 @@
       "empty": "Pas encore de notification. Suis des personnes et active la cloche pour savoir quand elles publient.",
       "newKonbit": "a lancé un nouveau konbit",
       "newFollower": "a commencé à te suivre"
+    },
+    "activity": {
+      "title": "Mon activité",
+      "settingsSub": "Tes konbits, réponses, participations et j’aime",
+      "sections": {
+        "konbits": "Konbits",
+        "replies": "Réponses",
+        "joined": "Mwen ladan",
+        "liked": "J’aime"
+      },
+      "received": "Sur tes konbits : {participants} participants · {likes} j’aime · {replies} réponses",
+      "follows": "{following} abonnements · {followers} abonnés",
+      "reportsSent": "{count} signalements d’abus envoyés (ils restent privés)",
+      "replyOn": "Sur : {body}",
+      "konbitStats": "{participants} participants · {likes} j’aime · {replies} réponses",
+      "status": {
+        "hidden": "En examen",
+        "removed": "Retiré par la modération"
+      },
+      "leave": "Quitter",
+      "unlike": "Retirer",
+      "deleted": "Supprimé.",
+      "deleteKonbitConfirm": "Supprimer ce konbit ? Ses réponses, photos et participations seront supprimées aussi. Impossible de le récupérer.",
+      "deleteReplyConfirm": "Supprimer cette réponse ? Impossible de la récupérer.",
+      "empty": {
+        "konbits": "Tu n’as encore lancé aucun konbit.",
+        "replies": "Tu n’as encore répondu à aucun konbit.",
+        "joined": "Tu n’as encore dit « Mwen ladan » à aucun konbit.",
+        "liked": "Tu n’as encore aimé aucun konbit."
+      }
+    },
+    "deleteAccount": {
+      "more": "Ton compte est supprimé immédiatement et définitivement. {more}",
+      "passwordLabel": "Saisis ton mot de passe pour confirmer",
+      "googleLabel": "Pour confirmer, choisis à nouveau ton compte Google.",
+      "confirm": "Supprimer définitivement mon compte",
+      "confirmGoogle": "Confirmer avec Google et supprimer",
+      "wrongPassword": "Mot de passe incorrect.",
+      "wrongGoogle": "Ce n’est pas le même compte Google. Choisis celui que tu utilises pour te connecter."
     }
   },
   "Konbit": {
@@ -300,7 +348,8 @@
     "deleteButton": "Supprimer",
     "deleting": "Suppression…",
     "deleteConfirmPrompt": "Supprimer ton signalement ? Possible seulement dans les 24h après l'envoi.",
-    "ownReportNote": "C'est ton signalement"
+    "ownReportNote": "C'est ton signalement",
+    "anonymousNote": "Ton signalement est anonyme : il n’est jamais relié à ton compte. Il ne remplace pas les services d’urgence. {privacy}"
   },
   "Home": {
     "noData": "Pas encore de donnée disponible — réessaie dans quelques minutes.",

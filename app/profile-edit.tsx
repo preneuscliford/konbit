@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect, useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -10,10 +10,12 @@ import { Camera, X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import CommunePicker from "@/components/konbit/CommunePicker";
 import Avatar from "@/components/konbit509/Avatar";
+import LinkedText from "@/components/ui/LinkedText";
 import { Text, TextInput } from "@/components/ui/Text";
 import { useCommunes } from "@/hooks/useKonbit";
 import { AuthError, useAuth, type ProfileChanges } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { ACCOUNT_DELETION_URL } from "@/lib/legal";
 import { compressImage, type CompressedImage } from "@/lib/imageCompression";
 import { profileImageUrl, uploadProfileImage } from "@/lib/konbits";
 
@@ -28,7 +30,7 @@ const COVER_SIDE = 1500;
 export default function ProfileEditScreen() {
   const { t } = useI18n();
   const router = useRouter();
-  const { userId, profile, updateProfile, deleteAccount } = useAuth();
+  const { userId, profile, updateProfile } = useAuth();
   const communes = useCommunes();
 
   const [name, setName] = useState(profile?.display_name ?? "");
@@ -95,25 +97,6 @@ export default function ProfileEditScreen() {
       );
       setBusy(false);
     }
-  }
-
-  function confirmDeleteAccount() {
-    Alert.alert(t("App.profile.deleteAccount"), t("App.profile.deleteConfirm"), [
-      { text: t("App.cancel"), style: "cancel" },
-      {
-        text: t("App.profile.deleteAccount"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteAccount();
-            Burnt.toast({ title: t("App.profile.deleted"), preset: "done" });
-            router.dismissAll();
-          } catch {
-            Burnt.toast({ title: t("App.konbitErrors.failed"), preset: "error" });
-          }
-        },
-      },
-    ]);
   }
 
   const coverUri = cover?.uri ?? (profile.cover_path ? profileImageUrl(profile.cover_path) : null);
@@ -213,9 +196,14 @@ export default function ProfileEditScreen() {
 
             {error && <Text style={styles.error}>{error}</Text>}
 
-            <Pressable onPress={confirmDeleteAccount} style={styles.deleteAccount} hitSlop={8}>
+            <Pressable onPress={() => router.push("/delete-account")} style={styles.deleteAccount} hitSlop={8}>
               <Text style={styles.deleteAccountText}>{t("App.profile.deleteAccount")}</Text>
             </Pressable>
+            <LinkedText
+              style={styles.deleteInfo}
+              text={t("App.profile.deleteInfo")}
+              links={{ more: { label: t("App.profile.deleteInfoLink"), url: ACCOUNT_DELETION_URL } }}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -302,5 +290,6 @@ const styles = StyleSheet.create({
   hint: { fontSize: 12, color: Colors.textMuted },
   error: { fontSize: 14, color: Colors.error },
   deleteAccount: { alignSelf: "center", paddingTop: 24 },
+  deleteInfo: { fontSize: 12, lineHeight: 18, color: Colors.textMuted, textAlign: "center" },
   deleteAccountText: { fontSize: 14, color: Colors.secondary, fontWeight: "600" },
 });
