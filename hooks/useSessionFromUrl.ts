@@ -21,7 +21,9 @@ function parseFragment(url: string) {
 }
 
 export function useSessionFromUrl() {
-  const url = Linking.useURL();
+  // useLinkingURL (et non useURL) : quand l'app tournait déjà, le lien arrive
+  // avant que cet écran soit monté ; useURL le ratait et restait bloqué.
+  const url = Linking.useLinkingURL();
   const [status, setStatus] = useState<UrlSessionStatus>("pending");
 
   useEffect(() => {

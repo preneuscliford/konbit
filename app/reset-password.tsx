@@ -4,12 +4,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Burnt from "burnt";
 import Colors from "@/constants/Colors";
-import { Text, TextInput } from "@/components/ui/Text";
+import PasswordInput, { MIN_PASSWORD } from "@/components/ui/PasswordInput";
+import { Text } from "@/components/ui/Text";
 import { useSessionFromUrl } from "@/hooks/useSessionFromUrl";
 import { AuthError, useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
-
-const MIN_PASSWORD = 8;
 
 // Arrivée depuis le lien "mot de passe oublié" : choisir un nouveau mot de passe.
 export default function ResetPasswordScreen() {
@@ -57,18 +56,14 @@ export default function ResetPasswordScreen() {
           </>
         ) : (
           <>
-            <TextInput
+            <PasswordInput
               value={password}
               onChangeText={setPassword}
               placeholder={t("App.account.newPassword")}
-              placeholderTextColor={Colors.textMuted}
-              secureTextEntry
-              autoCapitalize="none"
               autoComplete="new-password"
               autoFocus
-              style={styles.input}
+              showStrength
             />
-            <Text style={styles.small}>{t("App.account.passwordHint")}</Text>
             <Pressable
               onPress={save}
               disabled={busy}
@@ -90,16 +85,6 @@ const styles = StyleSheet.create({
   content: { padding: 24, gap: 14 },
   title: { fontSize: 22, fontWeight: "800", color: Colors.text, textAlign: "center" },
   text: { fontSize: 15, color: Colors.textLight, textAlign: "center" },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  small: { fontSize: 12, color: Colors.textMuted },
   primary: {
     backgroundColor: Colors.primary,
     borderRadius: 26,

@@ -25,9 +25,10 @@
       },
       "package": "com.cliford.konbit",
       "permissions": [
-        "android.permission.RECORD_AUDIO",
+        "android.permission.POST_NOTIFICATIONS",
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -80,7 +81,15 @@
       "expo-web-browser",
       "expo-image",
       "@react-native-community/datetimepicker",
-      "./plugins/withDebugKeystore"
+      "./plugins/withDebugKeystore",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/brand/notification-icon.png",
+          "color": "#D21034",
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -90,14 +99,14 @@
         "origin": false
       },
       "eas": {
-        "projectId": "6f6e29ac-a9a2-4423-b78b-2e5b0bb9216d"
+        "projectId": "59d761e0-7a6f-44af-b9c6-cf9efc1eeb9f"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/6f6e29ac-a9a2-4423-b78b-2e5b0bb9216d"
+      "url": "https://u.expo.dev/59d761e0-7a6f-44af-b9c6-cf9efc1eeb9f"
     }
   }
 }

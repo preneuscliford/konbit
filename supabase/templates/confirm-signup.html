@@ -1,0 +1,53 @@
+<!-- Supabase → Authentication → Emails → Templates → « Confirm signup »
+     Sujet : {{ .Token }} se kòd Konbit 509 ou · ton code Konbit 509
+     Le code est saisi dans l'app ; le lien reste en secours. -->
+<!doctype html>
+<html lang="ht">
+  <body style="margin:0;padding:0;background:#F5F5F0;font-family:Arial,Helvetica,sans-serif;color:#1A1A2E;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5F0;padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td style="background:#00209F;padding:22px 28px;">
+                <span style="display:inline-block;background:#FFFFFF;color:#00209F;font-weight:bold;font-size:20px;border-radius:8px;padding:4px 10px;">K</span>
+                <span style="display:inline-block;background:#D21034;color:#FFFFFF;font-weight:bold;font-size:13px;border-radius:10px;padding:3px 8px;margin-left:-6px;vertical-align:bottom;">509</span>
+                <span style="color:#FFFFFF;font-size:18px;font-weight:bold;margin-left:10px;vertical-align:middle;">Konbit 509</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px;">
+                <h1 style="margin:0 0 12px;font-size:22px;">Byenveni nan Konbit 509!</h1>
+                <p style="margin:0 0 20px;font-size:15px;line-height:22px;">
+                  Antre kòd sa a nan aplikasyon an pou konfime adrès imèl ou.
+                  <br /><span style="color:#6B7280;">Saisis ce code dans l'application pour confirmer ton adresse e-mail.</span>
+                </p>
+                <p style="margin:0 0 20px;text-align:center;">
+                  <span style="display:inline-block;background:#F0F3FF;color:#00209F;font-family:'Courier New',Courier,monospace;font-weight:bold;font-size:34px;letter-spacing:8px;border-radius:12px;padding:14px 22px;">{{ .Token }}</span>
+                </p>
+                <p style="margin:0 0 24px;font-size:13px;line-height:20px;color:#6B7280;text-align:center;">
+                  Kòd la valab pou 1 èdtan · Code valable 1 heure
+                </p>
+
+                <hr style="border:none;border-top:1px solid #EEEEE8;margin:0 0 24px;" />
+
+                <p style="margin:0 0 20px;font-size:13px;line-height:20px;color:#6B7280;">
+                  Oswa louvri <a href="{{ .ConfirmationURL }}" style="color:#00209F;">lyen sa a</a> sou telefòn kote aplikasyon an enstale a.<br />
+                  Ou ouvre <a href="{{ .ConfirmationURL }}" style="color:#00209F;">ce lien</a> sur le téléphone où l'application est installée.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 28px;background:#FAFAF5;font-size:12px;line-height:18px;color:#6B7280;">
+                Si se pa ou ki te kreye kont sa a, ou ka inyore imèl sa a.<br />
+                Si tu n'as pas créé ce compte, tu peux ignorer cet e-mail.<br /><br />
+                Ou bezwen èd? Pa reponn imèl sa a, ekri <a href="mailto:konbit@haitiscope.com" style="color:#00209F;">konbit@haitiscope.com</a>.<br />
+                Besoin d'aide ? Ne réponds pas à cet e-mail, écris à <a href="mailto:konbit@haitiscope.com" style="color:#00209F;">konbit@haitiscope.com</a>.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

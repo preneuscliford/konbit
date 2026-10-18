@@ -10,6 +10,7 @@ import * as Linking from "expo-linking";
 import { ArrowLeft, CalendarDays, MapPin, Share2 } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
+import FollowButton from "@/components/konbit509/FollowButton";
 import KonbitCard from "@/components/konbit509/KonbitCard";
 import { Text } from "@/components/ui/Text";
 import { useCommuneName } from "@/hooks/useAccountGate";
@@ -126,7 +127,30 @@ export default function UserProfileScreen() {
           ) : null}
         </View>
 
+        {/* Abonnements et abonnés : chaque compteur ouvre la liste correspondante. */}
+        {p ? (
+          <View style={styles.countsRow}>
+            <Pressable
+              onPress={() => router.push({ pathname: "/user/[id]/follows", params: { id, tab: "following" } })}
+              hitSlop={6}
+            >
+              <Text style={styles.countText}>
+                <Text style={styles.countValue}>{p.following_count}</Text> {t("App.follow.followingCount")}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push({ pathname: "/user/[id]/follows", params: { id, tab: "followers" } })}
+              hitSlop={6}
+            >
+              <Text style={styles.countText}>
+                <Text style={styles.countValue}>{p.followers_count}</Text> {t("App.follow.followersCount")}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         <View style={styles.actions}>
+          {!isMe && <FollowButton userId={id} showBell />}
           {isMe && (
             <Pressable
               onPress={() => router.push("/profile-edit")}
@@ -221,6 +245,9 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: "row", flexWrap: "wrap", gap: 14, marginTop: 8 },
   metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
   metaText: { fontSize: 13, color: Colors.textMuted },
+  countsRow: { flexDirection: "row", gap: 18, marginTop: 8 },
+  countText: { fontSize: 14, color: Colors.textMuted },
+  countValue: { fontWeight: "800", color: Colors.text },
   tabBar: {
     flexDirection: "row",
     marginTop: 14,

@@ -3,6 +3,7 @@ import type { Session } from "@supabase/supabase-js";
 import { GoogleSignin, isErrorWithCode, statusCodes } from "@react-native-google-signin/google-signin";
 import * as Linking from "expo-linking";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { unregisterPush } from "./push";
 import { supabase } from "./supabase";
 
 // Compte Konbit : connexion Google ou e-mail + mot de passe, puis pseudo
@@ -36,6 +37,7 @@ export type AuthErrorCode =
   | "weak_password"
   | "email_invalid"
   | "email_rate_limited"
+  | "code_invalid"
   | "offline"
   | "failed";
 
@@ -60,6 +62,9 @@ function fromSupabaseAuth(error: { code?: string; message?: string; status?: num
     case "email_address_invalid":
     case "validation_failed":
       return new AuthError("email_invalid");
+    case "otp_expired":
+    case "otp_disabled":
+      return new AuthError("code_invalid");
     case "over_email_send_rate_limit":
     case "over_request_rate_limit":
       return new AuthError("email_rate_limited");
@@ -83,8 +88,13 @@ interface AuthValue {
   canPost: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  // needsConfirmation : un e-mail de confirmation a été envoyé, pas encore de session.
+  // needsConfirmation : un code de confirmation a été envoyé, pas encore de session.
   signUpWithEmail: (email: string, password: string) => Promise<{ needsConfirmation: boolean }>;
+  // Code à 6 chiffres reçu par e-mail : confirme l'adresse et ouvre la session.
+  verifySignupCode: (email: string, code: string) => Promise<void>;
+  resendSignupCode: (email: string) => Promise<void>;
+  // Mot de passe oublié : le code reçu par e-mail ouvre la session, puis updatePassword.
+  verifyRecoveryCode: (email: string, code: string) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -166,6 +176,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { needsConfirmation: !data.session };
   }, []);
 
+  const verifySignupCode = useCallback(async (email: string, code: string) => {
+    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: "email" });
+    if (error) throw fromSupabaseAuth(error);
+  }, []);
+
+  const verifyRecoveryCode = useCallback(async (email: string, code: string) => {
+    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: "recovery" });
+    if (error) throw fromSupabaseAuth(error);
+  }, []);
+
+  const resendSignupCode = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+      options: { emailRedirectTo: EMAIL_CONFIRM_URL },
+    });
+    if (error) throw fromSupabaseAuth(error);
+  }, []);
+
   const sendPasswordReset = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: PASSWORD_RESET_URL });
     if (error) throw fromSupabaseAuth(error);
@@ -177,6 +206,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    // Avant de perdre la session : ce téléphone ne doit plus recevoir les push du compte.
+    await unregisterPush().catch(() => {});
     await GoogleSignin.signOut().catch(() => {});
     await supabase.auth.signOut();
     // Le fil contient "joined" propre à l'utilisateur : on le recharge.
@@ -222,6 +253,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithGoogle,
       signInWithEmail,
       signUpWithEmail,
+      verifySignupCode,
+      resendSignupCode,
+      verifyRecoveryCode,
       sendPasswordReset,
       updatePassword,
       signOut,
@@ -236,6 +270,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithGoogle,
       signInWithEmail,
       signUpWithEmail,
+      verifySignupCode,
+      resendSignupCode,
+      verifyRecoveryCode,
       sendPasswordReset,
       updatePassword,
       signOut,

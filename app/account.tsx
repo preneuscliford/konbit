@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import * as Burnt from "burnt";
 import { Image } from "expo-image";
 import { X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import CommunePicker from "@/components/konbit/CommunePicker";
+import PasswordInput, { MIN_PASSWORD } from "@/components/ui/PasswordInput";
 import { Text, TextInput } from "@/components/ui/Text";
 import { useCommunes } from "@/hooks/useKonbit";
 import { AuthError, useAuth } from "@/lib/auth";
@@ -13,18 +15,31 @@ import { useI18n } from "@/lib/i18n";
 
 const PSEUDO_PATTERN = /^[A-Za-z0-9_]{3,20}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD = 8;
 
-type EmailMode = "signIn" | "signUp" | "forgot";
+// verify : code d'inscription ; reset : code « mot de passe oublié » + nouveau mot de passe.
+type EmailMode = "signIn" | "signUp" | "forgot" | "verify" | "reset";
+const RESEND_DELAY = 60;
 
-// Connexion en deux temps : Google ou e-mail + mot de passe, puis pseudo
-// public + commune par défaut. S'ouvre dès qu'une action demande un compte
+// Connexion en deux temps : Google ou e-mail + mot de passe (confirmé par un
+// code à 6 chiffres reçu par e-mail), puis pseudo public + commune par défaut. S'ouvre dès qu'une action demande un compte
 // (useAccountGate).
 export default function AccountScreen() {
   const { t } = useI18n();
   const router = useRouter();
-  const { userId, profile, canPost, signInWithGoogle, signInWithEmail, signUpWithEmail, sendPasswordReset, updateProfile } =
-    useAuth();
+  const {
+    userId,
+    profile,
+    canPost,
+    signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
+    verifySignupCode,
+    resendSignupCode,
+    verifyRecoveryCode,
+    sendPasswordReset,
+    updatePassword,
+    updateProfile,
+  } = useAuth();
   const communes = useCommunes();
 
   const [busy, setBusy] = useState(false);
@@ -33,13 +48,26 @@ export default function AccountScreen() {
   const [mode, setMode] = useState<EmailMode>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [resendIn, setResendIn] = useState(0);
   const [pseudo, setPseudo] = useState("");
   const [communeSlug, setCommuneSlug] = useState("");
+  // Code de récupération déjà accepté (il ne sert qu'une fois) : si le nouveau
+  // mot de passe est refusé, on réessaie sans le revérifier.
+  const recovered = useRef(false);
 
-  // Rien à faire ici une fois le compte complet.
+  // Rien à faire ici une fois le compte complet. Pendant un changement de mot
+  // de passe, la session s'ouvre avant la fin : on attend qu'il soit enregistré.
   useEffect(() => {
-    if (canPost) router.back();
-  }, [canPost, router]);
+    if (canPost && mode !== "reset") router.back();
+  }, [canPost, mode, router]);
+
+  // Compte à rebours avant de pouvoir redemander un code.
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
 
   const errorFor = (e: unknown) => {
     const code = e instanceof AuthError ? e.code : "failed";
@@ -55,6 +83,14 @@ export default function AccountScreen() {
     setMode(next);
     setError(null);
     setInfo(null);
+    setCode("");
+  }
+
+  function startCode(next: "verify" | "reset") {
+    switchMode(next);
+    setResendIn(RESEND_DELAY);
+    recovered.current = false;
+    if (next === "reset") setPassword("");
   }
 
   async function submitEmail() {
@@ -71,18 +107,77 @@ export default function AccountScreen() {
     setBusy(true);
     try {
       if (mode === "signIn") {
-        await signInWithEmail(email, password);
+        try {
+          await signInWithEmail(email, password);
+        } catch (e) {
+          // Inscription jamais confirmée : on renvoie un code et on finit ici.
+          if (!(e instanceof AuthError && e.code === "email_not_confirmed")) throw e;
+          await resendSignupCode(email);
+          startCode("verify");
+        }
       } else if (mode === "signUp") {
         const { needsConfirmation } = await signUpWithEmail(email, password);
-        if (needsConfirmation) setInfo(t("App.account.checkEmail"));
+        if (needsConfirmation) startCode("verify");
       } else {
         await sendPasswordReset(email);
-        setInfo(t("App.account.resetSent"));
+        startCode("reset");
       }
     } catch (e) {
       setError(errorFor(e));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function submitCode() {
+    setError(null);
+    setInfo(null);
+    setBusy(true);
+    try {
+      // La session s'ouvre : l'écran passe ensuite au choix du pseudo.
+      await verifySignupCode(email, code);
+    } catch (e) {
+      setError(errorFor(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitReset() {
+    setError(null);
+    setInfo(null);
+    if (password.length < MIN_PASSWORD) {
+      setError(t("App.account.passwordHint"));
+      return;
+    }
+    setBusy(true);
+    try {
+      if (!recovered.current) {
+        await verifyRecoveryCode(email, code);
+        recovered.current = true;
+      }
+      await updatePassword(password);
+      Burnt.toast({ title: t("App.account.passwordUpdated"), preset: "done" });
+      // Connecté : l'écran se ferme, ou demande le pseudo s'il manque.
+      switchMode("signIn");
+      setPassword("");
+    } catch (e) {
+      setError(errorFor(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resendCode() {
+    setError(null);
+    setInfo(null);
+    try {
+      if (mode === "reset") await sendPasswordReset(email);
+      else await resendSignupCode(email);
+      setResendIn(RESEND_DELAY);
+      setInfo(t("App.account.codeResent"));
+    } catch (e) {
+      setError(errorFor(e));
     }
   }
 
@@ -127,7 +222,65 @@ export default function AccountScreen() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Image source={require("@/assets/brand/logo.png")} style={styles.logo} contentFit="contain" />
 
-        {!needsPseudo ? (
+        {mode === "reset" || (!needsPseudo && mode === "verify") ? (
+          <>
+            <Text style={styles.title}>
+              {t(mode === "reset" ? "App.account.newPasswordTitle" : "App.account.verifyTitle")}
+            </Text>
+            <Text style={styles.text}>
+              {t(mode === "reset" ? "App.account.resetCodeText" : "App.account.verifyText", { email: email.trim() })}
+            </Text>
+            <TextInput
+              value={code}
+              onChangeText={(text) => setCode(text.replace(/\D/g, "").slice(0, 8))}
+              placeholder="000000"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="number-pad"
+              autoComplete="one-time-code"
+              textContentType="oneTimeCode"
+              autoFocus
+              style={[styles.input, styles.codeInput]}
+            />
+            {mode === "reset" && (
+              <PasswordInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder={t("App.account.newPassword")}
+                autoComplete="new-password"
+                showStrength
+              />
+            )}
+            <Pressable
+              onPress={mode === "reset" ? submitReset : submitCode}
+              disabled={busy || code.length < 6}
+              style={[styles.primary, (busy || code.length < 6) && styles.disabled]}
+              android_ripple={{ color: "rgba(255,255,255,0.25)" }}
+              accessibilityRole="button"
+            >
+              {busy ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.primaryText}>
+                  {t(mode === "reset" ? "App.account.changePassword" : "App.account.verify")}
+                </Text>
+              )}
+            </Pressable>
+
+            {info && <Text style={styles.info}>{info}</Text>}
+
+            <View style={styles.links}>
+              <Pressable onPress={resendCode} disabled={resendIn > 0} hitSlop={8}>
+                <Text style={[styles.link, resendIn > 0 && styles.linkDisabled]}>
+                  {resendIn > 0 ? t("App.account.resendIn", { seconds: resendIn }) : t("App.account.resend")}
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => switchMode(mode === "reset" ? "forgot" : "signUp")} hitSlop={8}>
+                <Text style={styles.link}>{t("App.account.changeEmail")}</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.small}>{t("App.account.checkSpam")}</Text>
+          </>
+        ) : !needsPseudo ? (
           <>
             <Text style={styles.title}>{t("App.account.signInTitle")}</Text>
             <Text style={styles.text}>{t("App.account.signInText")}</Text>
@@ -166,18 +319,14 @@ export default function AccountScreen() {
               style={styles.input}
             />
             {mode !== "forgot" && (
-              <TextInput
+              <PasswordInput
                 value={password}
                 onChangeText={setPassword}
                 placeholder={t("App.account.password")}
-                placeholderTextColor={Colors.textMuted}
-                secureTextEntry
-                autoCapitalize="none"
                 autoComplete={mode === "signUp" ? "new-password" : "current-password"}
-                style={styles.input}
+                showStrength={mode === "signUp"}
               />
             )}
-            {mode === "signUp" && <Text style={styles.hint}>{t("App.account.passwordHint")}</Text>}
 
             <Pressable
               onPress={submitEmail}
@@ -292,10 +441,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
   },
-  hint: { fontSize: 12, color: Colors.textMuted, marginTop: -6 },
   info: { fontSize: 14, color: "#15803D", textAlign: "center", lineHeight: 20 },
   links: { flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", gap: 12 },
   link: { fontSize: 14, color: Colors.primary, fontWeight: "600" },
+  linkDisabled: { color: Colors.textMuted },
+  codeInput: { fontSize: 26, fontWeight: "700", letterSpacing: 8, textAlign: "center" },
   googleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   googleLogo: { width: 22, height: 22 },
   googleText: { fontSize: 16, fontWeight: "700", color: Colors.text },

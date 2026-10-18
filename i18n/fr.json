@@ -107,10 +107,30 @@
       "passwordHint": "Au moins 8 caractères.",
       "signInEmail": "Se connecter",
       "signUpEmail": "Créer mon compte",
-      "sendReset": "Envoyer le lien",
+      "sendReset": "Envoyer le code",
       "forgot": "Mot de passe oublié ?",
       "noAccount": "Créer un compte",
       "haveAccount": "J'ai déjà un compte",
+      "verifyTitle": "Confirme ton e-mail",
+      "verifyText": "Nous avons envoyé un code à 6 chiffres à {email}. Saisis-le ici.",
+      "verify": "Confirmer",
+      "resend": "Renvoyer un code",
+      "resendIn": "Renvoyer un code ({seconds} s)",
+      "codeResent": "Nouveau code envoyé.",
+      "changeEmail": "Changer d'e-mail",
+      "checkSpam": "Tu ne le vois pas ? Regarde dans le dossier Spam.",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe",
+      "passwordMin": "Au moins {min} caractères ({count}/{min})",
+      "strength": {
+        "short": "",
+        "weak": "Faible",
+        "medium": "Moyen",
+        "strong": "Solide",
+        "tip": "Pour le renforcer : ajoute majuscules, chiffres et symboles (!?#…), ou allonge-le."
+      },
+      "resetCodeText": "Si l'adresse {email} a un compte, nous lui avons envoyé un code à 6 chiffres. Saisis-le avec ton nouveau mot de passe.",
+      "changePassword": "Changer le mot de passe",
       "checkEmail": "Vérifie tes e-mails : nous t'avons envoyé un lien pour confirmer ton compte.",
       "resetSent": "Si cette adresse a un compte, nous t'avons envoyé un lien pour changer le mot de passe.",
       "emailConfirmed": "Ton compte est confirmé !",
@@ -125,6 +145,7 @@
         "user_exists": "Un compte existe déjà avec cette adresse. Connecte-toi plutôt.",
         "weak_password": "Mot de passe trop faible. Choisis-en un plus long.",
         "email_invalid": "Adresse e-mail invalide.",
+        "code_invalid": "Code incorrect ou expiré. Demandes-en un autre.",
         "email_rate_limited": "Trop de tentatives. Attends quelques minutes et réessaie.",
         "offline": "Pas d'Internet. Réessaie plus tard.",
         "failed": "Une erreur est survenue. Réessaie."
@@ -199,6 +220,25 @@
       "username": "Nom d’utilisateur",
       "bio": "Bio",
       "bioPlaceholder": "Présente-toi ou présente ton organisation en quelques mots"
+    },
+    "follow": {
+      "follow": "Suivre",
+      "following": "Abonné",
+      "bellLabel": "Notifications pour les publications de cette personne",
+      "bellOn": "Tu seras notifié à chacune de ses publications.",
+      "bellOff": "Tu ne seras plus notifié de ses publications.",
+      "followingCount": "abonnements",
+      "followersCount": "abonnés",
+      "followersTab": "Abonnés",
+      "followingTab": "Abonnements",
+      "noFollowers": "Personne ne suit encore cette personne.",
+      "noFollowing": "Cette personne ne suit encore personne."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "Pas encore de notification. Suis des personnes et active la cloche pour savoir quand elles publient.",
+      "newKonbit": "a lancé un nouveau konbit",
+      "newFollower": "a commencé à te suivre"
     }
   },
   "Konbit": {

@@ -46,6 +46,8 @@ export interface PublicProfile {
   avatar_path: string | null;
   cover_path: string | null;
   commune_slug: string | null;
+  followers_count: number;
+  following_count: number;
   created_at: string;
 }
 
@@ -132,7 +134,9 @@ export async function uploadProfileImage(
 export async function fetchPublicProfile(userId: string): Promise<PublicProfile> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, pseudo, display_name, bio, avatar_path, cover_path, commune_slug, created_at")
+    .select(
+      "id, pseudo, display_name, bio, avatar_path, cover_path, commune_slug, followers_count, following_count, created_at",
+    )
     .eq("id", userId)
     .maybeSingle();
   if (error) throw toKonbitError(error);

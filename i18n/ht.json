@@ -107,10 +107,30 @@
       "passwordHint": "Omwen 8 karaktè.",
       "signInEmail": "Konekte",
       "signUpEmail": "Kreye kont mwen",
-      "sendReset": "Voye lyen an",
+      "sendReset": "Voye kòd la",
       "forgot": "Ou bliye modpas ou?",
       "noAccount": "Kreye yon kont",
       "haveAccount": "Mwen gen yon kont deja",
+      "verifyTitle": "Konfime imèl ou",
+      "verifyText": "Nou voye yon kòd 6 chif bay {email}. Antre l la a.",
+      "verify": "Konfime",
+      "resend": "Voye yon lòt kòd",
+      "resendIn": "Voye yon lòt kòd ({seconds}s)",
+      "codeResent": "Nou voye yon nouvo kòd.",
+      "changeEmail": "Chanje imèl la",
+      "checkSpam": "Ou pa wè l? Gade nan dosye Spam la.",
+      "showPassword": "Montre modpas la",
+      "hidePassword": "Kache modpas la",
+      "passwordMin": "Omwen {min} karaktè ({count}/{min})",
+      "strength": {
+        "short": "",
+        "weak": "Fèb",
+        "medium": "Mwayen",
+        "strong": "Solid",
+        "tip": "Pou l pi solid: mete lèt majiskil, chif ak senbòl (!?#…), oswa fè l pi long."
+      },
+      "resetCodeText": "Si adrès {email} gen yon kont, nou voye yon kòd 6 chif ba li. Antre kòd la ak nouvo modpas ou.",
+      "changePassword": "Chanje modpas la",
       "checkEmail": "Gade imèl ou: nou voye yon lyen pou konfime kont ou.",
       "resetSent": "Si adrès sa a gen yon kont, nou voye yon lyen pou chanje modpas la.",
       "emailConfirmed": "Kont ou konfime!",
@@ -125,6 +145,7 @@
         "user_exists": "Gen yon kont deja ak adrès sa a. Konekte pito.",
         "weak_password": "Modpas la twò fèb. Chwazi yon lòt ki pi long.",
         "email_invalid": "Adrès imèl la pa bon.",
+        "code_invalid": "Kòd la pa bon oswa li ekspire. Mande yon lòt.",
         "email_rate_limited": "Twòp esè. Tann kèk minit epi eseye ankò.",
         "offline": "Pa gen entènèt. Eseye ankò pita.",
         "failed": "Gen yon erè. Eseye ankò."
@@ -199,6 +220,25 @@
       "username": "Non itilizatè",
       "bio": "Bio",
       "bioPlaceholder": "Prezante tèt ou oswa òganizasyon ou an kèk mo"
+    },
+    "follow": {
+      "follow": "Swiv",
+      "following": "Ap swiv",
+      "bellLabel": "Notifikasyon pou piblikasyon moun sa a",
+      "bellOn": "W ap resevwa yon notifikasyon chak fwa li pibliye.",
+      "bellOff": "Ou p ap resevwa notifikasyon pou piblikasyon li ankò.",
+      "followingCount": "ap swiv",
+      "followersCount": "abòne",
+      "followersTab": "Abòne",
+      "followingTab": "Ap swiv",
+      "noFollowers": "Poko gen pèsonn k ap swiv moun sa a.",
+      "noFollowing": "Moun sa a poko swiv pèsonn."
+    },
+    "notifications": {
+      "title": "Notifikasyon",
+      "empty": "Ou poko gen notifikasyon. Swiv moun epi aktive klòch la pou w konnen lè yo pibliye.",
+      "newKonbit": "lanse yon nouvo konbit",
+      "newFollower": "kòmanse swiv ou"
     }
   },
   "Konbit": {

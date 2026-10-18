@@ -7,6 +7,7 @@ import Colors from "@/constants/Colors";
 import AppHeader from "@/components/AppHeader";
 import OfflineBanner from "@/components/konbit/OfflineBanner";
 import KonbitCard from "@/components/konbit509/KonbitCard";
+import NotificationBell from "@/components/konbit509/NotificationBell";
 import { Text } from "@/components/ui/Text";
 import { useFeed } from "@/hooks/useKonbits";
 import { useI18n } from "@/lib/i18n";
@@ -29,7 +30,7 @@ export default function KonbitFeedScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar style="dark" />
-      <AppHeader />
+      <AppHeader action={<NotificationBell />} />
       <OfflineBanner />
 
       <FlatList

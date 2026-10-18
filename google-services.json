@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "235959348971",
+    "project_id": "konbit509-fe4ec",
+    "storage_bucket": "konbit509-fe4ec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:235959348971:android:261c0febdb3ca8c452d8ae",
+        "android_client_info": {
+          "package_name": "com.cliford.konbit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqYaNh8oY6LCBextwW0A-uEyrvFhTXHpU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

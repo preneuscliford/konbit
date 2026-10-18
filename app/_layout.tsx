@@ -9,6 +9,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import AnimationScreen from "@/components/AnimationScreen";
+import PushManager from "@/components/PushManager";
 import { FONT_ASSETS } from "@/components/ui/Text";
 import { useAppState } from "@/hooks/useAppState";
 import { useOnlineManager } from "@/hooks/useOnlineManager";
@@ -69,18 +70,24 @@ function AppGate() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="compose" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
-      <Stack.Screen name="account" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
-      <Stack.Screen name="report-incident" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
-      <Stack.Screen name="konbit/[id]" />
-      <Stack.Screen name="user/[id]" />
-      <Stack.Screen name="profile-edit" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
-      <Stack.Screen name="rates" />
-      <Stack.Screen name="weather" />
-      <Stack.Screen name="auth-callback" />
-      <Stack.Screen name="reset-password" />
-    </Stack>
+    <>
+      {/* Push : enregistrement du téléphone et ouverture des notifications touchées. */}
+      <PushManager />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="compose" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="account" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="report-incident" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="konbit/[id]" />
+        <Stack.Screen name="user/[id]/index" />
+        <Stack.Screen name="user/[id]/follows" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="profile-edit" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="rates" />
+        <Stack.Screen name="weather" />
+        <Stack.Screen name="auth-callback" />
+        <Stack.Screen name="reset-password" />
+      </Stack>
+    </>
   );
 }
