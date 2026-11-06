@@ -25,10 +25,15 @@
       },
       "package": "com.cliford.konbit",
       "permissions": [
-        "android.permission.POST_NOTIFICATIONS",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.POST_NOTIFICATIONS"
       ],
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "com.google.android.gms.permission.AD_ID",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -56,14 +61,8 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow access to your photos",
-          "cameraPermission": "Allow access to your camera"
-        }
-      ],
-      [
-        "react-native-google-mobile-ads",
-        {
-          "androidAppId": "ca-app-pub-5480489692705139~3020600371",
-          "iosAppId": "ca-app-pub-5480489692705139/7450761986"
+          "cameraPermission": false,
+          "microphonePermission": false
         }
       ],
       [
