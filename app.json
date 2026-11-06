@@ -7,13 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/brand/icon.png",
     "scheme": "konbit",
-    "newArchEnabled": true,
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/brand/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
-    },
     "ios": {
       "supportsTablet": true
     },
