@@ -60,8 +60,9 @@ export interface KonbitReply {
   author: { pseudo: string | null; display_name: string | null; avatar_path: string | null } | null;
 }
 
-export type AbuseReason = "spam" | "harassment" | "hate" | "violence" | "false_info" | "other";
-export const ABUSE_REASONS: AbuseReason[] = ["spam", "harassment", "hate", "violence", "false_info", "other"];
+// child_safety : mise en danger d'enfants, masqué dès le premier signalement.
+export type AbuseReason = "spam" | "harassment" | "hate" | "violence" | "child_safety" | "false_info" | "other";
+export const ABUSE_REASONS: AbuseReason[] = ["spam", "harassment", "hate", "violence", "child_safety", "false_info", "other"];
 
 export interface FeedCursor {
   createdAt: string;
