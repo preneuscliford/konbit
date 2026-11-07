@@ -31,3 +31,7 @@ expo-env.d.ts
 # Clés de compte de service Firebase / Google (ne jamais commiter)
 *-firebase-adminsdk-*.json
 service-account*.json
+
+# Builds Android téléchargés (Play Console, EAS) : jamais dans le dépôt
+*.apk
+*.aab
