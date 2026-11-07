@@ -11,8 +11,8 @@
       "env": {
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indud3lvaHlmam9mZGVneXZqa2ZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNTc0MDgsImV4cCI6MjEwMDYzMzQwOH0.r1kNN-n3K00UCyTUOAnpIc3tJaEclHXvCpyYlfUhz9k",
         "EXPO_PUBLIC_SUPABASE_URL": "https://wnwyohyfjofdegyvjkfb.supabase.co",
-        "EXPO_PUBLIC_ANDROID_ID": "84538689748-uqepcs49cvpsq5ndlnol8vnfnneii7ll.apps.googleusercontent.com",
-        "EXPO_PUBLIC_WEB_CLIENT_ID": "84538689748-0j0q39jp4fkvs2hp35gqmk3irsup0nek.apps.googleusercontent.com"
+        "EXPO_PUBLIC_ANDROID_ID": "844552806652-sgluafgcsh98h5nvnvfte47f6cfc9kfl.apps.googleusercontent.com",
+        "EXPO_PUBLIC_WEB_CLIENT_ID": "844552806652-2h9mapdl8rrm057u6qpl9ol5qjuc1n73.apps.googleusercontent.com"
       }
     },
     "preview": {
@@ -20,8 +20,8 @@
       "env": {
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indud3lvaHlmam9mZGVneXZqa2ZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNTc0MDgsImV4cCI6MjEwMDYzMzQwOH0.r1kNN-n3K00UCyTUOAnpIc3tJaEclHXvCpyYlfUhz9k",
         "EXPO_PUBLIC_SUPABASE_URL": "https://wnwyohyfjofdegyvjkfb.supabase.co",
-        "EXPO_PUBLIC_ANDROID_ID": "84538689748-uqepcs49cvpsq5ndlnol8vnfnneii7ll.apps.googleusercontent.com",
-        "EXPO_PUBLIC_WEB_CLIENT_ID": "84538689748-0j0q39jp4fkvs2hp35gqmk3irsup0nek.apps.googleusercontent.com"
+        "EXPO_PUBLIC_ANDROID_ID": "844552806652-sgluafgcsh98h5nvnvfte47f6cfc9kfl.apps.googleusercontent.com",
+        "EXPO_PUBLIC_WEB_CLIENT_ID": "844552806652-2h9mapdl8rrm057u6qpl9ol5qjuc1n73.apps.googleusercontent.com"
       }
     },
     "production": {
@@ -29,8 +29,8 @@
       "env": {
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indud3lvaHlmam9mZGVneXZqa2ZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNTc0MDgsImV4cCI6MjEwMDYzMzQwOH0.r1kNN-n3K00UCyTUOAnpIc3tJaEclHXvCpyYlfUhz9k",
         "EXPO_PUBLIC_SUPABASE_URL": "https://wnwyohyfjofdegyvjkfb.supabase.co",
-        "EXPO_PUBLIC_ANDROID_ID": "84538689748-uqepcs49cvpsq5ndlnol8vnfnneii7ll.apps.googleusercontent.com",
-        "EXPO_PUBLIC_WEB_CLIENT_ID": "84538689748-0j0q39jp4fkvs2hp35gqmk3irsup0nek.apps.googleusercontent.com"
+        "EXPO_PUBLIC_ANDROID_ID": "844552806652-sgluafgcsh98h5nvnvfte47f6cfc9kfl.apps.googleusercontent.com",
+        "EXPO_PUBLIC_WEB_CLIENT_ID": "844552806652-2h9mapdl8rrm057u6qpl9ol5qjuc1n73.apps.googleusercontent.com"
       }
     }
   },
