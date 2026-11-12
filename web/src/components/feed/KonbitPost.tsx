@@ -273,7 +273,8 @@ export default function KonbitPost({
         ) : (
           <>
             <p className="text-[13px] text-stone-500">
-              {communeName}
+              {/* Message pour tout le pays : pas de commune affichée. */}
+              {k.commune_slug !== "national" && communeName}
               {(k.kind === "idea" || k.kind === "project") && (
                 <span
                   className={`ml-2 inline-block rounded-md px-1.5 py-px text-[11px] font-bold ${

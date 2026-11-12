@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { refreshFeed } from "@/app/actions/konbit";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { inputClass } from "@/components/auth/PasswordInput";
+import { ImageIcon, PinIcon } from "@/components/Icons";
 import { toast } from "@/components/Toaster";
 import {
   businessErrorMessage,
@@ -67,6 +68,7 @@ export default function ComposeFlow({
   const [max, setMax] = useState("20");
 
   const [busy, setBusy] = useState(false);
+  const [pickCommune, setPickCommune] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -78,7 +80,8 @@ export default function ComposeFlow({
 
   // Commune du profil par défaut.
   const [communeSet, setCommuneSet] = useState(false);
-  if (!communeSet && profile?.commune_slug) {
+  // Konbit : la commune du profil par défaut. Message : aucune (facultatif).
+  if (!communeSet && mode === "konbit" && profile?.commune_slug) {
     setCommuneSet(true);
     setCommune(profile.commune_slug);
   }
@@ -147,7 +150,6 @@ export default function ComposeFlow({
     if (problem) return setError(problem);
     if (mode === "mesaj") {
       if (!body.trim()) return setError("Ekri mesaj ou anvan.");
-      if (!commune) return setError("Chwazi yon komin.");
     }
     setBusy(true);
     setError(null);
@@ -168,7 +170,8 @@ export default function ComposeFlow({
           : {
               kind: "discussion",
               body: body.trim(),
-              commune_slug: commune,
+              // Sans commune : tout le pays (« national »), comme dans l'app.
+              commune_slug: commune || "national",
               media: images,
             },
       );
@@ -283,11 +286,13 @@ export default function ComposeFlow({
         className={inputClass}
       >
         <option value="">—</option>
-        {communes.map((c) => (
-          <option key={c.slug} value={c.slug}>
-            {c.name}
-          </option>
-        ))}
+        {communes
+          .filter((c) => c.slug !== "national")
+          .map((c) => (
+            <option key={c.slug} value={c.slug}>
+              {c.name}
+            </option>
+          ))}
       </select>
     </label>
   );
@@ -303,31 +308,137 @@ export default function ComposeFlow({
     return (
       <>
         {tabs}
-        <div className="space-y-5 px-4 py-5">
-          <label className="block">
-            <span className={label}>Mesaj ou *</span>
-            <textarea
-              value={body}
-              maxLength={280}
-              rows={5}
-              autoFocus
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Sak pase, sak ap fèt?"
-              className={`${inputClass} resize-y`}
-            />
-            <span className="mt-1 block text-right text-xs text-stone-400">
-              {body.length}/280
+        {/* Comme X : le texte d'abord ; photo et lieu en petites icônes. */}
+        <div className="px-4 py-4">
+          <textarea
+            value={body}
+            maxLength={280}
+            rows={5}
+            autoFocus
+            aria-label="Mesaj ou"
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="Sak pase, sak ap fèt?"
+            className="w-full resize-none bg-transparent text-xl leading-relaxed text-stone-900 outline-none placeholder:text-stone-400"
+          />
+
+          {images.length > 0 && (
+            <div
+              className={`mt-2 grid gap-2 ${images.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}
+            >
+              {images.map((img) => (
+                <div
+                  key={img.path}
+                  className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-stone-200"
+                >
+                  <Image
+                    src={mediaUrl(img.path)}
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 90vw, 520px"
+                    className="object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(img.path)}
+                    aria-label="Retire foto a"
+                    className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-lg text-white"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {commune && (
+            <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-blue-50 py-1 pl-3 pr-1 text-sm font-semibold text-brand">
+              <PinIcon className="h-4 w-4" />
+              {communeName}
+              <button
+                type="button"
+                onClick={() => setCommune("")}
+                aria-label="Retire komin nan"
+                className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-brand/10"
+              >
+                ×
+              </button>
             </span>
-          </label>
-          {communeSelect}
-          {photos}
-          {feedback}
-          <div className="flex justify-end gap-3">
+          )}
+
+          {pickCommune && (
+            <select
+              value={commune}
+              autoFocus
+              aria-label="Komin"
+              onChange={(e) => {
+                setCommune(e.target.value);
+                setPickCommune(false);
+              }}
+              onBlur={() => setPickCommune(false)}
+              className={`${inputClass} mt-3`}
+            >
+              <option value="">Chwazi yon komin…</option>
+              {communes
+                .filter((c) => c.slug !== "national")
+                .map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+            </select>
+          )}
+
+          {feedback && <div className="mt-3">{feedback}</div>}
+
+          <div className="mt-3 flex items-center gap-1 border-t border-stone-200 pt-3">
+            <label
+              title={
+                images.length >= MAX_IMAGES
+                  ? `${MAX_IMAGES} foto maksimòm`
+                  : "Ajoute yon foto"
+              }
+              className={`flex h-10 w-10 items-center justify-center rounded-full text-brand hover:bg-blue-50 ${
+                images.length >= MAX_IMAGES || uploading
+                  ? "pointer-events-none opacity-40"
+                  : "cursor-pointer"
+              } ${uploading ? "animate-pulse" : ""}`}
+            >
+              <ImageIcon className="h-[22px] w-[22px]" />
+              <span className="sr-only">Ajoute yon foto</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={images.length >= MAX_IMAGES || uploading}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void addImage(file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setPickCommune((v) => !v)}
+              title="Ajoute yon komin (pa obligatwa)"
+              aria-label="Ajoute yon komin"
+              aria-pressed={pickCommune || !!commune}
+              className={`flex h-10 w-10 items-center justify-center rounded-full hover:bg-blue-50 ${
+                commune ? "text-brand" : "text-brand/80"
+              }`}
+            >
+              <PinIcon className="h-[22px] w-[22px]" />
+            </button>
+            <span
+              className={`ml-auto text-sm ${body.length > 260 ? "text-brand-red" : "text-stone-400"}`}
+            >
+              {body.length > 0 && `${body.length}/280`}
+            </span>
             <button
               type="button"
               onClick={() => void publish()}
-              disabled={busy || uploading}
-              className="rounded-full bg-brand px-6 py-3 font-bold text-white hover:opacity-90 disabled:opacity-50"
+              disabled={busy || uploading || !body.trim()}
+              className="ml-3 rounded-full bg-brand px-5 py-2.5 font-bold text-white hover:opacity-90 disabled:opacity-40"
             >
               {busy ? "…" : "Pibliye"}
             </button>
