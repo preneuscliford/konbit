@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import Avatar from "@/components/Avatar";
 import KonbitDetail from "@/components/feed/KonbitDetail";
-import TimeAgo from "@/components/feed/TimeAgo";
 import PageHeader from "@/components/shell/PageHeader";
-import { AppButton } from "@/components/SiteChrome";
 import { KonbitSkeleton } from "@/components/Skeleton";
 import {
   getCommuneNames,
@@ -14,6 +11,7 @@ import {
   getReplies,
   mediaUrl,
 } from "@/lib/data";
+import { formatKonbitRange } from "@/lib/konbit-time";
 import { displayName, excerpt } from "@/lib/site";
 
 // Quelques konbits récents sont générés au build ; les autres à la première
@@ -35,14 +33,22 @@ export async function generateMetadata({
   if (!k) return { title: "Konbit pa jwenn" };
   const author = displayName(k.author_name, k.author_pseudo);
   const image = k.media.find((m) => m.type === "image");
+  // Konbit (action collective) : son nom, ses dates et son lieu.
+  const isKonbit = k.kind === "konbit" && k.title && k.starts_at && k.ends_at;
+  const when = isKonbit ? formatKonbitRange(k.starts_at!, k.ends_at!) : "";
+  const description = isKonbit
+    ? excerpt(`${when}. ${k.body}`)
+    : excerpt(k.body);
   return {
-    title: `${author} : ${excerpt(k.body, 60)}`,
-    description: excerpt(k.body),
+    title: isKonbit
+      ? `${k.title} · Konbit`
+      : `${author} : ${excerpt(k.body, 60)}`,
+    description,
     alternates: { canonical: `/k/${k.id}` },
     openGraph: {
       type: "article",
-      title: `${author} sou Konbit 509`,
-      description: excerpt(k.body),
+      title: isKonbit ? `Konbit : ${k.title}` : `${author} sou Konbit 509`,
+      description,
       images: image
         ? [
             {
@@ -83,54 +89,10 @@ async function KonbitView({
   ]);
 
   return (
-    <>
-      <KonbitDetail
-        konbit={k}
-        communeName={communes[k.commune_slug] ?? k.commune_slug}
-      />
-      <h2
-        id="repons"
-        className="scroll-mt-16 px-4 pt-5 pb-1 text-sm font-bold uppercase tracking-wide text-stone-500"
-      >
-        Repons ({replies.length})
-      </h2>
-      {replies.map((r) => {
-        const name = displayName(
-          r.author?.display_name ?? null,
-          r.author?.pseudo ?? null,
-        );
-        return (
-          <div
-            key={r.id}
-            className="flex gap-3 border-b border-stone-100 px-4 py-3"
-          >
-            <Avatar
-              name={name}
-              avatarPath={r.author?.avatar_path ?? null}
-              seed={r.author?.pseudo ?? String(r.id)}
-              size={36}
-            />
-            <div className="min-w-0">
-              <p className="text-sm">
-                <span className="font-bold">{name}</span>{" "}
-                <span className="text-stone-500">
-                  · <TimeAgo iso={r.created_at} />
-                </span>
-              </p>
-              <p className="mt-1 whitespace-pre-line text-[15px] text-stone-900">
-                {r.body}
-              </p>
-            </div>
-          </div>
-        );
-      })}
-      <div className="px-4 py-8 text-center">
-        <p className="mb-4 text-stone-600">
-          Pou kounye a, se nan aplikasyon an ou ka reponn. Repons sou sit la ap
-          vini byento.
-        </p>
-        <AppButton />
-      </div>
-    </>
+    <KonbitDetail
+      konbit={k}
+      communeName={communes[k.commune_slug] ?? k.commune_slug}
+      replies={replies}
+    />
   );
 }

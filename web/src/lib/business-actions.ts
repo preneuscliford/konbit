@@ -215,13 +215,14 @@ async function compress(
 export async function uploadPhoto(
   userId: string,
   file: File,
-  prefix: "logo" | "cover" | "item",
+  prefix: "logo" | "cover" | "item" | "konbit",
 ): Promise<ItemPhoto> {
   const { blob, width, height } = await compress(
     file,
     prefix === "logo" ? 512 : MAX_SIDE,
   );
-  const path = `${userId}/biz-${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const name = prefix === "konbit" ? "konbit" : `biz-${prefix}`;
+  const path = `${userId}/${name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
   const { error } = await getSupabase()
     .storage.from("konbit-media")
     .upload(path, blob, { contentType: "image/jpeg", upsert: false });

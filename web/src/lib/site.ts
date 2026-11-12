@@ -17,7 +17,8 @@ export const LEGAL = {
 };
 
 export const KIND_LABEL = {
-  discussion: "Diskisyon",
+  konbit: "Konbit",
+  discussion: "Mesaj",
   idea: "Lide",
   project: "Pwojè",
 } as const;

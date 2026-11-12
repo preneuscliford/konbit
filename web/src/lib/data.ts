@@ -21,7 +21,9 @@ const supabase = createClient(
   },
 );
 
-export type KonbitKind = "discussion" | "idea" | "project";
+// konbit : action collective (titre, lieu, durée, participants) ;
+// discussion : simple message ; idea / project : anciens types (app v1).
+export type KonbitKind = "konbit" | "discussion" | "idea" | "project";
 
 export interface KonbitImage {
   type: "image";
@@ -47,6 +49,12 @@ export interface Konbit {
   // Rempli seulement quand la lecture se fait avec la session de l'utilisateur.
   joined?: boolean;
   liked?: boolean;
+  // Konbit (action collective) seulement ; vides pour un message.
+  title: string | null;
+  address_detail: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  max_participants: number | null;
 }
 
 export interface Profile {
@@ -62,10 +70,14 @@ export interface Profile {
   created_at: string;
 }
 
+// Message à l’intérieur d’un konbit (parent_id vide) ou réponse à un message.
 export interface Reply {
   id: number;
   body: string;
   created_at: string;
+  parent_id: number | null;
+  like_count: number;
+  author_id: string;
   author: {
     pseudo: string | null;
     display_name: string | null;
@@ -79,6 +91,7 @@ const PROFILE_FIELDS =
 export async function getRecentKonbits(limit = 20): Promise<Konbit[]> {
   "use cache";
   cacheLife("minutes");
+  cacheTag("feed");
   const { data, error } = await supabase.rpc("konbit_feed", {
     page_size: limit,
   });
@@ -95,6 +108,7 @@ export async function getKonbitPage(
 ): Promise<Konbit[]> {
   "use cache";
   cacheLife("minutes");
+  cacheTag("feed");
   const { data, error } = await supabase.rpc("konbit_feed", {
     cursor_created_at: cursor?.createdAt ?? null,
     cursor_id: cursor?.id ?? null,
@@ -107,6 +121,7 @@ export async function getKonbitPage(
 export async function getKonbit(id: number): Promise<Konbit | null> {
   "use cache";
   cacheLife("minutes");
+  cacheTag(`konbit:${id}`);
   const { data, error } = await supabase.rpc("konbit_feed", {
     only_id: id,
     page_size: 1,
@@ -118,15 +133,17 @@ export async function getKonbit(id: number): Promise<Konbit | null> {
 export async function getReplies(konbitId: number): Promise<Reply[]> {
   "use cache";
   cacheLife("minutes");
+  cacheTag(`konbit:${konbitId}`);
   const { data, error } = await supabase
     .from("konbit_replies")
     .select(
-      "id, body, created_at, author:profiles!konbit_replies_author_id_fkey(pseudo, display_name, avatar_path)",
+      "id, body, created_at, parent_id, like_count, author_id, author:profiles!konbit_replies_author_id_fkey(pseudo, display_name, avatar_path)",
     )
     .eq("konbit_id", konbitId)
     .eq("status", "visible")
     .order("created_at", { ascending: true })
-    .limit(100);
+    .order("id", { ascending: true })
+    .limit(300);
   if (error) throw error;
   return (data ?? []) as unknown as Reply[];
 }

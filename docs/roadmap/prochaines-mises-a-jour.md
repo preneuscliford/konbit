@@ -199,6 +199,37 @@ C'est le pilier stratégique de l'app : à cadrer avant de développer. Pistes �
 - le monorepo : déplacer l'app dans `apps/mobile`, le site dans `apps/web`, et le code partagé dans `packages/`. C'est une réorganisation à faire **après** le lancement mobile, pas pendant le test fermé ;
 - les règles d'accès : les pages web ne doivent lire **que** ce qui est déjà public. Les règles de sécurité de la base (RLS) le garantissent déjà pour les konbits et profils visibles.
 
+## 7. Le konbit comme action collective (décision du 12 novembre 2026)
+
+C'est ce qui distingue Konbit 509 d'un réseau social classique : **un konbit est une action collective qui dure**, avec un lieu et des participants (un konbit pour des paysans, un projet, un nettoyage…).
+
+**Deux types de publication :**
+- **Konbit**, lancé en 4 étapes :
+  1. **Kisa** : nom, explication, photos ;
+  2. **Ki kote** : commune (celle du profil par défaut) et complément d'adresse facultatif ;
+  3. **Kilè** : date et heure de début (heure d'Haïti), puis durée de 1 jour, 1 semaine, 1 mois ou jusqu'à une autre date ;
+  4. **Ki moun** : nombre maximum facultatif, organisateur compris, puis un aperçu avant de lancer.
+- **Mesaj** : un simple message (question, nouvelle). Tout le monde peut y répondre.
+
+**Sur un konbit :**
+- tout le monde le voit, l'aime et le partage ;
+- statut automatique : *Ap vini* → *An kou* → *Fini* ;
+- compteur « 12 / 20 moun ladan », puis *Plen* quand il n'y a plus de place ;
+- **rejoindre ou quitter demande une confirmation**, pour éviter les erreurs ;
+- **seuls l'organisateur et les participants écrivent**. À l'intérieur : des messages, des réponses et des réponses aux réponses (sur un seul niveau), avec J'aime et partage sur chaque message.
+
+**La base de données vérifie aussi ces règles** (migration `20261112120000_konbit_collectif.sql`) :
+- on ne peut pas rejoindre un konbit plein ou fini ;
+- seuls les membres peuvent écrire ;
+- les dates doivent être cohérentes.
+
+Les anciens types (idée, projet) restent acceptés pour l'app déjà installée.
+
+**À faire ensuite :**
+- la même chose dans l'app mobile ;
+- prévenir les participants d'un nouveau message ;
+- permettre à l'organisateur de modifier ou clôturer son konbit.
+
 ## Déjà prévu (rappel)
 
 - **Migration vers Expo SDK 57** : elle corrige la fuite mémoire de Hermes, importante sur les téléphones modestes. À faire sur une branche et à tester avant le lancement public.

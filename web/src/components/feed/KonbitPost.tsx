@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Avatar from "@/components/Avatar";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   HandshakeIcon,
@@ -26,6 +27,8 @@ import {
 } from "@/lib/konbit-actions";
 import { displayName, KIND_LABEL } from "@/lib/site";
 import { mediaUrl } from "@/lib/storage";
+import { formatKonbitDate } from "@/lib/konbit-time";
+import KonbitSummary, { useKonbitStatus } from "./KonbitSummary";
 import TimeAgo from "./TimeAgo";
 import { useRequireAccount } from "./useRequireAccount";
 
@@ -37,11 +40,14 @@ export default function KonbitPost({
   communeName,
   full = false,
   onDeleted,
+  onJoinChange,
 }: {
   konbit: Konbit;
   communeName: string;
   full?: boolean;
   onDeleted?: (id: number) => void;
+  // Page du konbit : l'espace de messages s'ouvre dès qu'on rejoint.
+  onJoinChange?: (joined: boolean) => void;
 }) {
   const router = useRouter();
   const { userId } = useAuth();
@@ -50,6 +56,8 @@ export default function KonbitPost({
   const [menu, setMenu] = useState<"closed" | "menu" | "report">("closed");
   const [menuUp, setMenuUp] = useState(false);
   const busy = useRef({ like: false, join: false });
+  const [confirm, setConfirm] = useState<"join" | "leave" | null>(null);
+  const [joining, setJoining] = useState(false);
 
   // Nouvelle donnée du parent (état personnel chargé après coup, etc.).
   const [source, setSource] = useState(initial);
@@ -62,8 +70,14 @@ export default function KonbitPost({
   const images = k.media.filter((m) => m.type === "image").slice(0, 2);
   const href = `/k/${k.id}`;
   const isMine = !!userId && k.author_id === userId;
-  // « Mwen ladan » n'a de sens que pour une idée ou un projet.
+  // Konbit = action collective ; « Mwen ladan » existe aussi sur les anciennes
+  // idées et anciens projets, jamais sur un simple message.
+  const isKonbit = k.kind === "konbit";
   const canJoin = k.kind !== "discussion";
+  const status = useKonbitStatus(k);
+  const members = k.participant_count + 1;
+  const isFull = !!k.max_participants && members >= k.max_participants;
+  const ended = status === "ended";
 
   function toggleLike() {
     requireAccount(async (me) => {
@@ -90,29 +104,33 @@ export default function KonbitPost({
     });
   }
 
-  function toggleJoin() {
-    requireAccount(async (me) => {
-      if (busy.current.join) return;
-      busy.current.join = true;
-      const on = !k.joined;
+  // Demande de confirmation avant de rejoindre ou de quitter (évite les
+  // clics par erreur).
+  function askJoin() {
+    requireAccount(() => setConfirm(k.joined ? "leave" : "join"));
+  }
+
+  async function join(on: boolean) {
+    if (!userId || busy.current.join) return;
+    busy.current.join = true;
+    setJoining(true);
+    try {
+      await setParticipation(k.id, userId, on);
       setK((c) => ({
         ...c,
         joined: on,
         participant_count: Math.max(0, c.participant_count + (on ? 1 : -1)),
       }));
-      try {
-        await setParticipation(k.id, me, on);
-      } catch (e) {
-        setK((c) => ({
-          ...c,
-          joined: !on,
-          participant_count: Math.max(0, c.participant_count + (on ? -1 : 1)),
-        }));
-        toast(konbitErrorMessage(e), "error");
-      } finally {
-        busy.current.join = false;
-      }
-    });
+      toast(on ? "Ou nan konbit la! 🙌" : "Ou soti nan konbit la.");
+      onJoinChange?.(on);
+      setConfirm(null);
+    } catch (e) {
+      toast(konbitErrorMessage(e), "error");
+      setConfirm(null);
+    } finally {
+      busy.current.join = false;
+      setJoining(false);
+    }
   }
 
   async function share() {
@@ -245,28 +263,40 @@ export default function KonbitPost({
           </div>
         </div>
 
-        <p className="text-[13px] text-stone-500">
-          {communeName}
-          {k.kind !== "discussion" && (
-            <span
-              className={`ml-2 inline-block rounded-md px-1.5 py-px text-[11px] font-bold ${
-                k.kind === "project"
-                  ? "bg-red-50 text-brand-red"
-                  : "bg-blue-50 text-brand"
+        {isKonbit ? (
+          <KonbitSummary
+            konbit={k}
+            communeName={communeName}
+            status={status}
+            full={full}
+          />
+        ) : (
+          <>
+            <p className="text-[13px] text-stone-500">
+              {communeName}
+              {(k.kind === "idea" || k.kind === "project") && (
+                <span
+                  className={`ml-2 inline-block rounded-md px-1.5 py-px text-[11px] font-bold ${
+                    k.kind === "project"
+                      ? "bg-red-50 text-brand-red"
+                      : "bg-blue-50 text-brand"
+                  }`}
+                >
+                  {KIND_LABEL[k.kind]}
+                </span>
+              )}
+            </p>
+            <p
+              className={`mt-1.5 whitespace-pre-line break-words text-stone-900 ${
+                full
+                  ? "text-[17px] leading-relaxed"
+                  : "text-[15px] leading-normal"
               }`}
             >
-              {KIND_LABEL[k.kind]}
-            </span>
-          )}
-        </p>
-
-        <p
-          className={`mt-1.5 whitespace-pre-line break-words text-stone-900 ${
-            full ? "text-[17px] leading-relaxed" : "text-[15px] leading-normal"
-          }`}
-        >
-          {k.body}
-        </p>
+              {k.body}
+            </p>
+          </>
+        )}
 
         {images.length > 0 && (
           <div
@@ -313,21 +343,45 @@ export default function KonbitPost({
             {k.like_count > 0 && k.like_count}
           </button>
 
-          {canJoin ? (
-            <button
-              type="button"
-              onClick={toggleJoin}
-              aria-pressed={!!k.joined}
-              className={`${action} ${k.joined ? "font-bold text-emerald-700" : "hover:text-emerald-700"}`}
-            >
-              <span
-                className={`rounded-full p-2 ${k.joined ? "bg-emerald-50" : "group-hover:bg-emerald-50"}`}
-              >
+          {isKonbit && isMine ? (
+            <span className={`${action} font-bold text-emerald-700`}>
+              <span className="rounded-full bg-emerald-50 p-2">
                 <HandshakeIcon className="h-[18px] w-[18px]" />
               </span>
+              Òganizatè
+            </span>
+          ) : isKonbit && !k.joined && (ended || isFull) ? (
+            <span className={`${action} font-semibold text-stone-400`}>
+              <span className="rounded-full p-2">
+                <HandshakeIcon className="h-[18px] w-[18px]" />
+              </span>
+              {ended ? "Fini" : "Plen"}
+            </span>
+          ) : canJoin ? (
+            <button
+              type="button"
+              onClick={askJoin}
+              aria-pressed={!!k.joined}
+              className={
+                k.joined
+                  ? `${action} font-bold text-emerald-700`
+                  : isKonbit
+                    ? "flex items-center gap-1.5 rounded-full bg-brand px-3.5 py-1.5 text-[13px] font-bold text-white hover:opacity-90"
+                    : `${action} hover:text-emerald-700`
+              }
+            >
+              {(k.joined || !isKonbit) && (
+                <span
+                  className={`rounded-full p-2 ${k.joined ? "bg-emerald-50" : "group-hover:bg-emerald-50"}`}
+                >
+                  <HandshakeIcon className="h-[18px] w-[18px]" />
+                </span>
+              )}
               <span>
-                {k.joined ? "Ou ladan" : "Mwen ladan"}
-                {k.participant_count > 0 && ` · ${k.participant_count}`}
+                {k.joined ? "Ou ladan" : isKonbit ? "Rejwenn" : "Mwen ladan"}
+                {!isKonbit &&
+                  k.participant_count > 0 &&
+                  ` · ${k.participant_count}`}
               </span>
             </button>
           ) : (
@@ -346,6 +400,36 @@ export default function KonbitPost({
           </button>
         </div>
       </div>
+
+      {confirm && (
+        <ConfirmDialog
+          title={
+            confirm === "join"
+              ? `Ou vle rejwenn « ${k.title ?? "konbit sa a"} » vre?`
+              : `Ou vle soti nan « ${k.title ?? "konbit sa a"} »?`
+          }
+          confirmLabel={confirm === "join" ? "Wi, mwen ladan" : "Wi, mwen soti"}
+          tone={confirm === "join" ? "brand" : "danger"}
+          busy={joining}
+          onConfirm={() => void join(confirm === "join")}
+          onCancel={() => setConfirm(null)}
+        >
+          {confirm === "join" ? (
+            <p>
+              {k.starts_at
+                ? `Li kòmanse ${formatKonbitDate(k.starts_at)}. `
+                : ""}
+              Òganizatè a ak lòt moun yo pral konte sou ou. Ou ka ekri nan
+              konbit la epi resevwa nouvèl li.
+            </p>
+          ) : (
+            <p>
+              Ou p ap ka ekri nan konbit la ankò, men ou ka rejwenn li ankò pita
+              si gen plas.
+            </p>
+          )}
+        </ConfirmDialog>
+      )}
     </article>
   );
 }

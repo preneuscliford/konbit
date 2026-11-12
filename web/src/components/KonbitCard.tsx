@@ -3,6 +3,7 @@ import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import type { Konbit } from "@/lib/data";
 import { mediaUrl } from "@/lib/storage";
+import { formatKonbitRange } from "@/lib/konbit-time";
 import { displayName, formatDate, KIND_LABEL } from "@/lib/site";
 
 // Carte d'un konbit, même disposition que dans l'app. `full` : page du konbit.
@@ -48,6 +49,16 @@ export default function KonbitCard({
             {KIND_LABEL[k.kind]}
           </span>
         )}
+        {k.kind === "konbit" && k.title && (
+          <p className="mt-2 text-[17px] font-extrabold leading-snug text-stone-900">
+            {k.title}
+            {k.starts_at && k.ends_at && (
+              <span className="mt-0.5 block text-sm font-medium text-stone-500">
+                🗓 {formatKonbitRange(k.starts_at, k.ends_at)}
+              </span>
+            )}
+          </p>
+        )}
         {full ? (
           <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-stone-900">
             {k.body}
@@ -55,7 +66,7 @@ export default function KonbitCard({
         ) : (
           <Link
             href={`/k/${k.id}`}
-            className="mt-2 block whitespace-pre-line text-[15px] leading-relaxed text-stone-900"
+            className={`mt-2 block whitespace-pre-line text-[15px] leading-relaxed text-stone-900 ${k.kind === "konbit" ? "line-clamp-3" : ""}`}
           >
             {k.body}
           </Link>
@@ -79,7 +90,9 @@ export default function KonbitCard({
         )}
         <p className="mt-3 text-sm text-stone-500">
           {k.reply_count} repons · {k.like_count} renmen
-          {k.kind !== "discussion" && ` · ${k.participant_count} moun ladan`}
+          {k.kind === "konbit"
+            ? ` · ${k.participant_count + 1} moun ladan`
+            : k.kind !== "discussion" && ` · ${k.participant_count} moun ladan`}
         </p>
       </div>
     </article>
