@@ -1,5 +1,7 @@
 # Konbit 509 : normes de sécurité des enfants
 
+> **Version à jour (12 novembre 2026) :** les textes publiés sur le site sont dans `web/content/legal/` (pages konbit509.app/kondisyon, /konfidansyalite et /sekirite-timoun), avec le nom de l’éditeur, le site web et les fiches business. Ce fichier garde la version d’octobre publiée sur haitiscope.com, déclarée dans la Play Console : les deux adresses restent en ligne.
+
 ## Instructions de déploiement (pour la session qui publie sur haitiscope.com)
 
 Publier le document ci-dessous comme **page publique** de haitiscope.com, à l'adresse exacte :

@@ -11,9 +11,9 @@ export const SITE_URL = (
 export const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.cliford.konbit";
 export const LEGAL = {
-  terms: "https://haitiscope.com/konbit/conditions",
-  privacy: "https://haitiscope.com/konbit/confidentialite",
-  childSafety: "https://haitiscope.com/konbit/securite-enfants",
+  terms: "/kondisyon",
+  privacy: "/konfidansyalite",
+  childSafety: "/sekirite-timoun",
 };
 
 export const KIND_LABEL = {

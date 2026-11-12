@@ -151,13 +151,11 @@ export async function saveItem(
   const supabase = getSupabase();
   const query = id
     ? supabase.from("business_items").update(input).eq("id", id)
-    : supabase
-        .from("business_items")
-        .insert({
-          ...input,
-          business_id: businessId,
-          position: Date.now() % 1_000_000_000,
-        });
+    : supabase.from("business_items").insert({
+        ...input,
+        business_id: businessId,
+        position: Date.now() % 1_000_000_000,
+      });
   const { data, error } = await query.select(ITEM_FIELDS).single();
   if (error) throw toError(error);
   return data as BusinessItem;

@@ -17,6 +17,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: SITE_URL, changeFrequency: "hourly", priority: 1 },
     { url: `${SITE_URL}/konbit`, changeFrequency: "hourly", priority: 0.9 },
     { url: `${SITE_URL}/biznis`, changeFrequency: "daily", priority: 0.9 },
+    ...["kondisyon", "konfidansyalite", "sekirite-timoun"].map((p) => ({
+      url: `${SITE_URL}/${p}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.3,
+    })),
     ...businesses.map((b) => ({
       url: `${SITE_URL}/b/${b.slug}`,
       lastModified: b.updated_at,

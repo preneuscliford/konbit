@@ -1,5 +1,7 @@
 # Konbit 509 : conditions d'utilisation et politique de confidentialité
 
+> **Version à jour (12 novembre 2026) :** les textes publiés sur le site sont dans `web/content/legal/` (pages konbit509.app/kondisyon, /konfidansyalite et /sekirite-timoun), avec le nom de l’éditeur (PRENEUS Cliford), le site web et les fiches business. Ce fichier garde la version d’octobre publiée sur haitiscope.com, déclarée dans la Play Console : les deux adresses restent en ligne.
+
 ## Instructions de déploiement (pour la session qui publie sur haitiscope.com)
 
 Publier les deux documents ci-dessous comme **deux pages publiques** du site haitiscope.com (hébergé sur Vercel), aux adresses exactes suivantes. L'application Konbit 509 pointe déjà vers ces liens : ne pas les changer sans prévenir.
