@@ -5,7 +5,7 @@ import Avatar from "@/components/Avatar";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { COMPOSE_HREF } from "@/components/shell/nav";
 
-// Haut du fil, comme X : « Kisa w vle mete ansanm? » pour lancer un konbit,
+// Haut du fil, comme X : « Sak pase, sak ap fèt? » pour lancer un konbit,
 // ou une invitation à se connecter.
 export default function ComposePrompt() {
   const { ready, profile } = useAuth();
@@ -42,7 +42,7 @@ export default function ComposePrompt() {
         size={42}
       />
       <span className="flex-1 text-[17px] text-stone-400">
-        Kisa w vle nou fè ansanm?
+        Sak pase, sak ap fèt?
       </span>
       <span className="rounded-full bg-brand px-4 py-2 text-sm font-bold text-white">
         Lanse
