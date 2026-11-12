@@ -15,11 +15,23 @@ const RESEND_DELAY = 60;
 // verify : code d'inscription ; reset : code « mot de passe oublié » + nouveau mot de passe.
 type Mode = "signIn" | "signUp" | "forgot" | "verify" | "reset";
 
-// Page où revenir après connexion : chemin interne seulement.
+// Pages après lesquelles on n'a rien à « finir » : la connexion mène au fil.
+const TO_FEED = [
+  "/",
+  "/konekte",
+  "/kondisyon",
+  "/konfidansyalite",
+  "/sekirite-timoun",
+];
+
+// Page où revenir après connexion : le fil (/konbit) par défaut ; la page
+// d'origine seulement si c'est une page interne où l'on voulait agir
+// (konbit, profil, fiche business…).
 function safeNext(value: string | null) {
-  return value && value.startsWith("/") && !value.startsWith("//")
-    ? value
-    : "/konbit";
+  if (!value || !value.startsWith("/") || value.startsWith("//"))
+    return "/konbit";
+  const path = value.split(/[?#]/)[0];
+  return TO_FEED.includes(path) ? "/konbit" : value;
 }
 
 const primaryClass =
