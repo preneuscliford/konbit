@@ -18,7 +18,7 @@ export const LEGAL = {
 
 export const KIND_LABEL = {
   konbit: "Konbit",
-  discussion: "Mesaj",
+  discussion: "Pòs",
   idea: "Lide",
   project: "Pwojè",
 } as const;

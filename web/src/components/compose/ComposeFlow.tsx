@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { refreshFeed } from "@/app/actions/konbit";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { inputClass } from "@/components/auth/PasswordInput";
-import { ImageIcon, PinIcon } from "@/components/Icons";
+import { HandshakeIcon, ImageIcon, PinIcon } from "@/components/Icons";
 import { toast } from "@/components/Toaster";
 import {
   businessErrorMessage,
@@ -19,7 +19,8 @@ import { createKonbit, konbitErrorMessage } from "@/lib/konbit-actions";
 import { formatKonbitRange, haitiToDate, haitiToday } from "@/lib/konbit-time";
 import { mediaUrl } from "@/lib/storage";
 
-type Mode = "konbit" | "mesaj";
+// pos : simple publication (« Pòs ») ; konbit : action collective.
+type Mode = "konbit" | "pos";
 type Duration = "day" | "week" | "month" | "custom";
 
 const DURATIONS: { value: Duration; label: string; days: number }[] = [
@@ -30,6 +31,22 @@ const DURATIONS: { value: Duration; label: string; days: number }[] = [
 ];
 
 const STEPS = ["Kisa", "Ki kote", "Kilè", "Ki moun"] as const;
+// Brouillon d'un message transformé en konbit (icône 🤝).
+const DRAFT_KEY = "konbit-compose-draft";
+
+type Draft = { body: string; images: KonbitImage[]; commune: string };
+
+// Lu une seule fois à l'ouverture du konbit, puis effacé.
+function takeDraft(): Draft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    sessionStorage.removeItem(DRAFT_KEY);
+    return raw ? (JSON.parse(raw) as Draft) : null;
+  } catch {
+    return null;
+  }
+}
 const MAX_IMAGES = 2;
 
 // Date du champ (AAAA-MM-JJ) décalée de n jours.
@@ -53,9 +70,11 @@ export default function ComposeFlow({
   const [step, setStep] = useState(0);
 
   // Champs communs
-  const [body, setBody] = useState("");
-  const [commune, setCommune] = useState("");
-  const [images, setImages] = useState<KonbitImage[]>([]);
+  // Konbit ouvert depuis un message : on reprend ce qui était écrit.
+  const [draft] = useState(() => (mode === "konbit" ? takeDraft() : null));
+  const [body, setBody] = useState(draft?.body ?? "");
+  const [commune, setCommune] = useState(draft?.commune ?? "");
+  const [images, setImages] = useState<KonbitImage[]>(draft?.images ?? []);
   const [uploading, setUploading] = useState(false);
   // Konbit
   const [title, setTitle] = useState("");
@@ -81,7 +100,12 @@ export default function ComposeFlow({
   // Commune du profil par défaut.
   const [communeSet, setCommuneSet] = useState(false);
   // Konbit : la commune du profil par défaut. Message : aucune (facultatif).
-  if (!communeSet && mode === "konbit" && profile?.commune_slug) {
+  if (
+    !communeSet &&
+    mode === "konbit" &&
+    !draft?.commune &&
+    profile?.commune_slug
+  ) {
     setCommuneSet(true);
     setCommune(profile.commune_slug);
   }
@@ -148,8 +172,8 @@ export default function ComposeFlow({
     const problem =
       mode === "konbit" ? [0, 1, 2, 3].map(checkStep).find(Boolean) : null;
     if (problem) return setError(problem);
-    if (mode === "mesaj") {
-      if (!body.trim()) return setError("Ekri mesaj ou anvan.");
+    if (mode === "pos") {
+      if (!body.trim()) return setError("Ekri pòs ou anvan.");
     }
     setBusy(true);
     setError(null);
@@ -176,7 +200,7 @@ export default function ComposeFlow({
             },
       );
       await refreshFeed();
-      toast(mode === "konbit" ? "Konbit ou lanse! 🙌" : "Mesaj ou pibliye.");
+      toast(mode === "konbit" ? "Konbit ou lanse! 🙌" : "Pòs ou pibliye.");
       router.push(`/k/${id}`);
     } catch (e) {
       setError(konbitErrorMessage(e));
@@ -199,33 +223,19 @@ export default function ComposeFlow({
         : "border-stone-300 text-stone-700 hover:bg-stone-50"
     }`;
 
-  // Sélecteur en haut des deux pages : Mesaj | Konbit.
-  const tabs = (
-    <nav aria-label="Kisa w ap pibliye" className="flex gap-2 px-4 pt-4">
-      <Link
-        href="/lanse"
-        aria-current={mode === "mesaj" ? "page" : undefined}
-        className={`flex-1 rounded-2xl border-2 px-4 py-3 text-center font-extrabold ${
-          mode === "mesaj"
-            ? "border-brand bg-blue-50 text-brand"
-            : "border-stone-200 text-stone-600 hover:bg-stone-50"
-        }`}
-      >
-        💬 Mesaj
-      </Link>
-      <Link
-        href="/lanse/konbit"
-        aria-current={mode === "konbit" ? "page" : undefined}
-        className={`flex-1 rounded-2xl border-2 px-4 py-3 text-center font-extrabold ${
-          mode === "konbit"
-            ? "border-brand bg-blue-50 text-brand"
-            : "border-stone-200 text-stone-600 hover:bg-stone-50"
-        }`}
-      >
-        🤝 Konbit
-      </Link>
-    </nav>
-  );
+  // Message → konbit : on garde ce qui est déjà écrit (texte, photos,
+  // commune) et on passe aux 4 étapes.
+  function toKonbit() {
+    try {
+      sessionStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ body, images, commune }),
+      );
+    } catch {
+      // Stockage bloqué : on passe au konbit sans le brouillon.
+    }
+    router.push("/lanse/konbit");
+  }
 
   const photos = (
     <div>
@@ -304,10 +314,9 @@ export default function ComposeFlow({
   );
 
   // ─── Message simple ────────────────────────────────────────────────────────
-  if (mode === "mesaj") {
+  if (mode === "pos") {
     return (
       <>
-        {tabs}
         {/* Comme X : le texte d'abord ; photo et lieu en petites icônes. */}
         <div className="px-4 py-4">
           <textarea
@@ -315,7 +324,7 @@ export default function ComposeFlow({
             maxLength={280}
             rows={5}
             autoFocus
-            aria-label="Mesaj ou"
+            aria-label="Pòs ou"
             onChange={(e) => setBody(e.target.value)}
             placeholder="Sak pase, sak ap fèt?"
             className="w-full resize-none bg-transparent text-xl leading-relaxed text-stone-900 outline-none placeholder:text-stone-400"
@@ -429,6 +438,15 @@ export default function ComposeFlow({
             >
               <PinIcon className="h-[22px] w-[22px]" />
             </button>
+            <button
+              type="button"
+              onClick={toKonbit}
+              title="Fè l tounen yon konbit (yon aksyon ansanm, ak dat ak moun)"
+              aria-label="Fè l tounen yon konbit"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-brand/80 hover:bg-blue-50 hover:text-brand"
+            >
+              <HandshakeIcon className="h-[22px] w-[22px]" />
+            </button>
             <span
               className={`ml-auto text-sm ${body.length > 260 ? "text-brand-red" : "text-stone-400"}`}
             >
@@ -451,8 +469,15 @@ export default function ComposeFlow({
   // ─── Konbit en 4 étapes ────────────────────────────────────────────────────
   return (
     <>
-      {tabs}
-      <div className="px-4 py-5">
+      <p className="px-4 pt-3 text-right text-sm">
+        <Link
+          href="/lanse"
+          className="font-semibold text-stone-500 hover:text-brand hover:underline"
+        >
+          Se yon pòs senp pito?
+        </Link>
+      </p>
+      <div className="px-4 py-3">
         <ol className="mb-6 grid grid-cols-4 gap-2" aria-label="Etap yo">
           {STEPS.map((s, i) => (
             <li key={s} aria-current={i === step ? "step" : undefined}>

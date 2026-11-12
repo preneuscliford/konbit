@@ -209,7 +209,7 @@ C'est ce qui distingue Konbit 509 d'un réseau social classique : **un konbit es
   2. **Ki kote** : commune (celle du profil par défaut) et complément d'adresse facultatif ;
   3. **Kilè** : date et heure de début (heure d'Haïti), puis durée de 1 jour, 1 semaine, 1 mois ou jusqu'à une autre date ;
   4. **Ki moun** : nombre maximum facultatif, organisateur compris, puis un aperçu avant de lancer.
-- **Mesaj** : un simple message (question, nouvelle). Tout le monde peut y répondre.
+- **Pòs** : une simple publication (question, nouvelle). Tout le monde peut y répondre. On la transforme en konbit avec l’icône 🤝, à côté des icônes photo et commune (facultative), sans perdre ce qui est écrit.
 
 **Sur un konbit :**
 - tout le monde le voit, l'aime et le partage ;

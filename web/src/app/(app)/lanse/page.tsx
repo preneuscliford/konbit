@@ -19,7 +19,7 @@ export default async function PostPage() {
   return (
     <>
       <PageHeader title="Pibliye" back />
-      <ComposeFlow communes={communes} mode="mesaj" />
+      <ComposeFlow communes={communes} mode="pos" />
     </>
   );
 }
