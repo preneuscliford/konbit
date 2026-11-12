@@ -45,7 +45,7 @@ export default function MobileTabBar() {
       <div className="flex flex-1 justify-center">
         <Link
           href={COMPOSE_HREF}
-          aria-label="Lanse yon konbit"
+          aria-label="Pibliye"
           className="-mt-5 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-brand/40 ring-4 ring-surface"
         >
           <PlusIcon className="h-7 w-7" strokeWidth={2.4} />

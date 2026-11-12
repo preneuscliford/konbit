@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { refreshFeed } from "@/app/actions/konbit";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { inputClass } from "@/components/auth/PasswordInput";
@@ -37,19 +38,17 @@ function addDays(date: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-// Lancer un konbit (4 étapes) ou partager un simple message.
+// Publier : un simple message (/lanse, par défaut) ou un konbit en 4 étapes
+// (/lanse/konbit). Les deux pages sont séparées, avec un sélecteur en haut.
 export default function ComposeFlow({
   communes,
+  mode,
 }: {
   communes: { slug: string; name: string }[];
+  mode: Mode;
 }) {
   const router = useRouter();
-  const params = useSearchParams();
   const { ready, userId, canPost, profile } = useAuth();
-  const [mode, setMode] = useState<Mode | null>(() => {
-    const t = params.get("tip");
-    return t === "konbit" || t === "mesaj" ? t : null;
-  });
   const [step, setStep] = useState(0);
 
   // Champs communs
@@ -71,8 +70,11 @@ export default function ComposeFlow({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (ready && !canPost) router.replace("/konekte?next=%2Flanse");
-  }, [ready, canPost, router]);
+    if (ready && !canPost)
+      router.replace(
+        `/konekte?next=${encodeURIComponent(mode === "konbit" ? "/lanse/konbit" : "/lanse")}`,
+      );
+  }, [ready, canPost, router, mode]);
 
   // Commune du profil par défaut.
   const [communeSet, setCommuneSet] = useState(false);
@@ -194,45 +196,33 @@ export default function ComposeFlow({
         : "border-stone-300 text-stone-700 hover:bg-stone-50"
     }`;
 
-  // ─── Choix du type ─────────────────────────────────────────────────────────
-  if (!mode) {
-    return (
-      <div className="space-y-3 px-4 py-6">
-        <p className="text-stone-600">Kisa w vle pataje ak kominote a?</p>
-        <button
-          type="button"
-          onClick={() => setMode("konbit")}
-          className="block w-full rounded-3xl border-2 border-brand bg-blue-50 p-5 text-left hover:opacity-90"
-        >
-          <span className="text-2xl" aria-hidden>
-            🤝
-          </span>
-          <span className="mt-2 block text-xl font-extrabold text-brand">
-            Lanse yon konbit
-          </span>
-          <span className="mt-1 block text-[15px] text-stone-700">
-            Yon aksyon ansanm, nan yon kote, pandan yon tan : netwaye yon ri,
-            ede peyizan nan yon jaden, monte yon pwojè… Moun yo ka rejwenn ou.
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("mesaj")}
-          className="block w-full rounded-3xl border border-stone-300 p-5 text-left hover:bg-stone-50"
-        >
-          <span className="text-2xl" aria-hidden>
-            💬
-          </span>
-          <span className="mt-2 block text-xl font-extrabold text-stone-900">
-            Pataje yon mesaj
-          </span>
-          <span className="mt-1 block text-[15px] text-stone-600">
-            Yon kesyon, yon nouvèl, yon lide pou diskite. Tout moun ka reponn.
-          </span>
-        </button>
-      </div>
-    );
-  }
+  // Sélecteur en haut des deux pages : Mesaj | Konbit.
+  const tabs = (
+    <nav aria-label="Kisa w ap pibliye" className="flex gap-2 px-4 pt-4">
+      <Link
+        href="/lanse"
+        aria-current={mode === "mesaj" ? "page" : undefined}
+        className={`flex-1 rounded-2xl border-2 px-4 py-3 text-center font-extrabold ${
+          mode === "mesaj"
+            ? "border-brand bg-blue-50 text-brand"
+            : "border-stone-200 text-stone-600 hover:bg-stone-50"
+        }`}
+      >
+        💬 Mesaj
+      </Link>
+      <Link
+        href="/lanse/konbit"
+        aria-current={mode === "konbit" ? "page" : undefined}
+        className={`flex-1 rounded-2xl border-2 px-4 py-3 text-center font-extrabold ${
+          mode === "konbit"
+            ? "border-brand bg-blue-50 text-brand"
+            : "border-stone-200 text-stone-600 hover:bg-stone-50"
+        }`}
+      >
+        🤝 Konbit
+      </Link>
+    </nav>
+  );
 
   const photos = (
     <div>
@@ -311,292 +301,297 @@ export default function ComposeFlow({
   // ─── Message simple ────────────────────────────────────────────────────────
   if (mode === "mesaj") {
     return (
-      <div className="space-y-5 px-4 py-5">
-        <label className="block">
-          <span className={label}>Mesaj ou *</span>
-          <textarea
-            value={body}
-            maxLength={280}
-            rows={5}
-            autoFocus
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Sak pase, sak ap fèt?"
-            className={`${inputClass} resize-y`}
-          />
-          <span className="mt-1 block text-right text-xs text-stone-400">
-            {body.length}/280
-          </span>
-        </label>
-        {communeSelect}
-        {photos}
-        {feedback}
-        <div className="flex justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setMode(null)}
-            className="rounded-full px-4 py-3 font-semibold text-stone-600 hover:bg-stone-100"
-          >
-            ← Retounen
-          </button>
-          <button
-            type="button"
-            onClick={() => void publish()}
-            disabled={busy || uploading}
-            className="rounded-full bg-brand px-6 py-3 font-bold text-white hover:opacity-90 disabled:opacity-50"
-          >
-            {busy ? "…" : "Pibliye"}
-          </button>
+      <>
+        {tabs}
+        <div className="space-y-5 px-4 py-5">
+          <label className="block">
+            <span className={label}>Mesaj ou *</span>
+            <textarea
+              value={body}
+              maxLength={280}
+              rows={5}
+              autoFocus
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Sak pase, sak ap fèt?"
+              className={`${inputClass} resize-y`}
+            />
+            <span className="mt-1 block text-right text-xs text-stone-400">
+              {body.length}/280
+            </span>
+          </label>
+          {communeSelect}
+          {photos}
+          {feedback}
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => void publish()}
+              disabled={busy || uploading}
+              className="rounded-full bg-brand px-6 py-3 font-bold text-white hover:opacity-90 disabled:opacity-50"
+            >
+              {busy ? "…" : "Pibliye"}
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   // ─── Konbit en 4 étapes ────────────────────────────────────────────────────
   return (
-    <div className="px-4 py-5">
-      <ol className="mb-6 grid grid-cols-4 gap-2" aria-label="Etap yo">
-        {STEPS.map((s, i) => (
-          <li key={s} aria-current={i === step ? "step" : undefined}>
-            <span
-              className={`block h-1.5 rounded-full ${i <= step ? "bg-brand" : "bg-stone-200"}`}
-            />
-            <span
-              className={`mt-1.5 block text-xs font-bold ${i === step ? "text-brand" : "text-stone-400"}`}
-            >
-              {i + 1}. {s}
-            </span>
-          </li>
-        ))}
-      </ol>
-
-      <div className="space-y-5">
-        {step === 0 && (
-          <>
-            <h2 className="text-xl font-extrabold text-stone-900">
-              Ki konbit w ap lanse?
-            </h2>
-            <label className="block">
-              <span className={label}>Non konbit la *</span>
-              <input
-                value={title}
-                maxLength={80}
-                autoFocus
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Egz: Netwaye ravin Delmas 33"
-                className={inputClass}
+    <>
+      {tabs}
+      <div className="px-4 py-5">
+        <ol className="mb-6 grid grid-cols-4 gap-2" aria-label="Etap yo">
+          {STEPS.map((s, i) => (
+            <li key={s} aria-current={i === step ? "step" : undefined}>
+              <span
+                className={`block h-1.5 rounded-full ${i <= step ? "bg-brand" : "bg-stone-200"}`}
               />
-            </label>
-            <label className="block">
-              <span className={label}>Eksplikasyon *</span>
-              <textarea
-                value={body}
-                maxLength={1000}
-                rows={5}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="Kisa nou pral fè, poukisa, sa moun dwe pote…"
-                className={`${inputClass} resize-y`}
-              />
-              <span className="mt-1 block text-right text-xs text-stone-400">
-                {body.length}/1000
-              </span>
-            </label>
-            {photos}
-          </>
-        )}
-
-        {step === 1 && (
-          <>
-            <h2 className="text-xl font-extrabold text-stone-900">
-              Ki kote l ap fèt?
-            </h2>
-            {communeSelect}
-            <label className="block">
-              <span className={label}>Plis presizyon sou adrès la</span>
-              <input
-                value={address}
-                maxLength={120}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Egz: Devan lekòl nasyonal la"
-                className={inputClass}
-              />
-              <span className="mt-1 block text-xs text-stone-500">
-                Pa obligatwa. Pa mete adrès lakay moun.
-              </span>
-            </label>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <h2 className="text-xl font-extrabold text-stone-900">
-              Kilè l ap fèt?
-            </h2>
-            <div className="grid grid-cols-[1fr_auto] gap-3">
-              <label className="block">
-                <span className={label}>Dat li kòmanse *</span>
-                <input
-                  type="date"
-                  value={startDate}
-                  min={haitiToday()}
-                  max={haitiToday(365)}
-                  onChange={(e) => {
-                    setStartDate(e.target.value);
-                    if (endDate < e.target.value)
-                      setEndDate(addDays(e.target.value, 1));
-                  }}
-                  className={inputClass}
-                />
-              </label>
-              <label className="block">
-                <span className={label}>Lè</span>
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className={inputClass}
-                />
-              </label>
-            </div>
-            <div>
-              <span className={label}>Konbyen tan l ap dire? *</span>
-              <div className="flex flex-wrap gap-2">
-                {DURATIONS.map((d) => (
-                  <button
-                    key={d.value}
-                    type="button"
-                    onClick={() => setDuration(d.value)}
-                    className={chip(duration === d.value)}
-                  >
-                    {d.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {duration === "custom" && (
-              <label className="block">
-                <span className={label}>Dènye jou a *</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  min={startDate}
-                  max={addDays(startDate, 365)}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className={inputClass}
-                />
-              </label>
-            )}
-            <p className="rounded-2xl bg-stone-50 px-4 py-3 text-[15px] text-stone-800">
-              🗓{" "}
-              {formatKonbitRange(startsAt.toISOString(), endsAt.toISOString())}
-              <span className="block text-xs text-stone-500">Lè Ayiti</span>
-            </p>
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <h2 className="text-xl font-extrabold text-stone-900">
-              Konbyen moun?
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setLimited(false)}
-                className={chip(!limited)}
+              <span
+                className={`mt-1.5 block text-xs font-bold ${i === step ? "text-brand" : "text-stone-400"}`}
               >
-                Pa gen limit
-              </button>
-              <button
-                type="button"
-                onClick={() => setLimited(true)}
-                className={chip(limited)}
-              >
-                Mete yon limit
-              </button>
-            </div>
-            {limited && (
+                {i + 1}. {s}
+              </span>
+            </li>
+          ))}
+        </ol>
+
+        <div className="space-y-5">
+          {step === 0 && (
+            <>
+              <h2 className="text-xl font-extrabold text-stone-900">
+                Ki konbit w ap lanse?
+              </h2>
               <label className="block">
-                <span className={label}>
-                  Kantite moun maksimòm (ou menm ladan)
+                <span className={label}>Non konbit la *</span>
+                <input
+                  value={title}
+                  maxLength={80}
+                  autoFocus
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Egz: Netwaye ravin Delmas 33"
+                  className={inputClass}
+                />
+              </label>
+              <label className="block">
+                <span className={label}>Eksplikasyon *</span>
+                <textarea
+                  value={body}
+                  maxLength={1000}
+                  rows={5}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder="Kisa nou pral fè, poukisa, sa moun dwe pote…"
+                  className={`${inputClass} resize-y`}
+                />
+                <span className="mt-1 block text-right text-xs text-stone-400">
+                  {body.length}/1000
                 </span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={2}
-                  max={10000}
-                  value={max}
-                  onChange={(e) => setMax(e.target.value.replace(/\D/g, ""))}
-                  className={`${inputClass} max-w-40`}
-                />
               </label>
-            )}
+              {photos}
+            </>
+          )}
 
-            <div className="rounded-3xl border border-stone-200 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
-                Apèsi
-              </p>
-              <p className="mt-1 text-lg font-extrabold text-stone-900">
-                {title}
-              </p>
-              <p className="mt-1 text-sm text-stone-700">
+          {step === 1 && (
+            <>
+              <h2 className="text-xl font-extrabold text-stone-900">
+                Ki kote l ap fèt?
+              </h2>
+              {communeSelect}
+              <label className="block">
+                <span className={label}>Plis presizyon sou adrès la</span>
+                <input
+                  value={address}
+                  maxLength={120}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Egz: Devan lekòl nasyonal la"
+                  className={inputClass}
+                />
+                <span className="mt-1 block text-xs text-stone-500">
+                  Pa obligatwa. Pa mete adrès lakay moun.
+                </span>
+              </label>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <h2 className="text-xl font-extrabold text-stone-900">
+                Kilè l ap fèt?
+              </h2>
+              <div className="grid grid-cols-[1fr_auto] gap-3">
+                <label className="block">
+                  <span className={label}>Dat li kòmanse *</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    min={haitiToday()}
+                    max={haitiToday(365)}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      if (endDate < e.target.value)
+                        setEndDate(addDays(e.target.value, 1));
+                    }}
+                    className={inputClass}
+                  />
+                </label>
+                <label className="block">
+                  <span className={label}>Lè</span>
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className={inputClass}
+                  />
+                </label>
+              </div>
+              <div>
+                <span className={label}>Konbyen tan l ap dire? *</span>
+                <div className="flex flex-wrap gap-2">
+                  {DURATIONS.map((d) => (
+                    <button
+                      key={d.value}
+                      type="button"
+                      onClick={() => setDuration(d.value)}
+                      className={chip(duration === d.value)}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {duration === "custom" && (
+                <label className="block">
+                  <span className={label}>Dènye jou a *</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    min={startDate}
+                    max={addDays(startDate, 365)}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className={inputClass}
+                  />
+                </label>
+              )}
+              <p className="rounded-2xl bg-stone-50 px-4 py-3 text-[15px] text-stone-800">
                 🗓{" "}
                 {formatKonbitRange(
                   startsAt.toISOString(),
                   endsAt.toISOString(),
                 )}
+                <span className="block text-xs text-stone-500">Lè Ayiti</span>
               </p>
-              <p className="text-sm text-stone-700">
-                📍 {communeName}
-                {address.trim() && ` · ${address.trim()}`}
-              </p>
-              <p className="text-sm text-stone-700">
-                👥{" "}
-                {limited
-                  ? `${maxNumber || "?"} moun maksimòm`
-                  : "Tout moun ki vle"}
-              </p>
-              <p className="mt-2 line-clamp-3 whitespace-pre-line text-sm text-stone-600">
-                {body}
-              </p>
-            </div>
-          </>
-        )}
-
-        {feedback}
-
-        <div className="flex justify-between gap-3 pt-1">
-          <button
-            type="button"
-            onClick={() => {
-              setError(null);
-              if (step === 0) setMode(null);
-              else setStep((s) => s - 1);
-            }}
-            className="rounded-full px-4 py-3 font-semibold text-stone-600 hover:bg-stone-100"
-          >
-            ← Retounen
-          </button>
-          {step < STEPS.length - 1 ? (
-            <button
-              type="button"
-              onClick={next}
-              disabled={uploading}
-              className="rounded-full bg-brand px-6 py-3 font-bold text-white hover:opacity-90 disabled:opacity-50"
-            >
-              Kontinye →
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => void publish()}
-              disabled={busy}
-              className="rounded-full bg-brand px-6 py-3 font-bold text-white hover:opacity-90 disabled:opacity-50"
-            >
-              {busy ? "…" : "Lanse konbit la 🤝"}
-            </button>
+            </>
           )}
+
+          {step === 3 && (
+            <>
+              <h2 className="text-xl font-extrabold text-stone-900">
+                Konbyen moun?
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLimited(false)}
+                  className={chip(!limited)}
+                >
+                  Pa gen limit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLimited(true)}
+                  className={chip(limited)}
+                >
+                  Mete yon limit
+                </button>
+              </div>
+              {limited && (
+                <label className="block">
+                  <span className={label}>
+                    Kantite moun maksimòm (ou menm ladan)
+                  </span>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={2}
+                    max={10000}
+                    value={max}
+                    onChange={(e) => setMax(e.target.value.replace(/\D/g, ""))}
+                    className={`${inputClass} max-w-40`}
+                  />
+                </label>
+              )}
+
+              <div className="rounded-3xl border border-stone-200 p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
+                  Apèsi
+                </p>
+                <p className="mt-1 text-lg font-extrabold text-stone-900">
+                  {title}
+                </p>
+                <p className="mt-1 text-sm text-stone-700">
+                  🗓{" "}
+                  {formatKonbitRange(
+                    startsAt.toISOString(),
+                    endsAt.toISOString(),
+                  )}
+                </p>
+                <p className="text-sm text-stone-700">
+                  📍 {communeName}
+                  {address.trim() && ` · ${address.trim()}`}
+                </p>
+                <p className="text-sm text-stone-700">
+                  👥{" "}
+                  {limited
+                    ? `${maxNumber || "?"} moun maksimòm`
+                    : "Tout moun ki vle"}
+                </p>
+                <p className="mt-2 line-clamp-3 whitespace-pre-line text-sm text-stone-600">
+                  {body}
+                </p>
+              </div>
+            </>
+          )}
+
+          {feedback}
+
+          <div className="flex justify-between gap-3 pt-1">
+            {step > 0 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  setStep((s) => s - 1);
+                }}
+                className="rounded-full px-4 py-3 font-semibold text-stone-600 hover:bg-stone-100"
+              >
+                ← Retounen
+              </button>
+            ) : (
+              <span />
+            )}
+            {step < STEPS.length - 1 ? (
+              <button
+                type="button"
+                onClick={next}
+                disabled={uploading}
+                className="rounded-full bg-brand px-6 py-3 font-bold text-white hover:opacity-90 disabled:opacity-50"
+              >
+                Kontinye →
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void publish()}
+                disabled={busy}
+                className="rounded-full bg-brand px-6 py-3 font-bold text-white hover:opacity-90 disabled:opacity-50"
+              >
+                {busy ? "…" : "Lanse konbit la 🤝"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

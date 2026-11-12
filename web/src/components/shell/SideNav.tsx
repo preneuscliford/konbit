@@ -64,10 +64,10 @@ export default function SideNav() {
         <Link
           href={COMPOSE_HREF}
           className="mt-4 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-brand font-bold text-white shadow-md shadow-brand/25 transition hover:opacity-90 xl:h-auto xl:w-full xl:py-3.5 xl:text-[17px]"
-          aria-label="Lanse yon konbit"
+          aria-label="Pibliye"
         >
           <PenIcon className="h-6 w-6 xl:hidden" />
-          <span className="hidden xl:inline">Lanse yon konbit</span>
+          <span className="hidden xl:inline">Pibliye</span>
         </Link>
       </div>
 
