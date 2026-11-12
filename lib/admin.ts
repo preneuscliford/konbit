@@ -6,7 +6,8 @@ import { KonbitError, type AbuseReason, type KonbitImage } from "./konbits";
 
 export type UserRole = "user" | "tester" | "moderator" | "admin";
 export type ModerationAction = "warn" | "restrict" | "suspend" | "lift" | "remove_content" | "restore_content";
-export type ContentType = "konbit" | "reply";
+// business / business_item : fiches business et leur katalòg (signalées depuis le site).
+export type ContentType = "konbit" | "reply" | "business" | "business_item";
 
 export interface AdminStats {
   accounts: number;

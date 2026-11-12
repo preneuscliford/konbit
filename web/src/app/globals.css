@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* Mode sombre piloté par la classe .dark sur <html> (choix de l'utilisateur
+   ou réglage du système, voir ThemeScript). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-poppins);
+}
+
+/* Couleurs de Konbit 509 (bleu et rouge du drapeau, comme l'app). Pas en
+   « inline » : les utilitaires lisent la variable, que le mode sombre remplace. */
+@theme {
+  --color-brand: #00209f;
+  --color-brand-red: #d21034;
+  /* Fond des cartes, colonnes et menus. */
+  --color-surface: #ffffff;
+  /* Fond de la page autour du contenu. */
+  --color-page: #f5f5f0;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-stone-900);
+}
+
+/* Mode sombre, inspiré du mode « Lights out » de X : fond noir, gris inversés
+   (stone-900 devient le texte clair, stone-200 les bordures), couleurs de la
+   marque éclaircies pour rester lisibles. Le blanc pur (texte des boutons)
+   ne change pas. */
+.dark {
+  color-scheme: dark;
+  --color-brand: #4d74ff;
+  --color-brand-red: #f0354f;
+  --color-surface: #000000;
+  --color-page: #000000;
+
+  --color-stone-50: #16181c;
+  --color-stone-100: #1d1f23;
+  --color-stone-200: #2f3336;
+  --color-stone-300: #3e4144;
+  --color-stone-400: #71767b;
+  --color-stone-500: #8b9096;
+  --color-stone-600: #a9adb2;
+  --color-stone-700: #c4c7ca;
+  --color-stone-800: #dadcde;
+  --color-stone-900: #e7e9ea;
+
+  --color-blue-50: #0d1a3a;
+  --color-red-50: #2a0d14;
+  --color-emerald-50: #0b2a1f;
+  --color-emerald-700: #34d399;
+  --color-emerald-800: #6ee7b7;
+  --color-red-700: #f87171;
+}

@@ -314,7 +314,9 @@
         "deleted": "(contenu supprimé)",
         "type": {
           "konbit": "Konbit",
-          "reply": "Réponse"
+          "reply": "Réponse",
+          "business": "Fiche business",
+          "business_item": "Article du katalòg"
         }
       },
       "report": {

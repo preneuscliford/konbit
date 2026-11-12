@@ -1,0 +1,436 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Avatar from "@/components/Avatar";
+import { useAuth } from "@/components/auth/AuthProvider";
+import {
+  HandshakeIcon,
+  HeartIcon,
+  MoreIcon,
+  ReplyIcon,
+  ShareIcon,
+} from "@/components/Icons";
+import { toast } from "@/components/Toaster";
+import type { Konbit } from "@/lib/data";
+import {
+  ABUSE_REASONS,
+  deleteKonbit,
+  konbitErrorMessage,
+  reportAbuse,
+  setLike,
+  setParticipation,
+  type AbuseReason,
+} from "@/lib/konbit-actions";
+import { displayName, KIND_LABEL } from "@/lib/site";
+import { mediaUrl } from "@/lib/storage";
+import TimeAgo from "./TimeAgo";
+import { useRequireAccount } from "./useRequireAccount";
+
+// Konbit dans le fil, composition inspirée de X : avatar à gauche ; à droite
+// le nom, la commune et l'heure, le texte, les images, puis les actions.
+// `full` : page du konbit (texte plus grand, pas de lien vers lui-même).
+export default function KonbitPost({
+  konbit: initial,
+  communeName,
+  full = false,
+  onDeleted,
+}: {
+  konbit: Konbit;
+  communeName: string;
+  full?: boolean;
+  onDeleted?: (id: number) => void;
+}) {
+  const router = useRouter();
+  const { userId } = useAuth();
+  const requireAccount = useRequireAccount();
+  const [k, setK] = useState(initial);
+  const [menu, setMenu] = useState<"closed" | "menu" | "report">("closed");
+  const [menuUp, setMenuUp] = useState(false);
+  const busy = useRef({ like: false, join: false });
+
+  // Nouvelle donnée du parent (état personnel chargé après coup, etc.).
+  const [source, setSource] = useState(initial);
+  if (source !== initial) {
+    setSource(initial);
+    setK(initial);
+  }
+
+  const name = displayName(k.author_name, k.author_pseudo);
+  const images = k.media.filter((m) => m.type === "image").slice(0, 2);
+  const href = `/k/${k.id}`;
+  const isMine = !!userId && k.author_id === userId;
+  // « Mwen ladan » n'a de sens que pour une idée ou un projet.
+  const canJoin = k.kind !== "discussion";
+
+  function toggleLike() {
+    requireAccount(async (me) => {
+      if (busy.current.like) return;
+      busy.current.like = true;
+      const on = !k.liked;
+      setK((c) => ({
+        ...c,
+        liked: on,
+        like_count: Math.max(0, c.like_count + (on ? 1 : -1)),
+      }));
+      try {
+        await setLike(k.id, me, on);
+      } catch (e) {
+        setK((c) => ({
+          ...c,
+          liked: !on,
+          like_count: Math.max(0, c.like_count + (on ? -1 : 1)),
+        }));
+        toast(konbitErrorMessage(e), "error");
+      } finally {
+        busy.current.like = false;
+      }
+    });
+  }
+
+  function toggleJoin() {
+    requireAccount(async (me) => {
+      if (busy.current.join) return;
+      busy.current.join = true;
+      const on = !k.joined;
+      setK((c) => ({
+        ...c,
+        joined: on,
+        participant_count: Math.max(0, c.participant_count + (on ? 1 : -1)),
+      }));
+      try {
+        await setParticipation(k.id, me, on);
+      } catch (e) {
+        setK((c) => ({
+          ...c,
+          joined: !on,
+          participant_count: Math.max(0, c.participant_count + (on ? -1 : 1)),
+        }));
+        toast(konbitErrorMessage(e), "error");
+      } finally {
+        busy.current.join = false;
+      }
+    });
+  }
+
+  async function share() {
+    const url = `${window.location.origin}${href}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `Konbit pa ${name}`, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast("Lyen an kopye.");
+      }
+    } catch {
+      // Partage annulé : rien à signaler.
+    }
+  }
+
+  async function remove() {
+    setMenu("closed");
+    if (!window.confirm("Efase konbit sa a? Ou p ap ka jwenn li ankò.")) return;
+    try {
+      await deleteKonbit(k.id, k.media);
+      toast("Konbit la efase.");
+      if (onDeleted) onDeleted(k.id);
+      else router.push("/konbit");
+    } catch (e) {
+      toast(konbitErrorMessage(e), "error");
+    }
+  }
+
+  async function report(reason: AbuseReason) {
+    setMenu("closed");
+    try {
+      await reportAbuse("konbit", k.id, reason);
+      toast("Mèsi. N ap gade sa.");
+    } catch (e) {
+      toast(konbitErrorMessage(e), "error");
+    }
+  }
+
+  // Clic n'importe où sur la carte : ouvre le konbit (sauf liens et boutons).
+  function openFromCard(e: React.MouseEvent) {
+    if (full) return;
+    if ((e.target as HTMLElement).closest("a, button, [role=menu]")) return;
+    if (window.getSelection()?.toString()) return;
+    router.push(href);
+  }
+
+  const authorHref = k.author_pseudo ? `/u/${k.author_pseudo}` : null;
+  const action =
+    "group flex items-center gap-1.5 rounded-full text-[13px] text-stone-500 transition";
+
+  return (
+    <article
+      onClick={openFromCard}
+      className={`relative flex gap-3 border-b border-stone-200 px-4 py-3 ${full ? "" : "cursor-pointer hover:bg-stone-50/70"}`}
+    >
+      <div className="shrink-0 pt-0.5">
+        {authorHref ? (
+          <Link href={authorHref}>
+            <Avatar
+              name={name}
+              avatarPath={k.author_avatar}
+              seed={k.author_id}
+              size={42}
+            />
+          </Link>
+        ) : (
+          <Avatar
+            name={name}
+            avatarPath={k.author_avatar}
+            seed={k.author_id}
+            size={42}
+          />
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start gap-2">
+          <p className="min-w-0 flex-1 truncate text-[15px] leading-5">
+            {authorHref ? (
+              <Link
+                href={authorHref}
+                className="font-bold text-stone-900 hover:underline"
+              >
+                {name}
+              </Link>
+            ) : (
+              <span className="font-bold text-stone-900">{name}</span>
+            )}
+            {k.author_pseudo && (
+              <span className="text-stone-500"> @{k.author_pseudo}</span>
+            )}
+            <span className="text-stone-500">
+              {" · "}
+              <Link href={href} className="hover:underline">
+                <TimeAgo iso={k.created_at} />
+              </Link>
+            </span>
+          </p>
+          <div className="relative -mr-2 -mt-1">
+            <button
+              type="button"
+              onClick={(e) => {
+                // Pas assez de place en dessous (liste des raisons ≈ 400 px) :
+                // le menu s'ouvre vers le haut pour ne pas sortir de l'écran.
+                const rect = e.currentTarget.getBoundingClientRect();
+                setMenuUp(
+                  window.innerHeight - rect.bottom < 420 && rect.top > 420,
+                );
+                setMenu((m) => (m === "closed" ? "menu" : "closed"));
+              }}
+              aria-label="Plis aksyon"
+              aria-haspopup="menu"
+              aria-expanded={menu !== "closed"}
+              className="rounded-full p-1.5 text-stone-400 hover:bg-blue-50 hover:text-brand"
+            >
+              <MoreIcon className="h-[18px] w-[18px]" />
+            </button>
+            {menu !== "closed" && (
+              <PostMenu
+                mode={menu}
+                up={menuUp}
+                isMine={isMine}
+                onClose={() => setMenu("closed")}
+                onDelete={remove}
+                onAskReport={() => requireAccount(() => setMenu("report"))}
+                onReport={report}
+              />
+            )}
+          </div>
+        </div>
+
+        <p className="text-[13px] text-stone-500">
+          {communeName}
+          {k.kind !== "discussion" && (
+            <span
+              className={`ml-2 inline-block rounded-md px-1.5 py-px text-[11px] font-bold ${
+                k.kind === "project"
+                  ? "bg-red-50 text-brand-red"
+                  : "bg-blue-50 text-brand"
+              }`}
+            >
+              {KIND_LABEL[k.kind]}
+            </span>
+          )}
+        </p>
+
+        <p
+          className={`mt-1.5 whitespace-pre-line break-words text-stone-900 ${
+            full ? "text-[17px] leading-relaxed" : "text-[15px] leading-normal"
+          }`}
+        >
+          {k.body}
+        </p>
+
+        {images.length > 0 && (
+          <div
+            className={`mt-3 grid gap-0.5 overflow-hidden rounded-2xl border border-stone-200 ${
+              images.length === 2 ? "grid-cols-2" : "grid-cols-1"
+            }`}
+          >
+            {images.map((img) => (
+              <Image
+                key={img.path}
+                src={mediaUrl(img.path)}
+                alt=""
+                width={img.width}
+                height={img.height}
+                sizes="(max-width: 640px) 90vw, 520px"
+                className={`w-full object-cover ${images.length === 2 ? "aspect-[4/5]" : "max-h-[520px]"}`}
+              />
+            ))}
+          </div>
+        )}
+
+        <div className="mt-2 flex max-w-md items-center justify-between pr-2">
+          <Link
+            href={full ? "#repons" : href}
+            className={`${action} hover:text-brand`}
+            aria-label={`Repons: ${k.reply_count}`}
+          >
+            <span className="rounded-full p-2 group-hover:bg-blue-50">
+              <ReplyIcon className="h-[18px] w-[18px]" />
+            </span>
+            {k.reply_count > 0 && k.reply_count}
+          </Link>
+
+          <button
+            type="button"
+            onClick={toggleLike}
+            aria-pressed={!!k.liked}
+            aria-label={`Renmen: ${k.like_count}`}
+            className={`${action} ${k.liked ? "text-brand-red" : "hover:text-brand-red"}`}
+          >
+            <span className="rounded-full p-2 group-hover:bg-red-50">
+              <HeartIcon className="h-[18px] w-[18px]" filled={!!k.liked} />
+            </span>
+            {k.like_count > 0 && k.like_count}
+          </button>
+
+          {canJoin ? (
+            <button
+              type="button"
+              onClick={toggleJoin}
+              aria-pressed={!!k.joined}
+              className={`${action} ${k.joined ? "font-bold text-emerald-700" : "hover:text-emerald-700"}`}
+            >
+              <span
+                className={`rounded-full p-2 ${k.joined ? "bg-emerald-50" : "group-hover:bg-emerald-50"}`}
+              >
+                <HandshakeIcon className="h-[18px] w-[18px]" />
+              </span>
+              <span>
+                {k.joined ? "Ou ladan" : "Mwen ladan"}
+                {k.participant_count > 0 && ` · ${k.participant_count}`}
+              </span>
+            </button>
+          ) : (
+            <span aria-hidden className="w-8" />
+          )}
+
+          <button
+            type="button"
+            onClick={share}
+            aria-label="Pataje"
+            className={`${action} hover:text-brand`}
+          >
+            <span className="rounded-full p-2 group-hover:bg-blue-50">
+              <ShareIcon className="h-[18px] w-[18px]" />
+            </span>
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function PostMenu({
+  mode,
+  up,
+  isMine,
+  onClose,
+  onDelete,
+  onAskReport,
+  onReport,
+}: {
+  mode: "menu" | "report";
+  up: boolean;
+  isMine: boolean;
+  onClose: () => void;
+  onDelete: () => void;
+  onAskReport: () => void;
+  onReport: (reason: AbuseReason) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) onClose();
+    };
+    const escape = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [onClose]);
+
+  const item =
+    "block w-full px-4 py-2.5 text-left text-[15px] font-semibold hover:bg-stone-50";
+
+  return (
+    <div
+      ref={ref}
+      role="menu"
+      className={`absolute right-0 z-30 w-72 overflow-hidden rounded-2xl border border-stone-200 bg-surface py-1 shadow-xl ${
+        up ? "bottom-9" : "top-9"
+      }`}
+    >
+      {mode === "menu" ? (
+        isMine ? (
+          <button
+            type="button"
+            role="menuitem"
+            onClick={onDelete}
+            className={`${item} text-brand-red`}
+          >
+            Efase konbit la
+          </button>
+        ) : (
+          <button
+            type="button"
+            role="menuitem"
+            onClick={onAskReport}
+            className={`${item} text-stone-800`}
+          >
+            Siyale yon abi
+          </button>
+        )
+      ) : (
+        <>
+          <p className="px-4 pb-1 pt-2 text-sm font-bold text-stone-500">
+            Poukisa w ap siyale l?
+          </p>
+          {ABUSE_REASONS.map((r) => (
+            <button
+              key={r.value}
+              type="button"
+              role="menuitem"
+              onClick={() => onReport(r.value)}
+              className={`${item} font-medium text-stone-800`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}

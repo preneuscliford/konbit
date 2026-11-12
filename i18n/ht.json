@@ -314,7 +314,9 @@
         "deleted": "(kontni an efase)",
         "type": {
           "konbit": "Konbit",
-          "reply": "Repons"
+          "reply": "Repons",
+          "business": "Fich biznis",
+          "business_item": "Atik katalòg"
         }
       },
       "report": {
