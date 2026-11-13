@@ -92,6 +92,9 @@ function AppGate() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="compose" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
         <Stack.Screen name="compose-konbit" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="biznis/[slug]" />
+        <Stack.Screen name="biznis-edit" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="biznis-item" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
         <Stack.Screen name="account" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
         <Stack.Screen name="report-incident" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
         <Stack.Screen name="konbit/[id]" />

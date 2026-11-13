@@ -1,11 +1,12 @@
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Tabs, useRouter } from "expo-router";
-import { Handshake, House, Megaphone, Plus, Settings } from "lucide-react-native";
+import { Handshake, House, Plus, Settings, Store } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import { useI18n } from "@/lib/i18n";
 
-// Barre du bas façon X : Accueil, Konbit (écran d'ouverture), +, Signalement, Paramètres.
+// Barre du bas façon X : Accueil, Konbit (écran d'ouverture), +, Biznis, Paramètres.
+// (Décision du 13 novembre 2026 : Biznis remplace Signalement dans la barre.)
 export default function TabLayout() {
   const { t } = useI18n();
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: "#6B7280",
+        tabBarInactiveTintColor: Colors.tabIconDefault,
         tabBarLabelStyle: { fontFamily: "Poppins_600SemiBold", fontSize: 11 },
         tabBarStyle: { backgroundColor: Colors.surface, borderTopColor: Colors.border },
       }}
@@ -51,12 +52,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="signalement"
+        name="biznis"
         options={{
-          title: t("App.tabs.report"),
-          tabBarIcon: ({ color, size }) => <Megaphone color={color} size={size} />,
+          title: t("App.tabs.business"),
+          tabBarIcon: ({ color, size }) => <Store color={color} size={size} />,
         }}
       />
+      {/* Signalement : retiré de la barre, l'écran reste disponible. */}
+      <Tabs.Screen name="signalement" options={{ href: null }} />
       <Tabs.Screen
         name="settings"
         options={{

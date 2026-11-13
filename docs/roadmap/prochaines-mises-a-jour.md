@@ -230,6 +230,15 @@ Les anciens types (idée, projet) restent acceptés pour l'app déjà installée
 - prévenir les participants d'un nouveau message ;
 - permettre à l'organisateur de modifier ou clôturer son konbit.
 
+## 8. Biznis à la place de Signalement dans l'app (décision du 13 novembre 2026)
+
+Décision stratégique : l'onglet **Signalement** de l'app est remplacé par **Biznis**, comme sur le site.
+- **Annuaire** filtré par catégorie et par commune, avec un bouton « Fich mwen » ou « + Kreye fich ou ».
+- **Fiche** : boutons WhatsApp et Rele, informations, responsable, et katalòg aux photos qui défilent.
+- **Propriétaire** : il crée et modifie sa fiche (logo, couverture, catégorie, contacts) et gère son katalòg (produits et services, prix ou « Gratis », 3 photos, disponible ou non).
+
+L'écran Signalement reste dans le code, mais il n'est plus dans la barre : on pourra le rebrancher ailleurs si besoin.
+
 ## Déjà prévu (rappel)
 
 - **Migration vers Expo SDK 57** : elle corrige la fuite mémoire de Hermes, importante sur les téléphones modestes. À faire sur une branche et à tester avant le lancement public.
