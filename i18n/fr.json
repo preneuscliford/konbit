@@ -42,20 +42,23 @@
       "settings": "Paramètres"
     },
     "compose": {
-      "title": "Lancer un konbit",
-      "placeholder": "Quelle initiative, quel projet ou quel business veux-tu faire connaître ?",
+      "title": "Publier",
+      "placeholder": "Quoi de neuf ?",
       "publish": "Publier",
       "publishing": "Publication…",
       "commune": "Commune",
       "more": "Plus d'options",
       "comingSoon": "Bientôt",
       "date": "Date",
-      "published": "Ton konbit est publié !",
+      "published": "Ton post est publié.",
       "imageError": "Impossible de préparer cette image. Essaie une autre.",
       "removeImage": "Retirer l’image",
       "addImages": "Ajouter des images ({max} maximum)",
       "imagesHint": "{count}/{max} images · compressées pour charger vite",
-      "rules": "Publie avec respect : pas de haine, d’arnaque ni de fausses informations. Lis les {rules}."
+      "rules": "Publie avec respect : pas de haine, d’arnaque ni de fausses informations. Lis les {rules}.",
+      "toKonbit": "En faire un konbit",
+      "addCommune": "Ajouter une commune",
+      "addImage": "Ajouter une photo"
     },
     "feed": {
       "empty": "Pas encore de konbit. Lance le premier !",
@@ -193,7 +196,11 @@
       "not_allowed": "Tu n'as pas le droit de faire ça.",
       "not_found": "Ce konbit n'existe plus.",
       "already_done": "C'est déjà fait.",
-      "failed": "Une erreur est survenue. Réessaie."
+      "failed": "Une erreur est survenue. Réessaie.",
+      "full": "Ce konbit est complet. Il n'y a plus de place.",
+      "ended": "Ce konbit est déjà terminé.",
+      "members_only": "Seuls les membres du konbit peuvent écrire ici. Rejoins-le d'abord.",
+      "invalid_dates": "Les dates ne sont pas valides. Vérifie le début et la durée."
     },
     "home": {
       "title": "Info du jour",
@@ -204,9 +211,10 @@
       "updatedShort": "Mis à jour"
     },
     "kinds": {
-      "discussion": "Discussion",
+      "discussion": "Post",
       "idea": "Idée",
-      "project": "Projet"
+      "project": "Projet",
+      "konbit": "Konbit"
     },
     "national": "National",
     "reportButton": "Signaler",
@@ -444,6 +452,92 @@
       "deleteConfirm": "Ce message sera retiré de tes notifications.",
       "deleted": "Notification supprimée.",
       "gone": "Ce message n’est plus disponible."
+    },
+    "collectif": {
+      "join": "Rejoindre",
+      "joined": "Tu y es",
+      "full": "Complet",
+      "ended": "Terminé",
+      "organizer": "Organisateur",
+      "members": "{count} participants",
+      "membersMax": "{count} / {max} participants",
+      "status": {
+        "upcoming": "À venir",
+        "ongoing": "En cours",
+        "ended": "Terminé"
+      },
+      "joinTitle": "Tu veux vraiment rejoindre « {title} » ?",
+      "joinText": "Il commence {date}. L'organisateur et les autres comptent sur toi.",
+      "joinYes": "Oui, j'y vais",
+      "leaveTitle": "Quitter « {title} » ?",
+      "leaveText": "Tu ne pourras plus écrire dans ce konbit, mais tu pourras le rejoindre plus tard s'il reste de la place.",
+      "leaveYes": "Oui, je quitte",
+      "no": "Non",
+      "joinedToast": "Tu fais partie du konbit ! 🙌",
+      "leftToast": "Tu as quitté le konbit."
+    },
+    "thread": {
+      "messages": "Messages",
+      "replies": "Réponses",
+      "messagePlaceholder": "Écris un message aux membres du konbit…",
+      "replyPlaceholder": "Écris ta réponse…",
+      "replyingTo": "Réponse à {name}",
+      "reply": "Répondre",
+      "membersOnly": "Seuls les membres du konbit peuvent écrire. Appuie sur « Rejoindre » en haut.",
+      "noMessages": "Pas encore de message. Les membres peuvent commencer.",
+      "cancel": "Annuler"
+    },
+    "composeKonbit": {
+      "title": "Lancer un konbit",
+      "steps": {
+        "what": "Quoi",
+        "where": "Où",
+        "when": "Quand",
+        "who": "Qui"
+      },
+      "whatTitle": "Quel konbit lances-tu ?",
+      "name": "Nom du konbit",
+      "namePlaceholder": "Ex : Nettoyage à Delmas 33",
+      "description": "Explication",
+      "descriptionPlaceholder": "Ce que vous allez faire, pourquoi, ce qu'il faut apporter…",
+      "whereTitle": "Où ça se passe ?",
+      "commune": "Commune",
+      "address": "Précision sur l'adresse",
+      "addressPlaceholder": "Ex : Devant l'école nationale",
+      "addressHint": "Facultatif. Pas d'adresse de domicile.",
+      "whenTitle": "Quand ça se passe ?",
+      "start": "Début",
+      "duration": "Combien de temps ?",
+      "durations": {
+        "day": "1 jour",
+        "week": "1 semaine",
+        "month": "1 mois",
+        "custom": "Autre date"
+      },
+      "lastDay": "Dernier jour",
+      "haitiTime": "Heure d'Haïti",
+      "whoTitle": "Combien de personnes ?",
+      "noLimit": "Sans limite",
+      "limit": "Mettre une limite",
+      "max": "Nombre maximum de personnes (toi compris)",
+      "preview": "Aperçu",
+      "anyone": "Tous ceux qui veulent",
+      "maxPeople": "{max} personnes maximum",
+      "next": "Continuer",
+      "back": "Retour",
+      "launch": "Lancer le konbit 🤝",
+      "launching": "Lancement…",
+      "launched": "Ton konbit est lancé ! 🙌",
+      "simplePost": "Plutôt un simple post ?",
+      "errors": {
+        "name": "Donne un nom au konbit (au moins 3 caractères).",
+        "description": "Explique brièvement le konbit.",
+        "commune": "Choisis la commune du konbit.",
+        "past": "La date de début est déjà passée.",
+        "end": "La fin doit être après le début.",
+        "long": "Un konbit ne peut pas durer plus d'un an.",
+        "max": "Le maximum doit être entre 2 et 10 000."
+      }
     }
   },
   "Konbit": {

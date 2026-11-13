@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect, useRouter } from "expo-router";
@@ -6,62 +6,47 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Burnt from "burnt";
-import { CalendarDays, Ellipsis, ImagePlus, X } from "lucide-react-native";
+import { Handshake, ImagePlus, MapPin, X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import CommunePicker from "@/components/konbit/CommunePicker";
 import Avatar from "@/components/konbit509/Avatar";
 import RestrictionBanner, { useRestriction } from "@/components/konbit509/RestrictionBanner";
+import KeyboardScroll from "@/components/ui/KeyboardScroll";
 import LinkedText from "@/components/ui/LinkedText";
 import { Text, TextInput } from "@/components/ui/Text";
 import { useCommunes } from "@/hooks/useKonbit";
-import { useFlags } from "@/hooks/useKonbits";
 import { useAuth } from "@/lib/auth";
-import { useI18n } from "@/lib/i18n";
-import { COMMUNITY_RULES_URL } from "@/lib/legal";
 import { compressImage, type CompressedImage } from "@/lib/imageCompression";
-import {
-  createKonbit,
-  KONBIT_KINDS,
-  KONBIT_MAX_LENGTH,
-  KonbitError,
-  MAX_IMAGES,
-  uploadKonbitImage,
-  type KonbitKind,
-} from "@/lib/konbits";
-import KeyboardScroll from "@/components/ui/KeyboardScroll";
+import { useI18n } from "@/lib/i18n";
+import { createKonbit, KONBIT_MAX_LENGTH, KonbitError, MAX_IMAGES, uploadKonbitImage } from "@/lib/konbits";
+import { COMMUNITY_RULES_URL } from "@/lib/legal";
 
-// Créer un konbit : texte court, commune, type (Diskisyon par défaut),
-// jusqu'à 2 images compressées, "Pibliye". Type et images sont pilotés par
-// les feature flags compose.kind et compose.media ; la date attend derrière "…".
+// Commune « tout le pays » : un pòs sans commune choisie.
+export const NATIONAL = "national";
+
+// Publier un pòs (comme X) : le texte d'abord, puis trois icônes discrètes :
+// photo, commune (facultative) et 🤝 pour en faire un konbit (action
+// collective, écran compose-konbit) en gardant ce qui est déjà écrit.
 export default function ComposeScreen() {
   const { t } = useI18n();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { canPost, profile, userId } = useAuth();
   const communes = useCommunes();
-  const isEnabled = useFlags();
+  const restriction = useRestriction();
 
   const [body, setBody] = useState("");
-  const [communeSlug, setCommuneSlug] = useState(profile?.commune_slug ?? "");
-  const [kind, setKind] = useState<KonbitKind>("discussion");
+  const [communeSlug, setCommuneSlug] = useState("");
+  const [pickCommune, setPickCommune] = useState(false);
   const [images, setImages] = useState<CompressedImage[]>([]);
   const [preparing, setPreparing] = useState(false);
-  const [showMore, setShowMore] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Commune préremplie depuis le profil, modifiable.
-  useEffect(() => {
-    if (!communeSlug && profile?.commune_slug) setCommuneSlug(profile.commune_slug);
-  }, [profile?.commune_slug, communeSlug]);
-
   if (!canPost) return <Redirect href="/account" />;
 
-  const showKind = isEnabled("compose.kind");
-  const showMedia = isEnabled("compose.media");
   const remaining = KONBIT_MAX_LENGTH - body.length;
-  const restriction = useRestriction();
-  const canSubmit = body.trim().length > 0 && !!communeSlug && !sending && !preparing && !restriction.blocked;
+  const canSubmit = body.trim().length > 0 && !sending && !preparing && !restriction.blocked;
 
   async function pickImages() {
     const slots = MAX_IMAGES - images.length;
@@ -94,7 +79,7 @@ export default function ComposeScreen() {
     setSending(true);
     try {
       const media = await Promise.all(images.map((image) => uploadKonbitImage(userId, image)));
-      await createKonbit(body, communeSlug, kind, media);
+      await createKonbit(body, communeSlug || NATIONAL, "discussion", media);
       await queryClient.invalidateQueries({ queryKey: ["konbits"] });
       Burnt.toast({ title: t("App.compose.published"), preset: "done" });
       router.back();
@@ -103,6 +88,16 @@ export default function ComposeScreen() {
       setSending(false);
     }
   }
+
+  // Pòs → konbit : le texte devient l'explication ; photos et commune suivent.
+  function toKonbit() {
+    router.replace({
+      pathname: "/compose-konbit",
+      params: { body, commune: communeSlug, images: JSON.stringify(images) },
+    });
+  }
+
+  const communeLabel = communes.data?.find((c) => c.slug === communeSlug)?.name ?? communeSlug;
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -117,118 +112,104 @@ export default function ComposeScreen() {
           android_ripple={{ color: "rgba(255,255,255,0.25)" }}
           accessibilityRole="button"
         >
-          {sending && <ActivityIndicator size="small" color="#FFFFFF" />}
+          {sending && <ActivityIndicator size="small" color={Colors.textInverse} />}
           <Text style={styles.publishText}>{sending ? t("App.compose.publishing") : t("App.compose.publish")}</Text>
         </Pressable>
       </View>
 
-      <KeyboardScroll contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <RestrictionBanner message={restriction.message} />
-          <View style={styles.editorRow}>
-            <Avatar
-              pseudo={profile?.pseudo ?? null}
-              name={profile?.display_name}
-              avatarPath={profile?.avatar_path}
-              seed={userId ?? ""}
-            />
-            <TextInput
-              value={body}
-              onChangeText={(text) => setBody(text.slice(0, KONBIT_MAX_LENGTH))}
-              placeholder={t("App.compose.placeholder")}
-              placeholderTextColor={Colors.textMuted}
-              maxLength={KONBIT_MAX_LENGTH}
-              multiline
-              autoFocus
-              style={styles.input}
-            />
-          </View>
+      <KeyboardScroll contentContainerStyle={styles.content}>
+        {restriction.blocked && <RestrictionBanner message={restriction.message} />}
 
-          {images.length > 0 && (
-            <View style={styles.previews}>
-              {images.map((image, index) => (
-                <View key={image.uri} style={styles.preview}>
-                  <Image source={{ uri: image.uri }} style={styles.previewImage} contentFit="cover" />
-                  <Pressable
-                    onPress={() => setImages((prev) => prev.filter((_, i) => i !== index))}
-                    style={styles.removeImage}
-                    hitSlop={8}
-                    accessibilityLabel={t("App.compose.removeImage")}
-                  >
-                    <X size={14} color="#FFFFFF" />
-                  </Pressable>
-                </View>
-              ))}
-            </View>
-          )}
-          {preparing && <ActivityIndicator color={Colors.primary} style={{ alignSelf: "flex-start" }} />}
+        <View style={styles.row}>
+          <Avatar
+            pseudo={profile?.pseudo ?? null}
+            name={profile?.display_name}
+            avatarPath={profile?.avatar_path}
+            seed={userId ?? ""}
+          />
+          <TextInput
+            value={body}
+            onChangeText={(text) => setBody(text.slice(0, KONBIT_MAX_LENGTH))}
+            placeholder={t("App.compose.placeholder")}
+            maxLength={KONBIT_MAX_LENGTH}
+            multiline
+            autoFocus
+            style={styles.input}
+          />
+        </View>
 
-          {showKind && (
-            <View style={styles.kinds}>
-              {KONBIT_KINDS.map((k) => (
+        {images.length > 0 && (
+          <View style={styles.images}>
+            {images.map((img) => (
+              <View key={img.uri} style={styles.imageWrap}>
+                <Image source={{ uri: img.uri }} style={styles.image} contentFit="cover" />
                 <Pressable
-                  key={k}
-                  onPress={() => setKind(k)}
-                  style={[styles.kind, kind === k && styles.kindActive]}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: kind === k }}
+                  onPress={() => setImages((list) => list.filter((i) => i.uri !== img.uri))}
+                  style={styles.removeImage}
+                  hitSlop={6}
+                  accessibilityLabel={t("App.compose.removeImage")}
                 >
-                  <Text style={[styles.kindText, kind === k && styles.kindTextActive]}>{t(`App.kinds.${k}`)}</Text>
+                  <X size={16} color={Colors.textInverse} />
                 </Pressable>
-              ))}
-            </View>
-          )}
+              </View>
+            ))}
+          </View>
+        )}
 
+        {communeSlug ? (
+          <View style={styles.communeChip}>
+            <MapPin size={14} color={Colors.primary} />
+            <Text style={styles.communeChipText}>{communeLabel}</Text>
+            <Pressable onPress={() => setCommuneSlug("")} hitSlop={10} accessibilityLabel={t("App.close")}>
+              <X size={14} color={Colors.primary} />
+            </Pressable>
+          </View>
+        ) : null}
+
+        {pickCommune && (
           <CommunePicker
-            communes={communes.data ?? []}
+            communes={(communes.data ?? []).filter((c) => c.slug !== NATIONAL)}
             value={communeSlug}
-            onChange={setCommuneSlug}
-            placeholder={t("Konbit.communePlaceholder")}
-            compact
+            onChange={(slug) => {
+              setCommuneSlug(slug);
+              setPickCommune(false);
+            }}
+            placeholder={t("App.compose.addCommune")}
           />
+        )}
 
-          <View style={styles.toolbar}>
-            <View style={styles.toolbarLeft}>
-              {showMedia && (
-                <Pressable
-                  onPress={pickImages}
-                  disabled={images.length >= MAX_IMAGES || preparing}
-                  hitSlop={10}
-                  style={[styles.toolButton, images.length >= MAX_IMAGES && styles.toolDisabled]}
-                  accessibilityLabel={t("App.compose.addImages", { max: MAX_IMAGES })}
-                >
-                  <ImagePlus size={22} color={Colors.primary} />
-                </Pressable>
-              )}
-              <Pressable
-                onPress={() => setShowMore((v) => !v)}
-                hitSlop={10}
-                style={styles.toolButton}
-                accessibilityLabel={t("App.compose.more")}
-              >
-                <Ellipsis size={22} color={Colors.primary} />
-              </Pressable>
-            </View>
-            <Text style={[styles.counter, remaining < 20 && styles.counterWarn]}>{remaining}</Text>
-          </View>
+        {error && <Text style={styles.error}>{error}</Text>}
 
-          {showMore && (
-            <View style={[styles.option, styles.optionDisabled]}>
-              <CalendarDays size={16} color={Colors.textMuted} />
-              <Text style={styles.optionText}>{t("App.compose.date")}</Text>
-              <Text style={styles.soon}>{t("App.compose.comingSoon")}</Text>
-            </View>
-          )}
+        <View style={styles.toolbar}>
+          <Pressable
+            onPress={pickImages}
+            disabled={images.length >= MAX_IMAGES || preparing}
+            style={[styles.tool, (images.length >= MAX_IMAGES || preparing) && styles.toolDisabled]}
+            hitSlop={6}
+            accessibilityLabel={t("App.compose.addImage")}
+          >
+            {preparing ? <ActivityIndicator size="small" color={Colors.primary} /> : <ImagePlus size={22} color={Colors.primary} />}
+          </Pressable>
+          <Pressable
+            onPress={() => setPickCommune((v) => !v)}
+            style={styles.tool}
+            hitSlop={6}
+            accessibilityLabel={t("App.compose.addCommune")}
+          >
+            <MapPin size={22} color={Colors.primary} />
+          </Pressable>
+          <Pressable onPress={toKonbit} style={styles.tool} hitSlop={6} accessibilityLabel={t("App.compose.toKonbit")}>
+            <Handshake size={22} color={Colors.primary} />
+          </Pressable>
+          <Text style={[styles.count, remaining < 20 && styles.countLow]}>{body.length > 0 ? remaining : ""}</Text>
+        </View>
 
-          {showMedia && images.length > 0 && (
-            <Text style={styles.hint}>{t("App.compose.imagesHint", { count: images.length, max: MAX_IMAGES })}</Text>
-          )}
-          {error && <Text style={styles.error}>{error}</Text>}
-          <LinkedText
-            style={styles.rules}
-            text={t("App.compose.rules")}
-            links={{ rules: { label: t("App.legal.communityRules"), url: COMMUNITY_RULES_URL } }}
-          />
-        </KeyboardScroll>
+        <LinkedText
+          style={styles.rules}
+          text={t("App.compose.rules")}
+          links={{ rules: { label: t("App.legal.communityRules"), url: COMMUNITY_RULES_URL } }}
+        />
+      </KeyboardScroll>
     </SafeAreaView>
   );
 }
@@ -245,71 +226,55 @@ const styles = StyleSheet.create({
   publish: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
     backgroundColor: Colors.primary,
     borderRadius: 20,
     paddingHorizontal: 18,
-    paddingVertical: 8,
+    paddingVertical: 9,
     overflow: "hidden",
   },
-  publishDisabled: { opacity: 0.45 },
-  publishText: { color: "#FFFFFF", fontWeight: "700", fontSize: 15 },
-  content: { paddingHorizontal: 16, paddingBottom: 24, gap: 12 },
-  editorRow: { flexDirection: "row", gap: 12, minHeight: 120 },
-  input: { flex: 1, fontSize: 18, lineHeight: 26, color: Colors.text, textAlignVertical: "top", paddingTop: 6 },
-  previews: { flexDirection: "row", gap: 8, paddingLeft: 52 },
-  preview: { flex: 1, maxWidth: 180, aspectRatio: 0.8, borderRadius: 12, overflow: "hidden" },
-  previewImage: { width: "100%", height: "100%" },
+  publishDisabled: { opacity: 0.4 },
+  publishText: { color: Colors.textInverse, fontWeight: "700", fontSize: 15 },
+  content: { paddingHorizontal: 16, paddingBottom: 32, gap: 14 },
+  row: { flexDirection: "row", gap: 12 },
+  input: { flex: 1, fontSize: 19, lineHeight: 27, color: Colors.text, minHeight: 120, textAlignVertical: "top", paddingTop: 6 },
+  images: { flexDirection: "row", gap: 8 },
+  imageWrap: { flex: 1, aspectRatio: 4 / 5, borderRadius: 16, overflow: "hidden", maxWidth: "100%" },
+  image: { width: "100%", height: "100%" },
   removeImage: {
     position: "absolute",
-    top: 6,
-    right: 6,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(0,0,0,0.65)",
     alignItems: "center",
     justifyContent: "center",
   },
-  kinds: { flexDirection: "row", gap: 8 },
-  kind: {
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    borderRadius: 18,
-    paddingHorizontal: 14,
+  communeChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    backgroundColor: Colors.primary50,
+    borderRadius: 16,
+    paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  kindActive: { borderColor: Colors.primary, backgroundColor: Colors.primary50 },
-  kindText: { fontSize: 14, color: Colors.text },
-  kindTextActive: { color: Colors.primary, fontWeight: "700" },
+  communeChipText: { color: Colors.primary, fontWeight: "700", fontSize: 14 },
+  error: { color: Colors.error, fontSize: 14 },
   toolbar: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 6,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
     paddingTop: 10,
   },
-  toolbarLeft: { flexDirection: "row", gap: 16 },
-  toolButton: { padding: 4 },
+  tool: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center" },
   toolDisabled: { opacity: 0.35 },
-  counter: { fontSize: 13, color: Colors.textMuted },
+  count: { marginLeft: "auto", fontSize: 13, color: Colors.textMuted },
+  countLow: { color: Colors.secondary, fontWeight: "700" },
   rules: { fontSize: 12, lineHeight: 18, color: Colors.textMuted },
-  counterWarn: { color: Colors.secondary, fontWeight: "700" },
-  option: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    gap: 6,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  optionDisabled: { opacity: 0.5 },
-  optionText: { fontSize: 13, color: Colors.text },
-  soon: { fontSize: 11, color: Colors.textMuted },
-  hint: { fontSize: 12, color: Colors.textMuted },
-  error: { fontSize: 14, color: Colors.error },
 });

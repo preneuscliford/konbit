@@ -8,8 +8,9 @@ export const FEED_PAGE_SIZE = 20;
 export const MAX_IMAGES = 2;
 const MEDIA_BUCKET = "konbit-media";
 
-// "discussion" est le type par défaut quand rien n'est choisi.
-export type KonbitKind = "discussion" | "idea" | "project";
+// "discussion" (affiché « Pòs ») est le type par défaut. "konbit" = action
+// collective (titre, lieu, dates, participants). idea / project : anciens types.
+export type KonbitKind = "discussion" | "idea" | "project" | "konbit";
 export const KONBIT_KINDS: KonbitKind[] = ["discussion", "idea", "project"];
 
 export interface KonbitImage {
@@ -35,6 +36,12 @@ export interface Konbit {
   author_avatar: string | null;
   joined: boolean;
   liked: boolean;
+  // Konbit (action collective) seulement ; vides pour un pòs.
+  title: string | null;
+  address_detail: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  max_participants: number | null;
 }
 
 // Profil public (page de profil d'une personne).
@@ -51,11 +58,15 @@ export interface PublicProfile {
   created_at: string;
 }
 
+// Message dans un konbit (parent_id vide) ou réponse à un message.
 export interface KonbitReply {
   id: number;
   konbit_id: number;
   body: string;
   created_at: string;
+  parent_id: number | null;
+  like_count: number;
+  liked?: boolean;
   author_id: string;
   author: { pseudo: string | null; display_name: string | null; avatar_path: string | null } | null;
 }
@@ -71,7 +82,19 @@ export interface FeedCursor {
 
 // Erreurs ramenées à quelques cas que l'interface sait traduire.
 export class KonbitError extends Error {
-  constructor(readonly code: "offline" | "rate_limited" | "not_allowed" | "not_found" | "already_done" | "failed") {
+  constructor(
+    readonly code:
+      | "offline"
+      | "rate_limited"
+      | "not_allowed"
+      | "not_found"
+      | "already_done"
+      | "full"
+      | "ended"
+      | "members_only"
+      | "invalid_dates"
+      | "failed",
+  ) {
     super(code);
   }
 }
@@ -79,6 +102,14 @@ export class KonbitError extends Error {
 function toKonbitError(error: { code?: string; message?: string } | null): KonbitError {
   const message = error?.message ?? "";
   if (message.includes("rate_limited")) return new KonbitError("rate_limited");
+  if (message.includes("konbit_full")) return new KonbitError("full");
+  if (message.includes("konbit_ended")) return new KonbitError("ended");
+  if (message.includes("already_member")) return new KonbitError("already_done");
+  if (message.includes("invalid_dates")) return new KonbitError("invalid_dates");
+  // Écriture refusée par la règle « Membres du konbit ».
+  if (message.includes("row-level security") && message.includes("konbit_replies")) {
+    return new KonbitError("members_only");
+  }
   if (message.includes("Network request failed") || message.includes("Failed to fetch")) {
     return new KonbitError("offline");
   }
@@ -160,15 +191,25 @@ export async function uploadKonbitImage(
   return { type: "image", path, width: image.width, height: image.height };
 }
 
+// Konbit (action collective) : nom, précision d'adresse, dates, maximum.
+export interface KonbitDetails {
+  title: string;
+  address_detail: string | null;
+  starts_at: string;
+  ends_at: string;
+  max_participants: number | null;
+}
+
 export async function createKonbit(
   body: string,
   communeSlug: string,
   kind: KonbitKind = "discussion",
   media: KonbitImage[] = [],
+  details?: KonbitDetails,
 ): Promise<number> {
   const { data, error } = await supabase
     .from("konbits")
-    .insert({ body: body.trim(), commune_slug: communeSlug, kind, media })
+    .insert({ body: body.trim(), commune_slug: communeSlug, kind, media, ...(kind === "konbit" ? details : {}) })
     .select("id")
     .single();
   if (error) throw toKonbitError(error);
@@ -206,7 +247,7 @@ export async function fetchReplies(konbitId: number): Promise<KonbitReply[]> {
   const { data, error } = await supabase
     .from("konbit_replies")
     .select(
-      "id, konbit_id, body, created_at, author_id, author:profiles!konbit_replies_author_id_fkey(pseudo, display_name, avatar_path)",
+      "id, konbit_id, body, created_at, parent_id, like_count, author_id, author:profiles!konbit_replies_author_id_fkey(pseudo, display_name, avatar_path)",
     )
     .eq("konbit_id", konbitId)
     .eq("status", "visible")
@@ -217,9 +258,30 @@ export async function fetchReplies(konbitId: number): Promise<KonbitReply[]> {
   return (data ?? []) as unknown as KonbitReply[];
 }
 
-export async function postReply(konbitId: number, body: string) {
-  const { error } = await supabase.from("konbit_replies").insert({ konbit_id: konbitId, body: body.trim() });
+// parentId : réponse à un message (une réponse à une réponse est rattachée
+// au même message par le serveur).
+export async function postReply(konbitId: number, body: string, parentId: number | null = null) {
+  const { error } = await supabase
+    .from("konbit_replies")
+    .insert({ konbit_id: konbitId, body: body.trim(), ...(parentId ? { parent_id: parentId } : {}) });
   if (error) throw toKonbitError(error);
+}
+
+export async function setReplyLike(replyId: number, userId: string, like: boolean) {
+  const { error } = like
+    ? await supabase.from("konbit_reply_likes").insert({ reply_id: replyId })
+    : await supabase.from("konbit_reply_likes").delete().eq("reply_id", replyId).eq("user_id", userId);
+  if (error && error.code !== "23505") throw toKonbitError(error);
+}
+
+export async function fetchMyReplyLikes(userId: string, ids: number[]): Promise<Set<number>> {
+  if (ids.length === 0) return new Set();
+  const { data } = await supabase
+    .from("konbit_reply_likes")
+    .select("reply_id")
+    .eq("user_id", userId)
+    .in("reply_id", ids);
+  return new Set((data ?? []).map((r) => r.reply_id as number));
 }
 
 export async function deleteReply(id: number) {

@@ -7,6 +7,7 @@ import { Ellipsis, Handshake, Heart, MessageCircle } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
 import KonbitImages from "@/components/konbit509/KonbitImages";
+import KonbitSummary, { useKonbitStatus } from "@/components/konbit509/KonbitSummary";
 import ActionSheet, { type SheetOption } from "@/components/ui/ActionSheet";
 import { Text } from "@/components/ui/Text";
 import { useAccountGate, useCommuneName } from "@/hooks/useAccountGate";
@@ -14,6 +15,7 @@ import { useLike, useParticipation } from "@/hooks/useKonbits";
 import { useAuth } from "@/lib/auth";
 import { formatRelative, useI18n } from "@/lib/i18n";
 import { ABUSE_REASONS, deleteKonbit, KonbitError, reportAbuse, type Konbit } from "@/lib/konbits";
+import { formatKonbitDate } from "@/lib/konbitTime";
 
 // Carte d'un konbit dans le fil, composition inspirée de X : avatar à
 // gauche ; à droite le pseudo suivi de la commune et de la date, le texte,
@@ -32,13 +34,48 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
   const isMine = konbit.author_id === userId;
   const errorText = (e: unknown) => t(`App.konbitErrors.${e instanceof KonbitError ? e.code : "failed"}`);
 
-  function toggleJoin() {
-    requireAccount(() =>
-      participation.mutate(
-        { konbit, on: !konbit.joined },
-        { onError: (e) => Burnt.toast({ title: errorText(e), preset: "error" }) },
-      ),
+  // Konbit = action collective ; « Mwen ladan » existe aussi sur les anciennes
+  // idées et anciens projets, jamais sur un simple pòs.
+  const isKonbit = konbit.kind === "konbit";
+  const canJoin = konbit.kind !== "discussion";
+  const status = useKonbitStatus(konbit);
+  const members = konbit.participant_count + 1;
+  const full = !!konbit.max_participants && members >= konbit.max_participants;
+  const ended = status === "ended";
+
+  function setJoined(on: boolean) {
+    participation.mutate(
+      { konbit, on },
+      {
+        onSuccess: () =>
+          Burnt.toast({ title: t(on ? "App.collectif.joinedToast" : "App.collectif.leftToast"), preset: "done" }),
+        onError: (e) => Burnt.toast({ title: errorText(e), preset: "error" }),
+      },
     );
+  }
+
+  // Confirmation avant de rejoindre ou de quitter : évite les erreurs d'un toucher.
+  function askJoin() {
+    requireAccount(() => {
+      const name = konbit.title ?? t("App.kinds.konbit");
+      if (konbit.joined) {
+        Alert.alert(t("App.collectif.leaveTitle", { title: name }), t("App.collectif.leaveText"), [
+          { text: t("App.collectif.no"), style: "cancel" },
+          { text: t("App.collectif.leaveYes"), style: "destructive", onPress: () => setJoined(false) },
+        ]);
+      } else {
+        Alert.alert(
+          t("App.collectif.joinTitle", { title: name }),
+          konbit.starts_at
+            ? t("App.collectif.joinText", { date: formatKonbitDate(konbit.starts_at, language) })
+            : undefined,
+          [
+            { text: t("App.collectif.no"), style: "cancel" },
+            { text: t("App.collectif.joinYes"), onPress: () => setJoined(true) },
+          ],
+        );
+      }
+    });
   }
 
   function toggleLike() {
@@ -127,16 +164,21 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
           </Pressable>
         </View>
 
-        {/* Diskisyon est le type par défaut : seul Lide / Pwojè est signalé. */}
-        {konbit.kind !== "discussion" && (
-          <View style={[styles.kindBadge, konbit.kind === "project" && styles.kindProject]}>
-            <Text style={[styles.kindText, konbit.kind === "project" && styles.kindTextProject]}>
-              {t(`App.kinds.${konbit.kind}`)}
-            </Text>
-          </View>
+        {isKonbit ? (
+          <KonbitSummary konbit={konbit} detailed={detailed} />
+        ) : (
+          <>
+            {/* Pòs (type par défaut) : pas de badge ; anciennes idées et anciens projets signalés. */}
+            {(konbit.kind === "idea" || konbit.kind === "project") && (
+              <View style={[styles.kindBadge, konbit.kind === "project" && styles.kindProject]}>
+                <Text style={[styles.kindText, konbit.kind === "project" && styles.kindTextProject]}>
+                  {t(`App.kinds.${konbit.kind}`)}
+                </Text>
+              </View>
+            )}
+            <Text style={[styles.body, detailed && styles.bodyDetailed]}>{konbit.body}</Text>
+          </>
         )}
-
-        <Text style={[styles.body, detailed && styles.bodyDetailed]}>{konbit.body}</Text>
 
         <KonbitImages media={konbit.media ?? []} />
 
@@ -167,19 +209,37 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
             <Text style={[styles.actionText, konbit.liked && styles.likedText]}>{konbit.like_count ?? 0}</Text>
           </Pressable>
 
-          {/* "Mwen ladan" remplace le "J'aime" de X. */}
-          <Pressable
-            onPress={toggleJoin}
-            style={[styles.join, konbit.joined && styles.joinActive]}
-            android_ripple={{ color: "rgba(0,32,159,0.12)" }}
-            accessibilityRole="button"
-            accessibilityState={{ selected: konbit.joined }}
-          >
-            <Handshake size={17} color={konbit.joined ? "#FFFFFF" : Colors.primary} />
-            <Text style={[styles.joinText, konbit.joined && styles.joinTextActive]}>
-              {t("App.card.join")} · {konbit.participant_count}
-            </Text>
-          </Pressable>
+          {/* Rejoindre : jamais sur un simple pòs. */}
+          {isKonbit && isMine ? (
+            <View style={[styles.join, styles.joinActive]}>
+              <Handshake size={17} color={Colors.textInverse} />
+              <Text style={[styles.joinText, styles.joinTextActive]}>{t("App.collectif.organizer")}</Text>
+            </View>
+          ) : isKonbit && !konbit.joined && (ended || full) ? (
+            <View style={[styles.join, styles.joinClosed]}>
+              <Handshake size={17} color={Colors.textMuted} />
+              <Text style={[styles.joinText, styles.joinTextClosed]}>
+                {t(ended ? "App.collectif.ended" : "App.collectif.full")}
+              </Text>
+            </View>
+          ) : canJoin ? (
+            <Pressable
+              onPress={askJoin}
+              style={[styles.join, konbit.joined && styles.joinActive]}
+              android_ripple={{ color: Colors.ripple }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: konbit.joined }}
+            >
+              <Handshake size={17} color={konbit.joined ? Colors.textInverse : Colors.primary} />
+              <Text style={[styles.joinText, konbit.joined && styles.joinTextActive]}>
+                {isKonbit
+                  ? t(konbit.joined ? "App.collectif.joined" : "App.collectif.join")
+                  : `${t("App.card.join")} · ${konbit.participant_count}`}
+              </Text>
+            </Pressable>
+          ) : (
+            <View />
+          )}
         </View>
       </View>
 
@@ -239,5 +299,7 @@ const styles = StyleSheet.create({
   },
   joinActive: { backgroundColor: Colors.primary },
   joinText: { fontSize: 13, fontWeight: "700", color: Colors.primary },
-  joinTextActive: { color: "#FFFFFF" },
+  joinTextActive: { color: Colors.textInverse },
+  joinClosed: { borderColor: Colors.border },
+  joinTextClosed: { color: Colors.textMuted },
 });

@@ -42,20 +42,23 @@
       "settings": "Paramèt"
     },
     "compose": {
-      "title": "Lanse yon konbit",
-      "placeholder": "Ki inisyativ, pwojè oswa biznis w ap fè konnen?",
+      "title": "Pibliye",
+      "placeholder": "Sak pase, sak ap fèt?",
       "publish": "Pibliye",
       "publishing": "L ap pibliye…",
       "commune": "Komin",
       "more": "Plis opsyon",
       "comingSoon": "Byento",
       "date": "Dat",
-      "published": "Konbit ou a pibliye!",
+      "published": "Pòs ou pibliye.",
       "imageError": "Nou pa ka prepare imaj sa a. Eseye yon lòt.",
       "removeImage": "Retire imaj la",
       "addImages": "Ajoute imaj (maksimòm {max})",
       "imagesHint": "{count}/{max} imaj · konprese pou yo ka chaje vit",
-      "rules": "Pibliye ak respè: pa gen rayisman, eskwokri ni fo enfòmasyon. Li {rules}."
+      "rules": "Pibliye ak respè: pa gen rayisman, eskwokri ni fo enfòmasyon. Li {rules}.",
+      "toKonbit": "Fè l tounen yon konbit",
+      "addCommune": "Ajoute yon komin",
+      "addImage": "Ajoute yon foto"
     },
     "feed": {
       "empty": "Poko gen konbit. Lanse premye a!",
@@ -193,7 +196,11 @@
       "not_allowed": "Ou pa gen dwa fè sa.",
       "not_found": "Konbit sa a pa egziste ankò.",
       "already_done": "Sa deja fèt.",
-      "failed": "Gen yon erè. Eseye ankò."
+      "failed": "Gen yon erè. Eseye ankò.",
+      "full": "Konbit la plen. Pa gen plas ankò.",
+      "ended": "Konbit sa a fini deja.",
+      "members_only": "Se moun ki nan konbit la sèlman ki ka ekri la a. Rejwenn li anvan.",
+      "invalid_dates": "Dat yo pa bon. Tcheke dat kòmansman an ak dire a."
     },
     "home": {
       "title": "Enfo jodi a",
@@ -204,9 +211,10 @@
       "updatedShort": "Mizajou"
     },
     "kinds": {
-      "discussion": "Diskisyon",
+      "discussion": "Pòs",
       "idea": "Lide",
-      "project": "Pwojè"
+      "project": "Pwojè",
+      "konbit": "Konbit"
     },
     "national": "Nasyonal",
     "reportButton": "Siyale",
@@ -444,6 +452,92 @@
       "deleteConfirm": "Mesaj sa a ap efase nan notifikasyon ou yo.",
       "deleted": "Notifikasyon an efase.",
       "gone": "Mesaj sa a pa disponib ankò."
+    },
+    "collectif": {
+      "join": "Rejwenn",
+      "joined": "Ou ladan",
+      "full": "Plen",
+      "ended": "Fini",
+      "organizer": "Òganizatè",
+      "members": "{count} moun ladan",
+      "membersMax": "{count} / {max} moun ladan",
+      "status": {
+        "upcoming": "Ap vini",
+        "ongoing": "An kou",
+        "ended": "Fini"
+      },
+      "joinTitle": "Ou vle rejwenn « {title} » vre?",
+      "joinText": "Li kòmanse {date}. Òganizatè a ak lòt moun yo pral konte sou ou.",
+      "joinYes": "Wi, mwen ladan",
+      "leaveTitle": "Ou vle soti nan « {title} »?",
+      "leaveText": "Ou p ap ka ekri nan konbit la ankò, men ou ka rejwenn li pita si gen plas.",
+      "leaveYes": "Wi, mwen soti",
+      "no": "Non",
+      "joinedToast": "Ou nan konbit la! 🙌",
+      "leftToast": "Ou soti nan konbit la."
+    },
+    "thread": {
+      "messages": "Mesaj yo",
+      "replies": "Repons yo",
+      "messagePlaceholder": "Ekri yon mesaj pou moun ki nan konbit la…",
+      "replyPlaceholder": "Ekri repons ou…",
+      "replyingTo": "W ap reponn {name}",
+      "reply": "Reponn",
+      "membersOnly": "Se moun ki nan konbit la sèlman ki ka ekri. Peze « Rejwenn » anwo a.",
+      "noMessages": "Poko gen mesaj. Moun ki nan konbit la ka kòmanse pale.",
+      "cancel": "Anile"
+    },
+    "composeKonbit": {
+      "title": "Lanse yon konbit",
+      "steps": {
+        "what": "Kisa",
+        "where": "Ki kote",
+        "when": "Kilè",
+        "who": "Ki moun"
+      },
+      "whatTitle": "Ki konbit w ap lanse?",
+      "name": "Non konbit la",
+      "namePlaceholder": "Egz: Netwayaj nan Delmas 33",
+      "description": "Eksplikasyon",
+      "descriptionPlaceholder": "Kisa nou pral fè, poukisa, sa moun dwe pote…",
+      "whereTitle": "Ki kote l ap fèt?",
+      "commune": "Komin",
+      "address": "Plis presizyon sou adrès la",
+      "addressPlaceholder": "Egz: Devan lekòl nasyonal la",
+      "addressHint": "Pa obligatwa. Pa mete adrès lakay moun.",
+      "whenTitle": "Kilè l ap fèt?",
+      "start": "Li kòmanse",
+      "duration": "Konbyen tan l ap dire?",
+      "durations": {
+        "day": "1 jou",
+        "week": "1 semèn",
+        "month": "1 mwa",
+        "custom": "Lòt dat"
+      },
+      "lastDay": "Dènye jou a",
+      "haitiTime": "Lè Ayiti",
+      "whoTitle": "Konbyen moun?",
+      "noLimit": "Pa gen limit",
+      "limit": "Mete yon limit",
+      "max": "Kantite moun maksimòm (ou menm ladan)",
+      "preview": "Apèsi",
+      "anyone": "Tout moun ki vle",
+      "maxPeople": "{max} moun maksimòm",
+      "next": "Kontinye",
+      "back": "Retounen",
+      "launch": "Lanse konbit la 🤝",
+      "launching": "L ap lanse…",
+      "launched": "Konbit ou lanse! 🙌",
+      "simplePost": "Se yon pòs senp pito?",
+      "errors": {
+        "name": "Bay konbit la yon non (omwen 3 karaktè).",
+        "description": "Eksplike an kout sa konbit la ye.",
+        "commune": "Chwazi komin kote konbit la ap fèt.",
+        "past": "Dat kòmansman an pase deja.",
+        "end": "Dat fen an dwe apre dat kòmansman an.",
+        "long": "Yon konbit pa ka dire plis pase yon ane.",
+        "max": "Kantite moun maksimòm nan dwe ant 2 ak 10 000."
+      }
     }
   },
   "Konbit": {

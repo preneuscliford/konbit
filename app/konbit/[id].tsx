@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Burnt from "burnt";
-import { ArrowLeft, Ellipsis, Send } from "lucide-react-native";
+import { ArrowLeft, Ellipsis, Heart, MessageCircle, Send, X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
 import KonbitCard from "@/components/konbit509/KonbitCard";
@@ -18,13 +18,19 @@ import { formatRelative, useI18n } from "@/lib/i18n";
 import {
   ABUSE_REASONS,
   deleteReply,
-  KONBIT_MAX_LENGTH,
+  fetchMyReplyLikes,
   KonbitError,
   postReply,
   reportAbuse,
+  setReplyLike,
   type KonbitReply,
 } from "@/lib/konbits";
 import { KeyboardAvoidingView } from "@/components/ui/KeyboardScroll";
+
+// Longueur maximale d'un message ou d'une réponse (limite du serveur).
+const REPLY_MAX = 500;
+
+type Row = { reply: KonbitReply; depth: 0 | 1; parentId: number };
 
 // Un konbit et son fil de réponses.
 export default function KonbitDetailScreen() {
@@ -39,6 +45,58 @@ export default function KonbitDetailScreen() {
   const [draft, setDraft] = useState("");
   const restriction = useRestriction();
   const [sending, setSending] = useState(false);
+  const { userId, canPost } = useAuth();
+  // Réponse en cours : sous quel message, en citant qui.
+  const [replyTo, setReplyTo] = useState<{ parentId: number; name: string } | null>(null);
+  // J'aime de l'utilisateur sur les messages, et changements faits ici.
+  const replyIds = (replies.data ?? []).map((r) => r.id);
+  const myLikes = useQuery({
+    queryKey: ["konbits", "replyLikes", konbitId, userId, replyIds.length],
+    queryFn: () => fetchMyReplyLikes(userId!, replyIds),
+    enabled: !!userId && replyIds.length > 0,
+  });
+  const [likeChanges, setLikeChanges] = useState<Record<number, { liked: boolean; count: number }>>({});
+
+  // Un message, puis ses réponses en retrait.
+  const rows: Row[] = [];
+  const all = replies.data ?? [];
+  for (const top of all.filter((r) => r.parent_id === null)) {
+    rows.push({ reply: top, depth: 0, parentId: top.id });
+    for (const child of all.filter((r) => r.parent_id === top.id)) {
+      rows.push({ reply: child, depth: 1, parentId: top.id });
+    }
+  }
+
+  const isKonbit = konbit.data?.kind === "konbit";
+  // Dans un konbit, seuls l'organisateur et les participants écrivent.
+  const canWrite = !isKonbit || (canPost && (konbit.data?.author_id === userId || !!konbit.data?.joined));
+
+  function startReply(row: Row) {
+    requireAccount(() => {
+      if (!canWrite) {
+        Burnt.toast({ title: t("App.thread.membersOnly"), preset: "error" });
+        return;
+      }
+      const name = row.reply.author?.pseudo ?? row.reply.author?.display_name ?? "";
+      setReplyTo({ parentId: row.parentId, name });
+      // Réponse à une réponse : on cite la personne.
+      if (row.depth === 1 && row.reply.author?.pseudo) setDraft(`@${row.reply.author.pseudo} `);
+    });
+  }
+
+  function toggleReplyLike(reply: KonbitReply) {
+    requireAccount(async () => {
+      const current = likeChanges[reply.id] ?? { liked: !!myLikes.data?.has(reply.id), count: reply.like_count };
+      const next = { liked: !current.liked, count: Math.max(0, current.count + (current.liked ? -1 : 1)) };
+      setLikeChanges((m) => ({ ...m, [reply.id]: next }));
+      try {
+        await setReplyLike(reply.id, userId!, next.liked);
+      } catch (e) {
+        setLikeChanges((m) => ({ ...m, [reply.id]: current }));
+        Burnt.toast({ title: errorText(e), preset: "error" });
+      }
+    });
+  }
 
   const errorText = (e: unknown) => t(`App.konbitErrors.${e instanceof KonbitError ? e.code : "failed"}`);
 
@@ -47,8 +105,9 @@ export default function KonbitDetailScreen() {
     requireAccount(async () => {
       setSending(true);
       try {
-        await postReply(konbitId, draft);
+        await postReply(konbitId, draft, replyTo?.parentId ?? null);
         setDraft("");
+        setReplyTo(null);
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: repliesKey(konbitId) }),
           queryClient.invalidateQueries({ queryKey: ["konbits", "feed"] }),
@@ -78,15 +137,36 @@ export default function KonbitDetailScreen() {
           <Text style={styles.empty}>{t("App.detail.notFound")}</Text>
         ) : (
           <FlatList
-            data={replies.data ?? []}
-            keyExtractor={(item) => String(item.id)}
-            ListHeaderComponent={<KonbitCard konbit={konbit.data} detailed />}
-            renderItem={({ item }) => <ReplyRow reply={item} konbitId={konbitId} />}
+            data={rows}
+            keyExtractor={(item) => String(item.reply.id)}
+            ListHeaderComponent={
+              <>
+                <KonbitCard konbit={konbit.data} detailed />
+                <Text style={styles.section}>{t(isKonbit ? "App.thread.messages" : "App.thread.replies")}</Text>
+              </>
+            }
+            renderItem={({ item }) => {
+              const like = likeChanges[item.reply.id] ?? {
+                liked: !!myLikes.data?.has(item.reply.id),
+                count: item.reply.like_count,
+              };
+              return (
+                <ReplyRow
+                  reply={item.reply}
+                  depth={item.depth}
+                  konbitId={konbitId}
+                  liked={like.liked}
+                  likeCount={like.count}
+                  onLike={() => toggleReplyLike(item.reply)}
+                  onReply={() => startReply(item)}
+                />
+              );
+            }}
             ListEmptyComponent={
               replies.isLoading ? (
                 <ActivityIndicator color={Colors.primary} style={{ marginTop: 16 }} />
               ) : (
-                <Text style={styles.empty}>{t("App.detail.noReplies")}</Text>
+                <Text style={styles.empty}>{t(isKonbit ? "App.thread.noMessages" : "App.detail.noReplies")}</Text>
               )
             }
             keyboardShouldPersistTaps="handled"
@@ -98,14 +178,40 @@ export default function KonbitDetailScreen() {
             <RestrictionBanner message={restriction.message} />
           </View>
         )}
-        {konbit.data && !restriction.blocked && (
+        {konbit.data && !restriction.blocked && !canWrite && (
+          <Text style={styles.membersOnly}>{t("App.thread.membersOnly")}</Text>
+        )}
+        {konbit.data && !restriction.blocked && canWrite && replyTo && (
+          <View style={styles.replyingTo}>
+            <Text style={styles.replyingToText} numberOfLines={1}>
+              {t("App.thread.replyingTo", { name: replyTo.name })}
+            </Text>
+            <Pressable
+              onPress={() => {
+                setReplyTo(null);
+                setDraft("");
+              }}
+              hitSlop={10}
+              accessibilityLabel={t("App.thread.cancel")}
+            >
+              <X size={16} color={Colors.textMuted} />
+            </Pressable>
+          </View>
+        )}
+        {konbit.data && !restriction.blocked && canWrite && (
           <View style={styles.composer}>
             <TextInput
               value={draft}
-              onChangeText={(text) => setDraft(text.slice(0, KONBIT_MAX_LENGTH))}
-              placeholder={t("App.detail.replyPlaceholder")}
+              onChangeText={(text) => setDraft(text.slice(0, REPLY_MAX))}
+              placeholder={t(
+                replyTo
+                  ? "App.thread.replyPlaceholder"
+                  : isKonbit
+                    ? "App.thread.messagePlaceholder"
+                    : "App.detail.replyPlaceholder",
+              )}
               placeholderTextColor={Colors.textMuted}
-              maxLength={KONBIT_MAX_LENGTH}
+              maxLength={REPLY_MAX}
               multiline
               style={styles.input}
             />
@@ -115,7 +221,11 @@ export default function KonbitDetailScreen() {
               style={[styles.send, (!draft.trim() || sending) && styles.sendDisabled]}
               accessibilityLabel={t("App.detail.send")}
             >
-              {sending ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Send size={18} color="#FFFFFF" />}
+              {sending ? (
+                <ActivityIndicator size="small" color={Colors.textInverse} />
+              ) : (
+                <Send size={18} color={Colors.textInverse} />
+              )}
             </Pressable>
           </View>
         )}
@@ -124,7 +234,23 @@ export default function KonbitDetailScreen() {
   );
 }
 
-function ReplyRow({ reply, konbitId }: { reply: KonbitReply; konbitId: number }) {
+function ReplyRow({
+  reply,
+  depth,
+  konbitId,
+  liked,
+  likeCount,
+  onLike,
+  onReply,
+}: {
+  reply: KonbitReply;
+  depth: 0 | 1;
+  konbitId: number;
+  liked: boolean;
+  likeCount: number;
+  onLike: () => void;
+  onReply: () => void;
+}) {
   const { t, language } = useI18n();
   const { userId } = useAuth();
   const queryClient = useQueryClient();
@@ -164,14 +290,14 @@ function ReplyRow({ reply, konbitId }: { reply: KonbitReply; konbitId: number })
     : [{ label: t("App.card.reportAbuse"), onPress: () => requireAccount(() => setSheet("report")) }];
 
   return (
-    <View style={styles.reply}>
+    <View style={[styles.reply, depth === 1 && styles.replyNested]}>
       <Pressable onPress={openAuthor} hitSlop={4}>
         <Avatar
           pseudo={reply.author?.pseudo ?? null}
           name={reply.author?.display_name}
           avatarPath={reply.author?.avatar_path}
           seed={reply.author_id}
-          size={32}
+          size={depth === 1 ? 28 : 34}
         />
       </Pressable>
       <View style={{ flex: 1 }}>
@@ -185,6 +311,27 @@ function ReplyRow({ reply, konbitId }: { reply: KonbitReply; konbitId: number })
           </Pressable>
         </View>
         <Text style={styles.replyBody}>{reply.body}</Text>
+        <View style={styles.replyActions}>
+          <Pressable onPress={onReply} hitSlop={8} style={styles.replyAction} accessibilityRole="button">
+            <MessageCircle size={15} color={Colors.textMuted} />
+            <Text style={styles.replyActionText}>{t("App.thread.reply")}</Text>
+          </Pressable>
+          <Pressable
+            onPress={onLike}
+            hitSlop={8}
+            style={styles.replyAction}
+            accessibilityRole="button"
+            accessibilityState={{ selected: liked }}
+            accessibilityLabel={t("App.card.like")}
+          >
+            <Heart
+              size={15}
+              color={liked ? Colors.secondary : Colors.textMuted}
+              fill={liked ? Colors.secondary : "transparent"}
+            />
+            {likeCount > 0 && <Text style={[styles.replyActionText, liked && styles.liked]}>{likeCount}</Text>}
+          </Pressable>
+        </View>
       </View>
       <ActionSheet visible={sheet === "menu"} options={menu} onClose={() => setSheet(null)} />
       <ActionSheet
@@ -218,7 +365,33 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.borderSoft,
   },
+  // Réponse sous un message : en retrait, sans séparateur.
+  replyNested: { paddingLeft: 60, borderBottomWidth: 0, paddingVertical: 8 },
   replyMeta: { flexDirection: "row", alignItems: "center" },
+  replyActions: { flexDirection: "row", gap: 20, marginTop: 6 },
+  replyAction: { flexDirection: "row", alignItems: "center", gap: 5 },
+  replyActionText: { fontSize: 13, color: Colors.textMuted, fontWeight: "600" },
+  liked: { color: Colors.secondary },
+  section: { fontSize: 16, fontWeight: "800", color: Colors.text, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 6 },
+  membersOnly: {
+    margin: 12,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: Colors.primary50,
+    color: Colors.text,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  replyingTo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  replyingToText: { flex: 1, fontSize: 13, color: Colors.primary, fontWeight: "600" },
   replyPseudo: { fontSize: 14, fontWeight: "700", color: Colors.text },
   replyTime: { fontSize: 13, color: Colors.textMuted },
   replyBody: { fontSize: 15, lineHeight: 21, color: Colors.text, marginTop: 2 },
