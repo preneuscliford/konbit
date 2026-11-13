@@ -9,6 +9,8 @@ export interface SheetOption {
   label: string;
   onPress: () => void;
   destructive?: boolean;
+  // Icône devant le libellé (ex. Reposte / Site).
+  icon?: React.ReactNode;
 }
 
 // Petite feuille d'actions en bas d'écran (Alert d'Android est limité à 3 boutons).
@@ -41,6 +43,7 @@ export default function ActionSheet({
                   option.onPress();
                 }}
               >
+                {option.icon ? <View style={styles.icon}>{option.icon}</View> : null}
                 <Text style={[styles.optionText, option.destructive && styles.destructive]}>{option.label}</Text>
               </Pressable>
             ))}
@@ -65,7 +68,8 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   title: { fontSize: 14, fontWeight: "600", color: Colors.textMuted, paddingHorizontal: 20, paddingVertical: 12 },
-  option: { paddingHorizontal: 20, paddingVertical: 15 },
+  option: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 20, paddingVertical: 15 },
+  icon: { width: 24, alignItems: "center" },
   optionText: { fontSize: 16, color: Colors.text },
   destructive: { color: Colors.secondary, fontWeight: "600" },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border, marginVertical: 4 },

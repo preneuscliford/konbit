@@ -3,7 +3,7 @@ import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Burnt from "burnt";
-import { Ellipsis, Handshake, Heart, MessageCircle, Repeat2 } from "lucide-react-native";
+import { Ellipsis, Handshake, Heart, MessageCircle, PenLine, Repeat2 } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
 import KonbitImages from "@/components/konbit509/KonbitImages";
@@ -253,16 +253,10 @@ function KonbitCardBody({ konbit, detailed = false }: { konbit: Konbit; detailed
             <Text style={[styles.actionText, konbit.liked && styles.likedText]}>{konbit.like_count ?? 0}</Text>
           </Pressable>
 
-          {/* Repost : ouvre directement l'écran avec une légende facultative ;
-              déjà reposté : proposer d'annuler (ou de reposter avec un message). */}
+          {/* Repost, comme sur X : petite fenêtre « Reposte » (immédiat,
+              annulable) ou « Site » (écran avec une légende facultative). */}
           <Pressable
-            onPress={() =>
-              requireAccount(() =>
-                konbit.reposted
-                  ? setSheet("repost")
-                  : router.push({ pathname: "/compose", params: { repostOf: String(konbit.id) } }),
-              )
-            }
+            onPress={() => requireAccount(() => setSheet("repost"))}
             style={styles.action}
             hitSlop={8}
             accessibilityRole="button"
@@ -325,19 +319,22 @@ function KonbitCardBody({ konbit, detailed = false }: { konbit: Konbit; detailed
         visible={sheet === "repost"}
         options={[
           {
-            label: t("App.repost.undo"),
-            destructive: true,
+            label: t(konbit.reposted ? "App.repost.undo" : "App.repost.action"),
+            destructive: konbit.reposted,
+            icon: <Repeat2 size={21} color={konbit.reposted ? Colors.secondary : Colors.text} />,
             onPress: () =>
               repostToggle.mutate(
-                { konbit, on: false },
+                { konbit, on: !konbit.reposted },
                 {
-                  onSuccess: () => Burnt.toast({ title: t("App.repost.undone"), preset: "done" }),
+                  onSuccess: () =>
+                    Burnt.toast({ title: t(konbit.reposted ? "App.repost.undone" : "App.repost.done"), preset: "done" }),
                   onError: (e) => Burnt.toast({ title: errorText(e), preset: "error" }),
                 },
               ),
           },
           {
             label: t("App.repost.quote"),
+            icon: <PenLine size={20} color={Colors.text} />,
             onPress: () => router.push({ pathname: "/compose", params: { repostOf: String(konbit.id) } }),
           },
         ]}

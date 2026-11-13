@@ -139,7 +139,7 @@ export default function ComposeScreen() {
         >
           {sending && <ActivityIndicator size="small" color={Colors.textInverse} />}
           <Text style={styles.publishText}>
-            {sending ? t("App.compose.publishing") : t(quoting ? "App.repost.action" : "App.compose.publish")}
+            {sending ? t("App.compose.publishing") : t(quoting ? "App.repost.quote" : "App.compose.publish")}
           </Text>
         </Pressable>
       </View>

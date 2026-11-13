@@ -667,12 +667,12 @@
     "repost": {
       "action": "Reposte",
       "undo": "Anile repost la",
-      "quote": "Reposte ak yon mesaj",
+      "quote": "Site",
       "reposted": "{name} reposte",
       "done": "Ou reposte l.",
       "undone": "Repost la anile.",
       "unavailable": "Piblikasyon orijinal la pa disponib ankò.",
-      "composeTitle": "Reposte",
+      "composeTitle": "Site",
       "captionPlaceholder": "Ajoute yon mesaj (pa obligatwa)…",
       "published": "Ou reposte l.",
       "you": "Ou"
