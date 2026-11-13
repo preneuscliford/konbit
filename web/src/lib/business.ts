@@ -105,6 +105,7 @@ export function formatPrice(
   currency: "HTG" | "USD",
 ): string {
   if (price === null) return "Pri sou demann";
+  if (price === 0) return "Gratis";
   return currency === "USD"
     ? `${NUMBER.format(price)} $ US`
     : `${NUMBER.format(price)} goud`;

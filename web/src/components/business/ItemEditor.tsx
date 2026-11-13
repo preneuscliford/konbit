@@ -194,7 +194,7 @@ export default function ItemEditor({
               value={price}
               inputMode="decimal"
               onChange={(e) => setPrice(e.target.value.replace(/[^\d.,]/g, ""))}
-              placeholder="Vid = sou demann"
+              placeholder="Vid = sou demann, 0 = gratis"
               className={inputClass}
             />
           </label>
