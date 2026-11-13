@@ -1,6 +1,6 @@
 # Politique de confidentialité de Konbit 509
 
-*Dernière mise à jour : 12 novembre 2026*
+*Dernière mise à jour : 13 novembre 2026*
 
 > **Rezime an kreyòl.** Nou kolekte sèlman sa ki nesesè pou Konbit 509 mache : imèl ou (ki pa janm parèt), tinon w, pwofil ou, fich biznis ou ak sa w pibliye. Nou pa vann done w, nou pa fè piblisite. Siyalman yo anonim e yo pa janm konekte ak kont ou. Ou ka chanje pwofil ou oswa efase kont ou nenpòt ki lè.
 
@@ -33,7 +33,7 @@ Si tu te connectes avec Google, nous recevons seulement ton adresse e-mail et le
 
 **Mesure d'utilisation (application) :** pour savoir combien de personnes utilisent l'application, ton téléphone envoie un identifiant tiré au hasard, au plus une fois par jour et par période d'utilisation. Nous ne gardons que le jour, la version de l'application et le fait qu'un compte était connecté ou non. Cet identifiant n'est **pas relié** à ton compte ni au Signalement.
 
-**Sur le site :** ta session de connexion est gardée dans des cookies de ton navigateur, indispensables pour rester connecté. Ton choix de thème (clair, sombre ou automatique) reste seulement dans ton navigateur. Le site n'utilise **aucun cookie publicitaire** ni outil de suivi publicitaire.
+**Sur le site :** ta session de connexion est gardée dans des cookies de ton navigateur, indispensables pour rester connecté. Ton choix de thème (clair, sombre ou automatique) reste seulement dans ton navigateur. Le site n'utilise **aucun cookie publicitaire** ni outil de suivi publicitaire. Pour savoir quelles pages sont consultées, nous utilisons une **mesure d'audience anonyme** (Vercel Web Analytics) : elle compte les pages vues, le type d'appareil et le pays approximatif, **sans cookie** et sans te suivre d'un site à l'autre.
 
 Certaines préférences (langue, commune choisie pour la météo) restent seulement sur ton téléphone.
 
@@ -57,7 +57,7 @@ Uniquement avec les prestataires techniques qui font fonctionner le service :
 | Prestataire | Rôle |
 |---|---|
 | Supabase | Base de données, comptes et stockage des photos |
-| Vercel | Hébergement du site konbit509.app (journaux techniques) |
+| Vercel | Hébergement du site konbit509.app (journaux techniques) et mesure d'audience anonyme |
 | Google (Google Sign-In, Firebase Cloud Messaging) | Connexion avec Google, envoi des notifications push |
 | Expo | Acheminement des notifications push |
 | Resend | Envoi des e-mails (codes de confirmation, mot de passe oublié) |

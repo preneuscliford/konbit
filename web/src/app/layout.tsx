@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { THEME_SCRIPT } from "@/components/theme/theme";
 import Toaster from "@/components/Toaster";
@@ -38,6 +39,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <Toaster />
         </AuthProvider>
+        {/* Mesure d'audience Vercel : pages vues anonymes, sans cookie. */}
+        <Analytics />
       </body>
     </html>
   );
