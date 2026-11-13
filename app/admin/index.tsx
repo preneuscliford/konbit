@@ -48,7 +48,7 @@ export default function AdminHome() {
               key={item.key}
               onPress={() => router.push(item.href)}
               style={[styles.row, i > 0 && styles.rowBorder]}
-              android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+              android_ripple={{ color: Colors.ripple }}
             >
               <item.icon size={18} color={Colors.text} />
               <Text style={styles.rowText}>{item.label}</Text>
@@ -146,9 +146,9 @@ function Group({ title, hint, tiles }: { title: string; hint?: string; tiles: [s
 
 const styles = StyleSheet.create({
   content: { padding: 16, gap: 16 },
-  card: { borderRadius: 14, borderWidth: 1, borderColor: "#EEEEE8", overflow: "hidden" },
+  card: { borderRadius: 14, borderWidth: 1, borderColor: Colors.borderSoft, overflow: "hidden" },
   row: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16 },
-  rowBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E7EB" },
+  rowBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.border },
   rowText: { flex: 1, fontSize: 16, color: Colors.text },
   badge: {
     minWidth: 22,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     flexBasis: "22%",
     minWidth: 76,
     borderWidth: 1,
-    borderColor: "#EEEEE8",
+    borderColor: Colors.borderSoft,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 8,

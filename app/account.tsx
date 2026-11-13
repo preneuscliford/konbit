@@ -291,7 +291,7 @@ export default function AccountScreen() {
               onPress={google}
               disabled={busy}
               style={styles.googleButton}
-              android_ripple={{ color: "rgba(0,0,0,0.06)" }}
+              android_ripple={{ color: Colors.ripple }}
               accessibilityRole="button"
             >
               {busy ? (
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
   text: { fontSize: 15, lineHeight: 22, color: Colors.textLight, textAlign: "center" },
   googleButton: {
     borderWidth: 1.5,
-    borderColor: "#D1D5DB",
+    borderColor: Colors.borderStrong,
     borderRadius: 26,
     paddingVertical: 14,
     alignItems: "center",
@@ -441,18 +441,18 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 10, marginVertical: 4 },
-  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: "#D1D5DB" },
+  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: Colors.borderStrong },
   dividerText: { fontSize: 13, color: Colors.textMuted },
   input: {
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
     color: Colors.text,
   },
-  info: { fontSize: 14, color: "#15803D", textAlign: "center", lineHeight: 20 },
+  info: { fontSize: 14, color: Colors.successText, textAlign: "center", lineHeight: 20 },
   links: { flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", gap: 12 },
   link: { fontSize: 14, color: Colors.primary, fontWeight: "600" },
   linkDisabled: { color: Colors.textMuted },
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 12,
   },

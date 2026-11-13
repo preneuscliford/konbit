@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: Colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.border,
   },
   logo: { width: 32, height: 30 },
   title: { flex: 1, fontSize: 19, fontWeight: "800", color: Colors.primary },

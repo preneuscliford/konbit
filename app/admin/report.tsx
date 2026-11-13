@@ -104,7 +104,7 @@ export default function AdminReport() {
             <Pressable
               onPress={() => router.push({ pathname: "/admin/user/[id]", params: { id: item.author_id! } })}
               style={styles.authorRow}
-              android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+              android_ripple={{ color: Colors.ripple }}
             >
               <Avatar
                 pseudo={item.author_pseudo}
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   type: { fontSize: 12, fontWeight: "800", color: Colors.primary, textTransform: "uppercase" },
   count: { fontSize: 12, fontWeight: "700", color: Colors.secondary },
   small: { fontSize: 12, color: Colors.textMuted, lineHeight: 18 },
-  contentCard: { borderWidth: 1, borderColor: "#EEEEE8", borderRadius: 14, padding: 14, gap: 10 },
+  contentCard: { borderWidth: 1, borderColor: Colors.borderSoft, borderRadius: 14, padding: 14, gap: 10 },
   body: { fontSize: 16, lineHeight: 23, color: Colors.text },
   linkRow: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start" },
   link: { fontSize: 14, fontWeight: "700", color: Colors.primary },
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     borderWidth: 1,
-    borderColor: "#EEEEE8",
+    borderColor: Colors.borderSoft,
     borderRadius: 14,
     padding: 12,
     overflow: "hidden",
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   section: { fontSize: 12, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", marginTop: 8 },
   decisionRow: { flexDirection: "row", gap: 10 },
   decision: { flex: 1, borderRadius: 22, paddingVertical: 12, alignItems: "center", borderWidth: 1 },
-  keep: { borderColor: "#D1D5DB" },
+  keep: { borderColor: Colors.borderStrong },
   keepText: { fontSize: 15, fontWeight: "700", color: Colors.text },
   remove: { borderColor: Colors.secondary, backgroundColor: Colors.secondary },
   removeText: { fontSize: 15, fontWeight: "700", color: "#FFFFFF" },

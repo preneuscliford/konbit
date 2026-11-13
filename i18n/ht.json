@@ -168,7 +168,14 @@
       "signOut": "Dekonekte",
       "signIn": "Konekte",
       "about": "Konsènan Konbit 509",
-      "aboutText": "Konbit 509 se yon rezo kote kominote ayisyen an ka mande èd, pwopoze yon lide oswa lanse yon pwojè, epi lòt moun vin ladan."
+      "aboutText": "Konbit 509 se yon rezo kote kominote ayisyen an ka mande èd, pwopoze yon lide oswa lanse yon pwojè, epi lòt moun vin ladan.",
+      "theme": "Tèm",
+      "themes": {
+        "light": "Klè",
+        "dark": "Nwa",
+        "system": "Otomatik",
+        "systemHint": "Menm jan ak telefòn ou"
+      }
     },
     "profile": {
       "title": "Pwofil mwen",

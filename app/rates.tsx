@@ -117,7 +117,7 @@ export default function RatesScreen() {
             )}
             {stale && (
               <View style={styles.warning}>
-                <TriangleAlert size={16} color="#B45309" />
+                <TriangleAlert size={16} color={Colors.warningText} />
                 <Text style={styles.warningText}>{t("Home.staleWarning")}</Text>
               </View>
             )}
@@ -306,7 +306,7 @@ function RateCheck({
       />
       {verdict && reference && (
         <View style={[styles.verdict, verdict.good ? styles.verdictGood : styles.verdictBad]}>
-          <Text style={[styles.verdictTitle, { color: verdict.good ? "#15803D" : Colors.secondary }]}>
+          <Text style={[styles.verdictTitle, { color: verdict.good ? Colors.successText : Colors.secondary }]}>
             {verdict.good ? t("RateCheckTool.verdictGood") : t("RateCheckTool.verdictBad")}
           </Text>
           <Text style={styles.verdictText}>
@@ -430,7 +430,7 @@ function CommunitySignals({
         )}
       </Pressable>
       {feedback && (
-        <Text style={{ color: feedback.ok ? "#15803D" : Colors.error, fontSize: 14 }}>{feedback.message}</Text>
+        <Text style={{ color: feedback.ok ? Colors.successText : Colors.error, fontSize: 14 }}>{feedback.message}</Text>
       )}
     </View>
   );
@@ -446,13 +446,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: Colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.border,
   },
   title: { flex: 1, fontSize: 18, fontWeight: "800", color: Colors.text },
   content: { padding: 16, gap: 14, paddingBottom: 32 },
   updated: { fontSize: 12, color: Colors.textMuted },
-  warning: { flexDirection: "row", gap: 8, backgroundColor: "#FEF3C7", borderRadius: 12, padding: 10 },
-  warningText: { flex: 1, fontSize: 13, color: "#92400E" },
+  warning: { flexDirection: "row", gap: 8, backgroundColor: Colors.warningBg, borderRadius: 12, padding: 10 },
+  warningText: { flex: 1, fontSize: 13, color: Colors.warningText },
   tiles: { flexDirection: "row", gap: 10 },
   tile: {
     flex: 1,
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#EEEEE8",
+    borderColor: Colors.borderSoft,
     gap: 2,
   },
   tileMain: { backgroundColor: Colors.primary, borderColor: Colors.primary },
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: "#EEEEE8",
+    borderColor: Colors.borderSoft,
   },
   cardTitle: { fontSize: 16, fontWeight: "800", color: Colors.text },
   segment: { flexDirection: "row", backgroundColor: Colors.surfaceMuted, borderRadius: 12, padding: 3 },
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 12,
   },
@@ -521,11 +521,11 @@ const styles = StyleSheet.create({
   },
   resultValue: { flex: 1, fontSize: 18, fontWeight: "800", color: Colors.primary },
   quickRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  quick: { borderWidth: 1, borderColor: "#E5E7EB", borderRadius: 14, paddingHorizontal: 12, paddingVertical: 5 },
+  quick: { borderWidth: 1, borderColor: Colors.border, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 5 },
   quickText: { fontSize: 13, color: Colors.text },
   input: {
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -534,8 +534,8 @@ const styles = StyleSheet.create({
   },
   inputRow: { flexDirection: "row", gap: 8 },
   verdict: { borderRadius: 12, padding: 12, gap: 4 },
-  verdictGood: { backgroundColor: "#DCFCE7" },
-  verdictBad: { backgroundColor: "#FEE2E2" },
+  verdictGood: { backgroundColor: Colors.successBg },
+  verdictBad: { backgroundColor: Colors.dangerBg },
   verdictTitle: { fontSize: 15, fontWeight: "800" },
   verdictText: { fontSize: 13, color: Colors.textLight },
   median: { fontSize: 15, fontWeight: "700", color: Colors.text },

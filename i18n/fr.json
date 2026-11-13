@@ -168,7 +168,14 @@
       "signOut": "Se déconnecter",
       "signIn": "Se connecter",
       "about": "À propos de Konbit 509",
-      "aboutText": "Konbit 509 est un réseau d'entraide où la communauté haïtienne peut demander de l'aide, proposer une idée ou lancer un projet, et où d'autres viennent y participer."
+      "aboutText": "Konbit 509 est un réseau d'entraide où la communauté haïtienne peut demander de l'aide, proposer une idée ou lancer un projet, et où d'autres viennent y participer.",
+      "theme": "Thème",
+      "themes": {
+        "light": "Clair",
+        "dark": "Sombre",
+        "system": "Automatique",
+        "systemHint": "Comme ton téléphone"
+      }
     },
     "profile": {
       "title": "Mon profil",

@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.border,
   },
   topTitle: { flex: 1, fontSize: 18, fontWeight: "800", color: Colors.text },
   content: { padding: 24, gap: 10 },

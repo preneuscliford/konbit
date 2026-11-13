@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   heading: { fontSize: 24, fontWeight: "800", color: Colors.text },
   cardShadow: {
     borderRadius: 22,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.surface,
     elevation: 4,
     shadowColor: "#00145F",
     shadowOpacity: 0.18,

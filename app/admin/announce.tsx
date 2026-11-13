@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   counter: { fontSize: 12, color: Colors.textMuted },
   input: {
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,

@@ -29,7 +29,7 @@ export default function KonbitFeedScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={Colors.statusBar} />
       <AppHeader action={<NotificationBell />} />
       <OfflineBanner />
 

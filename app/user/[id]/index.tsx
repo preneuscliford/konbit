@@ -155,7 +155,7 @@ export default function UserProfileScreen() {
             <Pressable
               onPress={() => router.push("/profile-edit")}
               style={styles.outlineButton}
-              android_ripple={{ color: "rgba(0,0,0,0.06)" }}
+              android_ripple={{ color: Colors.ripple }}
               accessibilityRole="button"
             >
               <Text style={styles.outlineText}>{t("App.userProfile.edit")}</Text>
@@ -164,7 +164,7 @@ export default function UserProfileScreen() {
           <Pressable
             onPress={share}
             style={styles.outlineButton}
-            android_ripple={{ color: "rgba(0,0,0,0.06)" }}
+            android_ripple={{ color: Colors.ripple }}
             accessibilityRole="button"
           >
             <Share2 size={16} color={Colors.text} />
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
+    borderColor: Colors.borderStrong,
     borderRadius: 19,
     paddingHorizontal: 16,
     height: 38,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.border,
     paddingHorizontal: 16,
   },
   tabActive: { borderBottomWidth: 3, borderBottomColor: Colors.primary, paddingVertical: 10 },

@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import LottieView from "lottie-react-native";
 import { StatusBar } from "expo-status-bar";
+import Colors from "@/constants/Colors";
 
 // Intro Konbit 509 (2,5 s) : prend le relais du splash natif, même fond blanc.
 const AnimationScreen = ({
@@ -27,7 +28,7 @@ export default AnimationScreen;
 
 const styles = StyleSheet.create({
   animationContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.surface,
     alignItems: "center",
     justifyContent: "center",
     flex: 1,

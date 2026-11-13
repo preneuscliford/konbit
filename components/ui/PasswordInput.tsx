@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     borderRadius: 12,
   },
   input: { flex: 1, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: Colors.text },
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   requirement: { flexDirection: "row", alignItems: "center", gap: 6 },
   requirementText: { fontSize: 12, color: Colors.textMuted },
   bars: { flexDirection: "row", gap: 6 },
-  bar: { flex: 1, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB" },
+  bar: { flex: 1, height: 4, borderRadius: 2, backgroundColor: Colors.border },
   strengthText: { fontSize: 12, fontWeight: "700" },
   tip: { fontSize: 12, color: Colors.textMuted },
 });

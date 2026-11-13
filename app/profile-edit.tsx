@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.border,
   },
   title: { flex: 1, fontSize: 18, fontWeight: "800", color: Colors.text },
   save: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarWrap: { marginTop: -43, marginLeft: 16, alignSelf: "flex-start" },
-  avatarPreview: { width: 86, height: 86, borderRadius: 43, borderWidth: 4, borderColor: "#FFFFFF" },
+  avatarPreview: { width: 86, height: 86, borderRadius: 43, borderWidth: 4, borderColor: Colors.surface },
   avatarCamera: {
     position: "absolute",
     right: 0,
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: Colors.primary,
     borderWidth: 2,
-    borderColor: "#FFFFFF",
+    borderColor: Colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   counter: { fontSize: 12, color: Colors.textMuted },
   input: {
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,

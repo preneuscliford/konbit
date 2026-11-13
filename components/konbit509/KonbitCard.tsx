@@ -97,7 +97,7 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
   const openAuthor = () => router.push({ pathname: "/user/[id]", params: { id: konbit.author_id } });
 
   return (
-    <Pressable onPress={detailed ? undefined : open} style={styles.card} android_ripple={detailed ? undefined : { color: "rgba(0,0,0,0.04)" }}>
+    <Pressable onPress={detailed ? undefined : open} style={styles.card} android_ripple={detailed ? undefined : { color: Colors.ripple }}>
       <Pressable onPress={openAuthor} hitSlop={4} accessibilityRole="link">
         <Avatar
           pseudo={konbit.author_pseudo}
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     backgroundColor: Colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.border,
   },
   main: { flex: 1, gap: 6 },
   metaRow: { flexDirection: "row", alignItems: "center" },
@@ -212,13 +212,13 @@ const styles = StyleSheet.create({
   menuButton: { paddingLeft: 8 },
   kindBadge: {
     alignSelf: "flex-start",
-    backgroundColor: "#FEF3C7",
+    backgroundColor: Colors.warningBg,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
   kindProject: { backgroundColor: Colors.primary50 },
-  kindText: { fontSize: 12, fontWeight: "700", color: "#92400E" },
+  kindText: { fontSize: 12, fontWeight: "700", color: Colors.warningText },
   kindTextProject: { color: Colors.primary },
   body: { fontSize: 15, lineHeight: 22, color: Colors.text },
   bodyDetailed: { fontSize: 18, lineHeight: 27 },

@@ -54,7 +54,7 @@ function QueueRow({ item }: { item: QueueItem }) {
         router.push({ pathname: "/admin/report", params: { type: item.target_type, id: String(item.target_id) } })
       }
       style={styles.row}
-      android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+      android_ripple={{ color: Colors.ripple }}
     >
       <View style={{ flex: 1, gap: 6 }}>
         <View style={styles.meta}>
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#F0F0EB",
+    borderBottomColor: Colors.borderSoft,
   },
   meta: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
   type: { fontSize: 12, fontWeight: "800", color: Colors.primary, textTransform: "uppercase" },

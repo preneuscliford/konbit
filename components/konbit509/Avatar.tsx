@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { Image } from "expo-image";
 import { Text } from "@/components/ui/Text";
 import { profileImageUrl } from "@/lib/konbits";
+import Colors from "@/constants/Colors";
 
 // Photo de profil si la personne en a mis une (petite, mise en cache disque),
 // sinon des initiales sur une couleur stable par personne.
@@ -33,14 +34,14 @@ export default function Avatar({
   const box = [
     styles.circle,
     { width: size, height: size, borderRadius: size / 2 },
-    ring && { borderWidth: 4, borderColor: "#FFFFFF" },
+    ring && { borderWidth: 4, borderColor: Colors.surface },
   ];
 
   if (avatarPath) {
     return (
       <Image
         source={{ uri: profileImageUrl(avatarPath) }}
-        style={[box, { backgroundColor: "#E5E7EB" }]}
+        style={[box, { backgroundColor: Colors.border }]}
         contentFit="cover"
         cachePolicy="disk"
         transition={120}

@@ -35,7 +35,7 @@ export default function ActionSheet({
               <Pressable
                 key={option.label}
                 style={styles.option}
-                android_ripple={{ color: "rgba(0,0,0,0.06)" }}
+                android_ripple={{ color: Colors.ripple }}
                 onPress={() => {
                   onClose();
                   option.onPress();
@@ -45,7 +45,7 @@ export default function ActionSheet({
               </Pressable>
             ))}
             <View style={styles.separator} />
-            <Pressable style={styles.option} onPress={onClose} android_ripple={{ color: "rgba(0,0,0,0.06)" }}>
+            <Pressable style={styles.option} onPress={onClose} android_ripple={{ color: Colors.ripple }}>
               <Text style={[styles.optionText, styles.cancel]}>{t("App.cancel")}</Text>
             </Pressable>
           </Pressable>
@@ -68,6 +68,6 @@ const styles = StyleSheet.create({
   option: { paddingHorizontal: 20, paddingVertical: 15 },
   optionText: { fontSize: 16, color: Colors.text },
   destructive: { color: Colors.secondary, fontWeight: "600" },
-  separator: { height: StyleSheet.hairlineWidth, backgroundColor: "#E5E7EB", marginVertical: 4 },
+  separator: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border, marginVertical: 4 },
   cancel: { fontWeight: "600", color: Colors.textMuted },
 });

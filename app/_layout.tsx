@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import * as SystemUI from "expo-system-ui";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
@@ -10,6 +11,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import AnimationScreen from "@/components/AnimationScreen";
+import Colors from "@/constants/Colors";
 import PushManager from "@/components/PushManager";
 import { FONT_ASSETS } from "@/components/ui/Text";
 import { useAppState } from "@/hooks/useAppState";
@@ -18,6 +20,7 @@ import { useUsagePing } from "@/hooks/useUsagePing";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { LocalStateProvider, useLocalState } from "@/lib/localState";
+import { followSystemTheme } from "@/lib/theme";
 
 // Les fonctions mises de côté (ancien code Supabase, messages…) sont dans later/.
 
@@ -71,6 +74,10 @@ function AppGate() {
 
   useEffect(() => {
     SplashScreen.hideAsync();
+    // Fond de la fenêtre aux couleurs du thème (évite un éclair blanc entre les écrans).
+    void SystemUI.setBackgroundColorAsync(Colors.surfaceWarm);
+    // Thème « Otomatik » : suit le téléphone s'il change pendant l'utilisation.
+    return followSystemTheme();
   }, []);
 
   if (!animationFinished || !fontsLoaded || !i18n.ready || !local.ready || !auth.ready) {
@@ -81,7 +88,7 @@ function AppGate() {
     <>
       {/* Push : enregistrement du téléphone et ouverture des notifications touchées. */}
       <PushManager />
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.surfaceWarm } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="compose" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
         <Stack.Screen name="account" options={{ presentation: "modal", animation: "slide_from_bottom" }} />

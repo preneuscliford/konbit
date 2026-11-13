@@ -185,7 +185,7 @@ function TeamNotificationRow({ notification: n, onMenu }: { notification: AppNot
       }
       onLongPress={onMenu}
       style={[styles.row, !n.read_at && styles.unread]}
-      android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+      android_ripple={{ color: Colors.ripple }}
     >
       <NotificationAvatar notification={n} />
       <View style={{ flex: 1, gap: 4 }}>
@@ -252,7 +252,7 @@ function SocialNotificationRow({ notification: n, onMenu }: { notification: AppN
       onPress={open}
       onLongPress={onMenu}
       style={[styles.row, !n.read_at && styles.unread]}
-      android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+      android_ripple={{ color: Colors.ripple }}
     >
       <Pressable
         onPress={() => n.actor && router.push({ pathname: "/user/[id]", params: { id: n.actor.id } })}
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.border,
   },
   title: { fontSize: 18, fontWeight: "800", color: Colors.text },
   row: {
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#F0F0EB",
+    borderBottomColor: Colors.borderSoft,
   },
   unread: { backgroundColor: Colors.primary50 },
   avatarBox: { width: AVATAR_SIZE, height: AVATAR_SIZE },
@@ -302,9 +302,9 @@ const styles = StyleSheet.create({
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -316,9 +316,9 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },

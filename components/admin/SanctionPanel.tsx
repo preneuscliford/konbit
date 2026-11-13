@@ -97,7 +97,7 @@ export default function SanctionPanel({ userId, isAdmin, defaultReason, content,
         <ActivityIndicator color={Colors.primary} style={{ marginVertical: 8 }} />
       ) : (
         <>
-          <Pressable onPress={() => confirm("warn")} style={styles.button} android_ripple={{ color: "rgba(0,0,0,0.05)" }}>
+          <Pressable onPress={() => confirm("warn")} style={styles.button} android_ripple={{ color: Colors.ripple }}>
             <Text style={styles.buttonText}>{t("App.admin.sanction.warn")}</Text>
           </Pressable>
 
@@ -114,7 +114,7 @@ export default function SanctionPanel({ userId, isAdmin, defaultReason, content,
             <Pressable
               onPress={() => confirm("restrict")}
               style={[styles.button, styles.warnButton]}
-              android_ripple={{ color: "rgba(0,0,0,0.05)" }}
+              android_ripple={{ color: Colors.ripple }}
             >
               <Text style={[styles.buttonText, styles.warnText]}>{t("App.admin.sanction.restrictFor", { days })}</Text>
             </Pressable>
@@ -139,13 +139,13 @@ const styles = StyleSheet.create({
   panel: { gap: 10 },
   label: { fontSize: 13, fontWeight: "700", color: Colors.textLight },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  chip: { borderWidth: 1, borderColor: "#E5E7EB", borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6 },
+  chip: { borderWidth: 1, borderColor: Colors.border, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6 },
   chipActive: { borderColor: Colors.primary, backgroundColor: Colors.primary50 },
   chipText: { fontSize: 13, color: Colors.text },
   chipTextActive: { color: Colors.primary, fontWeight: "700" },
   input: {
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -157,15 +157,15 @@ const styles = StyleSheet.create({
   restrictRow: { gap: 8 },
   button: {
     borderWidth: 1,
-    borderColor: "#D1D5DB",
+    borderColor: Colors.borderStrong,
     borderRadius: 22,
     paddingVertical: 11,
     alignItems: "center",
     overflow: "hidden",
   },
   buttonText: { fontSize: 15, fontWeight: "700", color: Colors.text },
-  warnButton: { borderColor: "#FCD34D", backgroundColor: "#FFFBEB" },
-  warnText: { color: "#92400E" },
+  warnButton: { borderColor: "#FCD34D", backgroundColor: Colors.warningBgSoft },
+  warnText: { color: Colors.warningText },
   dangerButton: { borderColor: Colors.secondary, backgroundColor: Colors.secondary },
   dangerText: { color: "#FFFFFF" },
 });

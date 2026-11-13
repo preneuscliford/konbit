@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     backgroundColor: Colors.secondary,
     borderWidth: 2,
-    borderColor: "#FFFFFF",
+    borderColor: Colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },

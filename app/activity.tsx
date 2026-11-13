@@ -91,7 +91,7 @@ export default function ActivityScreen() {
           <Pressable
             onPress={() => router.push({ pathname: "/user/[id]/follows", params: { id: userId, tab: "following" } })}
             style={[styles.infoRow, styles.infoBorder]}
-            android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+            android_ripple={{ color: Colors.ripple }}
           >
             <Users size={16} color={Colors.textMuted} />
             <Text style={[styles.infoText, { flex: 1 }]}>
@@ -195,7 +195,7 @@ function ActivityRow({ row }: { row: Row }) {
     <Pressable
       onPress={() => konbitId && router.push({ pathname: "/konbit/[id]", params: { id: String(konbitId) } })}
       style={styles.row}
-      android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+      android_ripple={{ color: Colors.ripple }}
       // Un konbit masqué par la modération ne s'ouvre pas dans le fil.
       disabled={!konbitId || (status !== null && status !== "visible")}
     >
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.border,
   },
   title: { fontSize: 18, fontWeight: "800", color: Colors.text },
   header: { padding: 16, gap: 14 },
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     gap: 2,
   },
   tileActive: { borderColor: Colors.primary, backgroundColor: Colors.primary50 },
@@ -280,9 +280,9 @@ const styles = StyleSheet.create({
   tileCountActive: { color: Colors.primary },
   tileLabel: { fontSize: 12, color: Colors.textMuted },
   tileLabelActive: { color: Colors.primary, fontWeight: "700" },
-  card: { borderRadius: 14, borderWidth: 1, borderColor: "#EEEEE8", overflow: "hidden" },
+  card: { borderRadius: 14, borderWidth: 1, borderColor: Colors.borderSoft, overflow: "hidden" },
   infoRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingVertical: 12 },
-  infoBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E7EB" },
+  infoBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.border },
   infoText: { fontSize: 13, lineHeight: 19, color: Colors.textLight, flexShrink: 1 },
   sectionTitle: { fontSize: 12, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", marginTop: 4 },
   row: {
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#F0F0EB",
+    borderTopColor: Colors.borderSoft,
   },
   context: { fontSize: 12, color: Colors.textMuted },
   body: { fontSize: 15, lineHeight: 21, color: Colors.text },
@@ -301,16 +301,16 @@ const styles = StyleSheet.create({
   badge: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#92400E",
-    backgroundColor: "#FEF3C7",
+    color: Colors.warningText,
+    backgroundColor: Colors.warningBg,
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
     overflow: "hidden",
   },
-  badgeRemoved: { color: "#991B1B", backgroundColor: "#FEE2E2" },
+  badgeRemoved: { color: Colors.dangerText, backgroundColor: Colors.dangerBg },
   iconAction: { padding: 6 },
-  textAction: { borderWidth: 1, borderColor: "#D1D5DB", borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
+  textAction: { borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   textActionLabel: { fontSize: 13, fontWeight: "700", color: Colors.text },
   empty: { textAlign: "center", color: Colors.textMuted, padding: 32 },
 });

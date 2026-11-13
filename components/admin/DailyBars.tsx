@@ -41,7 +41,7 @@ export default function DailyBars({ title, days, formatDay, height = 96 }: Props
                 styles.bar,
                 {
                   height: d.value === 0 ? 2 : Math.max(4, (d.value / max) * height),
-                  backgroundColor: d.value === 0 ? "#E5E7EB" : Colors.primary,
+                  backgroundColor: d.value === 0 ? Colors.border : Colors.primary,
                   opacity: i === focus || d.value === 0 ? 1 : 0.55,
                 },
               ]}
@@ -58,7 +58,7 @@ export default function DailyBars({ title, days, formatDay, height = 96 }: Props
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderColor: "#EEEEE8", borderRadius: 14, padding: 14, gap: 10 },
+  card: { borderWidth: 1, borderColor: Colors.borderSoft, borderRadius: 14, padding: 14, gap: 10 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
   title: { fontSize: 13, fontWeight: "700", color: Colors.textLight },
   value: { fontSize: 16, fontWeight: "800", color: Colors.text },

@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet } from "react-native";
 import { Text } from "@/components/ui/Text";
 import { useI18n } from "@/lib/i18n";
+import Colors from "@/constants/Colors";
 
 // État d'un contenu modéré : masqué en attente (3 signalements) ou retiré.
 export default function StatusBadge({ status }: { status: "visible" | "hidden" | "removed" }) {
@@ -16,12 +17,12 @@ const styles = StyleSheet.create({
   badge: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#92400E",
-    backgroundColor: "#FEF3C7",
+    color: Colors.warningText,
+    backgroundColor: Colors.warningBg,
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
     overflow: "hidden",
   },
-  removed: { color: "#991B1B", backgroundColor: "#FEE2E2" },
+  removed: { color: Colors.dangerText, backgroundColor: Colors.dangerBg },
 });

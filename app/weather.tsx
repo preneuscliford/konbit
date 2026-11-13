@@ -135,9 +135,9 @@ export default function WeatherScreen() {
             {outlook && (
               <View style={[styles.outlook, styles[`outlook_${outlook}` as const]]}>
                 {outlook === "good" ? (
-                  <CloudSun size={20} color="#15803D" />
+                  <CloudSun size={20} color={Colors.successText} />
                 ) : outlook === "rain-likely" ? (
-                  <Umbrella size={20} color="#B45309" />
+                  <Umbrella size={20} color={Colors.warningText} />
                 ) : (
                   <CloudRain size={20} color={Colors.secondary} />
                 )}
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: Colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.border,
   },
   title: { flex: 1, fontSize: 18, fontWeight: "800", color: Colors.text },
   content: { padding: 16, gap: 14, paddingBottom: 32 },
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
   },
   cityChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   cityText: { fontSize: 13, fontWeight: "600", color: Colors.text },
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
     borderWidth: 1,
-    borderColor: "#EEEEE8",
+    borderColor: Colors.borderSoft,
   },
   nowCard: { borderRadius: 20, padding: 16, gap: 10, overflow: "hidden" },
   cityName: { fontSize: 15, fontWeight: "700", color: "rgba(255,255,255,0.9)" },
@@ -273,9 +273,9 @@ const styles = StyleSheet.create({
   statLabel: { flex: 1, fontSize: 12, color: "rgba(255,255,255,0.85)" },
   statValue: { fontSize: 13, fontWeight: "700", color: "#FFFFFF" },
   outlook: { flexDirection: "row", gap: 10, borderRadius: 14, padding: 12, alignItems: "flex-start" },
-  "outlook_good": { backgroundColor: "#DCFCE7" },
-  "outlook_rain-likely": { backgroundColor: "#FEF3C7" },
-  "outlook_heavy-rain": { backgroundColor: "#FEE2E2" },
+  "outlook_good": { backgroundColor: Colors.successBg },
+  "outlook_rain-likely": { backgroundColor: Colors.warningBg },
+  "outlook_heavy-rain": { backgroundColor: Colors.dangerBg },
   outlookTitle: { fontSize: 15, fontWeight: "700", color: Colors.text },
   outlookCaption: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
   cardTitle: { fontSize: 16, fontWeight: "800", color: Colors.text },

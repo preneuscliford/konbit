@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text as RNText, TextInput as RNTextInput, type TextInputProps, type TextProps } from "react-native";
+import Colors from "@/constants/Colors";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -35,17 +36,31 @@ const FAMILY_BY_WEIGHT: Record<string, string> = {
 };
 
 function withPoppins<T extends { style?: unknown }>(props: T): T {
-  const flat = (StyleSheet.flatten(props.style as never) ?? {}) as { fontWeight?: string; fontFamily?: string };
-  if (flat.fontFamily) return props;
+  const flat = (StyleSheet.flatten(props.style as never) ?? {}) as {
+    fontWeight?: string;
+    fontFamily?: string;
+    color?: string;
+  };
+  // Couleur du thème par défaut (lisible en clair comme en sombre) ; un style
+  // avec sa propre couleur la remplace.
+  const color = flat.color ?? Colors.text;
+  if (flat.fontFamily) return { ...props, style: [flat, { color }] };
   const fontFamily = FAMILY_BY_WEIGHT[String(flat.fontWeight ?? "400")] ?? "Poppins_400Regular";
-  return { ...props, style: [flat, { fontFamily, fontWeight: undefined }] };
+  return { ...props, style: [flat, { fontFamily, fontWeight: undefined, color }] };
 }
 
 export function Text(props: TextProps) {
   return <RNText {...withPoppins(props)} />;
 }
 
+// Champs : texte, indication et curseur aux couleurs du thème par défaut.
 export const TextInput = React.forwardRef<RNTextInput, TextInputProps>((props, ref) => (
-  <RNTextInput ref={ref} {...withPoppins(props)} />
+  <RNTextInput
+    ref={ref}
+    placeholderTextColor={Colors.textMuted}
+    selectionColor={Colors.primary}
+    keyboardAppearance={Colors.isDark ? "dark" : "light"}
+    {...withPoppins(props)}
+  />
 ));
 TextInput.displayName = "TextInput";

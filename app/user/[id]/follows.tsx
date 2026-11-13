@@ -70,7 +70,7 @@ function PersonRow({ person }: { person: FollowListItem }) {
   const open = () => router.push({ pathname: "/user/[id]", params: { id: person.id } });
 
   return (
-    <Pressable onPress={open} style={styles.row} android_ripple={{ color: "rgba(0,0,0,0.04)" }}>
+    <Pressable onPress={open} style={styles.row} android_ripple={{ color: Colors.ripple }}>
       <Avatar
         pseudo={person.pseudo}
         name={person.display_name}
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   topBar: { flexDirection: "row", alignItems: "center", gap: 16, paddingHorizontal: 16, paddingVertical: 10 },
   title: { fontSize: 18, fontWeight: "800", color: Colors.text },
   subtitle: { fontSize: 13, color: Colors.textMuted, marginTop: -2 },
-  tabs: { flexDirection: "row", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E7EB" },
+  tabs: { flexDirection: "row", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border },
   tab: { flex: 1, alignItems: "center", paddingTop: 12 },
   tabText: { fontSize: 15, fontWeight: "600", color: Colors.textMuted, paddingBottom: 10 },
   tabTextActive: { color: Colors.text, fontWeight: "800" },
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#F0F0EB",
+    borderBottomColor: Colors.borderSoft,
   },
   rowText: { flex: 1 },
   name: { fontSize: 15, fontWeight: "700", color: Colors.text },

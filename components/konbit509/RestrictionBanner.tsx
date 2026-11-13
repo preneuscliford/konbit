@@ -4,6 +4,7 @@ import { ShieldAlert } from "lucide-react-native";
 import { Text } from "@/components/ui/Text";
 import { useMyModerationStatus } from "@/hooks/useAdmin";
 import { useI18n } from "@/lib/i18n";
+import Colors from "@/constants/Colors";
 
 // Compte restreint ou suspendu : impossible de publier / répondre (le serveur
 // refuse de toute façon). blocked sert à désactiver le bouton d'envoi.
@@ -25,7 +26,7 @@ export default function RestrictionBanner({ message }: { message: string | null 
   if (!message) return null;
   return (
     <View style={styles.banner}>
-      <ShieldAlert size={18} color="#991B1B" />
+      <ShieldAlert size={18} color={Colors.dangerText} />
       <Text style={styles.text}>{message}</Text>
     </View>
   );
@@ -36,9 +37,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "#FEF2F2",
+    backgroundColor: Colors.dangerBgSoft,
     borderRadius: 12,
     padding: 12,
   },
-  text: { flex: 1, fontSize: 13, lineHeight: 19, color: "#991B1B" },
+  text: { flex: 1, fontSize: 13, lineHeight: 19, color: Colors.dangerText },
 });

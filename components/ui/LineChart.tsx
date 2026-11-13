@@ -56,8 +56,8 @@ export default function LineChart({
         <View style={{ flex: 1 }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
           {width > 0 && (
             <Svg width={width} height={height}>
-              <Line x1={0} y1={y(rawMax)} x2={width} y2={y(rawMax)} stroke="#E5E7EB" strokeDasharray="4 4" />
-              <Line x1={0} y1={y(rawMin)} x2={width} y2={y(rawMin)} stroke="#E5E7EB" strokeDasharray="4 4" />
+              <Line x1={0} y1={y(rawMax)} x2={width} y2={y(rawMax)} stroke={Colors.border} strokeDasharray="4 4" />
+              <Line x1={0} y1={y(rawMin)} x2={width} y2={y(rawMin)} stroke={Colors.border} strokeDasharray="4 4" />
               {series.map((s) =>
                 s.points.length > 1 ? (
                   <Polyline

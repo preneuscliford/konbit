@@ -64,7 +64,7 @@ function UserRow({ user }: { user: AdminUserRow }) {
     <Pressable
       onPress={() => router.push({ pathname: "/admin/user/[id]", params: { id: user.id } })}
       style={styles.row}
-      android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+      android_ripple={{ color: Colors.ripple }}
     >
       <Avatar pseudo={user.pseudo} name={user.display_name} avatarPath={user.avatar_path} seed={user.id} size={38} />
       <View style={{ flex: 1, gap: 2 }}>
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     margin: 16,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
     borderRadius: 22,
     paddingHorizontal: 14,
   },
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#F0F0EB",
+    borderBottomColor: Colors.borderSoft,
   },
   name: { fontSize: 15, fontWeight: "700", color: Colors.text },
   small: { fontSize: 12, color: Colors.textMuted },
@@ -112,13 +112,13 @@ const styles = StyleSheet.create({
   flag: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#92400E",
-    backgroundColor: "#FEF3C7",
+    color: Colors.warningText,
+    backgroundColor: Colors.warningBg,
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
     overflow: "hidden",
   },
-  flagRed: { color: "#991B1B", backgroundColor: "#FEE2E2" },
+  flagRed: { color: Colors.dangerText, backgroundColor: Colors.dangerBg },
   empty: { textAlign: "center", color: Colors.textMuted, padding: 32 },
 });

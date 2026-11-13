@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: Colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: Colors.border,
   },
   title: { fontSize: 18, fontWeight: "800", color: Colors.text },
   content: { padding: 16, gap: 14 },

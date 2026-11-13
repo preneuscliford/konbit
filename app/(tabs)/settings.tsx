@@ -11,6 +11,11 @@ import { usePendingCount } from "@/hooks/useAdmin";
 import { useAuth } from "@/lib/auth";
 import { LANGUAGES, useI18n } from "@/lib/i18n";
 import { PRIVACY_URL, TERMS_URL } from "@/lib/legal";
+import { readThemeChoice, setThemeChoice, type ThemeChoice } from "@/lib/theme";
+
+const THEMES: ThemeChoice[] = ["light", "dark", "system"];
+// Thème de la session en cours (le changer relance l'app).
+const theme = readThemeChoice();
 
 // Paramètres : langue, compte, (notifications quand le flag
 // "settings.notifications" sera activé et la fonction livrée). Le profil s'ouvre d'ici.
@@ -38,11 +43,33 @@ export default function SettingsScreen() {
               key={l.code}
               onPress={() => setLanguage(l.code)}
               style={[styles.row, i > 0 && styles.rowBorder]}
-              android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+              android_ripple={{ color: Colors.ripple }}
               accessibilityState={{ selected: language === l.code }}
             >
               <Text style={[styles.rowText, language === l.code && styles.selected]}>{l.label}</Text>
               {language === l.code && <Check size={18} color={Colors.primary} />}
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Thème : changer relance l'app une fraction de seconde (lib/theme.ts). */}
+        <Text style={styles.section}>{t("App.settings.theme")}</Text>
+        <View style={styles.card}>
+          {THEMES.map((value, i) => (
+            <Pressable
+              key={value}
+              onPress={() => value !== theme && void setThemeChoice(value)}
+              style={[styles.row, i > 0 && styles.rowBorder]}
+              android_ripple={{ color: Colors.ripple }}
+              accessibilityState={{ selected: theme === value }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.rowText, theme === value && styles.selected]}>
+                  {t(`App.settings.themes.${value}`)}
+                </Text>
+                {value === "system" && <Text style={styles.rowSub}>{t("App.settings.themes.systemHint")}</Text>}
+              </View>
+              {theme === value && <Check size={18} color={Colors.primary} />}
             </Pressable>
           ))}
         </View>
@@ -54,7 +81,7 @@ export default function SettingsScreen() {
               <Pressable
                 onPress={() => router.push({ pathname: "/user/[id]", params: { id: userId } })}
                 style={styles.row}
-                android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+                android_ripple={{ color: Colors.ripple }}
               >
                 <UserRound size={18} color={Colors.text} />
                 <View style={styles.rowMain}>
@@ -67,7 +94,7 @@ export default function SettingsScreen() {
                 <Pressable
                   onPress={() => router.push("/admin")}
                   style={[styles.row, styles.rowBorder]}
-                  android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+                  android_ripple={{ color: Colors.ripple }}
                 >
                   <ShieldCheck size={18} color={Colors.primary} />
                   <Text style={[styles.rowText, styles.rowMain, styles.selected]}>{t("App.admin.title")}</Text>
@@ -82,7 +109,7 @@ export default function SettingsScreen() {
               <Pressable
                 onPress={() => router.push("/activity")}
                 style={[styles.row, styles.rowBorder]}
-                android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+                android_ripple={{ color: Colors.ripple }}
               >
                 <Activity size={18} color={Colors.text} />
                 <View style={styles.rowMain}>
@@ -94,7 +121,7 @@ export default function SettingsScreen() {
               <Pressable
                 onPress={confirmSignOut}
                 style={[styles.row, styles.rowBorder]}
-                android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+                android_ripple={{ color: Colors.ripple }}
               >
                 <LogOut size={18} color={Colors.secondary} />
                 <Text style={[styles.rowText, styles.rowMain, { color: Colors.secondary }]}>
@@ -117,7 +144,7 @@ export default function SettingsScreen() {
             <Pressable
               onPress={() => router.push("/account")}
               style={styles.row}
-              android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+              android_ripple={{ color: Colors.ripple }}
             >
               <UserRound size={18} color={Colors.primary} />
               <Text style={[styles.rowText, styles.rowMain, styles.selected]}>
@@ -134,14 +161,14 @@ export default function SettingsScreen() {
           <Text style={styles.muted}>{t("App.dataSource")}</Text>
         </View>
         <View style={styles.card}>
-          <Pressable onPress={() => Linking.openURL(TERMS_URL)} style={styles.row} android_ripple={{ color: "rgba(0,0,0,0.04)" }}>
+          <Pressable onPress={() => Linking.openURL(TERMS_URL)} style={styles.row} android_ripple={{ color: Colors.ripple }}>
             <Text style={[styles.rowText, styles.rowMain]}>{t("App.legal.terms")}</Text>
             <ChevronRight size={18} color={Colors.textMuted} />
           </Pressable>
           <Pressable
             onPress={() => Linking.openURL(PRIVACY_URL)}
             style={[styles.row, styles.rowBorder]}
-            android_ripple={{ color: "rgba(0,0,0,0.04)" }}
+            android_ripple={{ color: Colors.ripple }}
           >
             <Text style={[styles.rowText, styles.rowMain]}>{t("App.legal.privacy")}</Text>
             <ChevronRight size={18} color={Colors.textMuted} />
@@ -160,9 +187,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.surfaceWarm },
   content: { padding: 16, gap: 8 },
   section: { fontSize: 12, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", marginTop: 12 },
-  card: { backgroundColor: Colors.surface, borderRadius: 14, borderWidth: 1, borderColor: "#EEEEE8", overflow: "hidden" },
+  card: { backgroundColor: Colors.surface, borderRadius: 14, borderWidth: 1, borderColor: Colors.borderSoft, overflow: "hidden" },
   row: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16 },
-  rowBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E7EB" },
+  rowBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.border },
   rowMain: { flex: 1 },
   rowText: { fontSize: 16, color: Colors.text },
   rowSub: { fontSize: 13, color: Colors.textMuted },

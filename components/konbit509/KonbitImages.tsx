@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Image } from "expo-image";
 import { mediaUrl, type KonbitImage } from "@/lib/konbits";
+import Colors from "@/constants/Colors";
 
 // 1 image : pleine largeur, à son format (bornée). 2 images : côte à côte.
 // Cache disque d'expo-image : une image vue n'est téléchargée qu'une fois.
@@ -40,7 +41,7 @@ export default function KonbitImages({ media }: { media: KonbitImage[] }) {
 }
 
 const styles = StyleSheet.create({
-  single: { width: "100%", borderRadius: 14, backgroundColor: "#F0F0EB" },
+  single: { width: "100%", borderRadius: 14, backgroundColor: Colors.borderSoft },
   row: { flexDirection: "row", gap: 4, borderRadius: 14, overflow: "hidden" },
-  half: { flex: 1, aspectRatio: 0.8, backgroundColor: "#F0F0EB" },
+  half: { flex: 1, aspectRatio: 0.8, backgroundColor: Colors.borderSoft },
 });

@@ -55,7 +55,7 @@ export default function SignalementScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={Colors.statusBar} />
       <AppHeader
         action={
           <Pressable
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
   },
   chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   chipText: { fontSize: 13, fontWeight: "600", color: Colors.text },
