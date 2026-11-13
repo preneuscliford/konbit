@@ -663,6 +663,19 @@
       "konbit": "🤝 Rejoins le konbit « {title} » sur Konbit 509 !",
       "post": "À voir sur Konbit 509 👇",
       "business": "Découvre {name} sur Konbit 509 👇"
+    },
+    "repost": {
+      "action": "Republier",
+      "undo": "Annuler le repost",
+      "quote": "Republier avec un message",
+      "reposted": "{name} a republié",
+      "done": "Republié.",
+      "undone": "Repost annulé.",
+      "unavailable": "La publication d'origine n'est plus disponible.",
+      "composeTitle": "Republier",
+      "captionPlaceholder": "Ajoute un message (facultatif)…",
+      "published": "Republié.",
+      "you": "Tu"
     }
   },
   "Konbit": {

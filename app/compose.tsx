@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Redirect, useRouter } from "expo-router";
+import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,16 +10,26 @@ import { Handshake, ImagePlus, MapPin, X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import CommunePicker from "@/components/konbit/CommunePicker";
 import Avatar from "@/components/konbit509/Avatar";
+import QuotedKonbit from "@/components/konbit509/QuotedKonbit";
 import RestrictionBanner, { useRestriction } from "@/components/konbit509/RestrictionBanner";
 import EmojiButton, { useEmojiInput } from "@/components/ui/EmojiButton";
 import KeyboardScroll from "@/components/ui/KeyboardScroll";
 import LinkedText from "@/components/ui/LinkedText";
 import { Text, TextInput } from "@/components/ui/Text";
 import { useCommunes } from "@/hooks/useKonbit";
+import { useKonbit } from "@/hooks/useKonbits";
 import { useAuth } from "@/lib/auth";
 import { compressImage, type CompressedImage } from "@/lib/imageCompression";
 import { useI18n } from "@/lib/i18n";
-import { createKonbit, KONBIT_MAX_LENGTH, KonbitError, MAX_IMAGES, uploadKonbitImage } from "@/lib/konbits";
+import {
+  createKonbit,
+  KONBIT_MAX_LENGTH,
+  KonbitError,
+  MAX_IMAGES,
+  quoteRepost,
+  repost,
+  uploadKonbitImage,
+} from "@/lib/konbits";
 import { COMMUNITY_RULES_URL } from "@/lib/legal";
 
 // Commune « tout le pays » : un pòs sans commune choisie.
@@ -35,6 +45,11 @@ export default function ComposeScreen() {
   const { canPost, profile, userId } = useAuth();
   const communes = useCommunes();
   const restriction = useRestriction();
+  // Repost avec message : la publication d'origine s'affiche en dessous.
+  const params = useLocalSearchParams<{ repostOf?: string }>();
+  const repostOf = params.repostOf ? Number(params.repostOf) : null;
+  const original = useKonbit(repostOf ?? 0);
+  const quoting = repostOf !== null;
 
   const [body, setBody] = useState("");
   const [communeSlug, setCommuneSlug] = useState("");
@@ -48,7 +63,9 @@ export default function ComposeScreen() {
   if (!canPost) return <Redirect href="/account" />;
 
   const remaining = KONBIT_MAX_LENGTH - body.length;
-  const canSubmit = body.trim().length > 0 && !sending && !preparing && !restriction.blocked;
+  // Un repost peut partir sans légende ; un pòs a besoin de texte.
+  const canSubmit =
+    (quoting ? !!original.data : body.trim().length > 0) && !sending && !preparing && !restriction.blocked;
 
   async function pickImages() {
     const slots = MAX_IMAGES - images.length;
@@ -81,9 +98,15 @@ export default function ComposeScreen() {
     setSending(true);
     try {
       const media = await Promise.all(images.map((image) => uploadKonbitImage(userId, image)));
-      await createKonbit(body, communeSlug || NATIONAL, "discussion", media);
+      if (quoting && original.data) {
+        // Sans légende ni photo : repost simple. Sinon : repost avec message.
+        if (!body.trim() && media.length === 0) await repost(original.data);
+        else await quoteRepost(body, communeSlug || original.data.commune_slug, media, original.data.id);
+      } else {
+        await createKonbit(body, communeSlug || NATIONAL, "discussion", media);
+      }
       await queryClient.invalidateQueries({ queryKey: ["konbits"] });
-      Burnt.toast({ title: t("App.compose.published"), preset: "done" });
+      Burnt.toast({ title: t(quoting ? "App.repost.published" : "App.compose.published"), preset: "done" });
       router.back();
     } catch (e) {
       setError(t(`App.konbitErrors.${e instanceof KonbitError ? e.code : "failed"}`));
@@ -133,7 +156,7 @@ export default function ComposeScreen() {
             value={body}
             onChangeText={(text) => setBody(text.slice(0, KONBIT_MAX_LENGTH))}
             onSelectionChange={emoji.onSelectionChange}
-            placeholder={t("App.compose.placeholder")}
+            placeholder={t(quoting ? "App.repost.captionPlaceholder" : "App.compose.placeholder")}
             maxLength={KONBIT_MAX_LENGTH}
             multiline
             autoFocus
@@ -158,6 +181,8 @@ export default function ComposeScreen() {
             ))}
           </View>
         )}
+
+        {quoting && <QuotedKonbit original={original.data ?? null} disabled />}
 
         {communeSlug ? (
           <View style={styles.communeChip}>
@@ -202,9 +227,11 @@ export default function ComposeScreen() {
             <MapPin size={22} color={Colors.primary} />
           </Pressable>
           <EmojiButton onPick={emoji.insert} />
-          <Pressable onPress={toKonbit} style={styles.tool} hitSlop={6} accessibilityLabel={t("App.compose.toKonbit")}>
-            <Handshake size={22} color={Colors.primary} />
-          </Pressable>
+          {!quoting && (
+            <Pressable onPress={toKonbit} style={styles.tool} hitSlop={6} accessibilityLabel={t("App.compose.toKonbit")}>
+              <Handshake size={22} color={Colors.primary} />
+            </Pressable>
+          )}
           <Text style={[styles.count, remaining < 20 && styles.countLow]}>{body.length > 0 ? remaining : ""}</Text>
         </View>
 

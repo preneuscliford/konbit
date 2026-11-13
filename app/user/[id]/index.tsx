@@ -7,7 +7,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Linking from "expo-linking";
-import { ArrowLeft, CalendarDays, MapPin, Share2 } from "lucide-react-native";
+import { ArrowLeft, CalendarDays, MapPin } from "lucide-react-native";
+import ShareIcon from "@/components/ui/ShareIcon";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
 import FollowButton from "@/components/konbit509/FollowButton";
@@ -169,7 +170,7 @@ export default function UserProfileScreen() {
             android_ripple={{ color: Colors.ripple }}
             accessibilityRole="button"
           >
-            <Share2 size={16} color={Colors.text} />
+            <ShareIcon size={17} color={Colors.text} />
             <Text style={styles.outlineText}>{t("App.userProfile.share")}</Text>
           </Pressable>
         </View>

@@ -66,11 +66,12 @@ export const HandshakeIcon = (p: IconProps) => (
   </Svg>
 );
 
+// Partage : boîte ouverte d'où sort une flèche courbe (comme dans l'app).
 export const ShareIcon = (p: IconProps) => (
   <Svg {...p}>
-    <path d="M12 2v13" />
-    <path d="m16 6-4-4-4 4" />
-    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+    <path d="M10 8H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3" />
+    <path d="M9 16c0-5 3.5-8 10-8" />
+    <path d="m15 4 4 4-4 4" />
   </Svg>
 );
 

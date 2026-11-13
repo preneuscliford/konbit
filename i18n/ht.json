@@ -663,6 +663,19 @@
       "konbit": "🤝 Rejwenn konbit « {title} » sou Konbit 509!",
       "post": "Gade sa sou Konbit 509 👇",
       "business": "Dekouvri {name} sou Konbit 509 👇"
+    },
+    "repost": {
+      "action": "Reposte",
+      "undo": "Anile repost la",
+      "quote": "Reposte ak yon mesaj",
+      "reposted": "{name} reposte",
+      "done": "Ou reposte l.",
+      "undone": "Repost la anile.",
+      "unavailable": "Piblikasyon orijinal la pa disponib ankò.",
+      "composeTitle": "Reposte",
+      "captionPlaceholder": "Ajoute yon mesaj (pa obligatwa)…",
+      "published": "Ou reposte l.",
+      "you": "Ou"
     }
   },
   "Konbit": {

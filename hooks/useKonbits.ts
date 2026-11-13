@@ -7,8 +7,10 @@ import {
   fetchKonbit,
   fetchPublicProfile,
   fetchReplies,
+  repost,
   setLike,
   setParticipation,
+  undoRepost,
   type Konbit,
 } from "@/lib/konbits";
 
@@ -40,7 +42,8 @@ export function useFeed() {
 
 export function useKonbit(id: number) {
   const { userId } = useAuth();
-  return useQuery({ queryKey: konbitKey(id, userId), queryFn: () => fetchKonbit(id) });
+  // id 0 : rien à charger (ex. écran de publication hors repost).
+  return useQuery({ queryKey: konbitKey(id, userId), queryFn: () => fetchKonbit(id), enabled: id > 0 });
 }
 
 export function useReplies(id: number) {
@@ -71,13 +74,17 @@ export function useFlags() {
   return (key: string) => enabled.has(key);
 }
 
-type Toggle = "join" | "like";
+type Toggle = "join" | "like" | "repost";
 
 function patchKonbit(konbit: Konbit, toggle: Toggle, on: boolean): Konbit {
   const delta = on ? 1 : -1;
-  return toggle === "join"
-    ? { ...konbit, joined: on, participant_count: Math.max(0, konbit.participant_count + delta) }
-    : { ...konbit, liked: on, like_count: Math.max(0, konbit.like_count + delta) };
+  if (toggle === "join") {
+    return { ...konbit, joined: on, participant_count: Math.max(0, konbit.participant_count + delta) };
+  }
+  if (toggle === "repost") {
+    return { ...konbit, reposted: on, repost_count: Math.max(0, konbit.repost_count + delta) };
+  }
+  return { ...konbit, liked: on, like_count: Math.max(0, konbit.like_count + delta) };
 }
 
 // "Mwen ladan" et J'aime : mise à jour immédiate dans toutes les listes en
@@ -102,14 +109,25 @@ function useToggle(toggle: Toggle) {
 
   return useMutation({
     mutationFn: ({ konbit, on }: { konbit: Konbit; on: boolean }) =>
-      toggle === "join" ? setParticipation(konbit.id, userId!, on) : setLike(konbit.id, userId!, on),
+      toggle === "join"
+        ? setParticipation(konbit.id, userId!, on)
+        : toggle === "repost"
+          ? on
+            ? repost(konbit)
+            : undoRepost(konbit.id, userId!)
+          : setLike(konbit.id, userId!, on),
     onMutate: async ({ konbit, on }) => {
       await queryClient.cancelQueries({ queryKey: ["konbits"] });
       patchAll(konbit.id, on);
     },
     onError: (_error, { konbit, on }) => patchAll(konbit.id, !on),
+    // Un repost ajoute ou retire une entrée du fil : on le recharge.
+    onSuccess: () => {
+      if (toggle === "repost") void queryClient.invalidateQueries({ queryKey: ["konbits", "feed"] });
+    },
   });
 }
 
 export const useParticipation = () => useToggle("join");
 export const useLike = () => useToggle("like");
+export const useRepost = () => useToggle("repost");

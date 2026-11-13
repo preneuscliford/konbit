@@ -42,6 +42,54 @@ export interface Konbit {
   starts_at: string | null;
   ends_at: string | null;
   max_participants: number | null;
+  // Repost : publication d'origine (vide si supprimée), repost simple de
+  // l'utilisateur sur cette publication, et nombre de reposts.
+  repost_of: number | null;
+  is_repost: boolean;
+  repost_count: number;
+  reposted: boolean;
+  original: KonbitOriginal | null;
+}
+
+// Publication d'origine d'un repost, telle que la renvoie le fil.
+export type KonbitOriginal = Pick<
+  Konbit,
+  | "id"
+  | "body"
+  | "kind"
+  | "title"
+  | "commune_slug"
+  | "address_detail"
+  | "starts_at"
+  | "ends_at"
+  | "max_participants"
+  | "media"
+  | "created_at"
+  | "participant_count"
+  | "reply_count"
+  | "like_count"
+  | "repost_count"
+  | "author_id"
+  | "author_pseudo"
+  | "author_name"
+  | "author_avatar"
+>;
+
+// Repost simple : texte vide (le serveur pointe vers l'original si on
+// reposte un repost simple).
+export const isPlainRepost = (k: Pick<Konbit, "is_repost" | "body">) => k.is_repost && !k.body.trim();
+
+// Original d'un repost affiché comme une publication (actions sur l'original).
+export function originalAsKonbit(o: KonbitOriginal, reposted: boolean): Konbit {
+  return {
+    ...o,
+    joined: false,
+    liked: false,
+    repost_of: null,
+    is_repost: false,
+    reposted,
+    original: null,
+  };
 }
 
 // Profil public (page de profil d'une personne).
@@ -226,6 +274,37 @@ export async function deleteKonbit(id: number, media: KonbitImage[] = []) {
       .remove(media.map((m) => m.path))
       .catch(() => {});
   }
+}
+
+// Repost simple (sans texte), dans la commune de l'original.
+export async function repost(konbit: Pick<Konbit, "id" | "commune_slug">) {
+  const { error } = await supabase
+    .from("konbits")
+    .insert({ body: "", commune_slug: konbit.commune_slug, kind: "discussion", repost_of: konbit.id });
+  // Déjà reposté : l'état voulu est atteint.
+  if (error && error.code !== "23505") throw toKonbitError(error);
+}
+
+export async function undoRepost(konbitId: number, userId: string) {
+  const { error } = await supabase
+    .from("konbits")
+    .delete()
+    .eq("author_id", userId)
+    .eq("repost_of", konbitId)
+    .eq("is_repost", true)
+    .eq("body", "");
+  if (error) throw toKonbitError(error);
+}
+
+// Repost avec légende (texte, emoji, photos).
+export async function quoteRepost(body: string, communeSlug: string, media: KonbitImage[], repostOf: number): Promise<number> {
+  const { data, error } = await supabase
+    .from("konbits")
+    .insert({ body: body.trim(), commune_slug: communeSlug, kind: "discussion", media, repost_of: repostOf })
+    .select("id")
+    .single();
+  if (error) throw toKonbitError(error);
+  return data.id as number;
 }
 
 export async function setParticipation(konbitId: number, userId: string, join: boolean) {

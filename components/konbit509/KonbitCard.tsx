@@ -3,18 +3,28 @@ import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Burnt from "burnt";
-import { Ellipsis, Handshake, Heart, MessageCircle, Share2 } from "lucide-react-native";
+import { Ellipsis, Handshake, Heart, MessageCircle, Repeat2 } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
 import KonbitImages from "@/components/konbit509/KonbitImages";
 import KonbitSummary, { useKonbitStatus } from "@/components/konbit509/KonbitSummary";
+import QuotedKonbit from "@/components/konbit509/QuotedKonbit";
+import ShareIcon from "@/components/ui/ShareIcon";
 import ActionSheet, { type SheetOption } from "@/components/ui/ActionSheet";
 import { Text } from "@/components/ui/Text";
 import { useAccountGate, useCommuneName } from "@/hooks/useAccountGate";
-import { useLike, useParticipation } from "@/hooks/useKonbits";
+import { useLike, useParticipation, useRepost } from "@/hooks/useKonbits";
 import { useAuth } from "@/lib/auth";
 import { formatRelative, useI18n } from "@/lib/i18n";
-import { ABUSE_REASONS, deleteKonbit, KonbitError, reportAbuse, type Konbit } from "@/lib/konbits";
+import {
+  ABUSE_REASONS,
+  deleteKonbit,
+  isPlainRepost,
+  KonbitError,
+  originalAsKonbit,
+  reportAbuse,
+  type Konbit,
+} from "@/lib/konbits";
 import { formatKonbitDate } from "@/lib/konbitTime";
 import { shareKonbit } from "@/lib/share";
 
@@ -22,6 +32,37 @@ import { shareKonbit } from "@/lib/share";
 // gauche ; à droite le pseudo suivi de la commune et de la date, le texte,
 // les images et les actions (réponses, J'aime, Mwen ladan).
 export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbit; detailed?: boolean }) {
+  if (!isPlainRepost(konbit)) return <KonbitCardBody konbit={konbit} detailed={detailed} />;
+  return <PlainRepost konbit={konbit} />;
+}
+
+// Repost simple : « 🔁 X reposte », puis la publication d'origine (actions
+// sur l'original), ou un message si elle n'est plus disponible.
+function PlainRepost({ konbit }: { konbit: Konbit }) {
+  const { t } = useI18n();
+  const { userId } = useAuth();
+  const mine = konbit.author_id === userId;
+  const name = mine ? t("App.repost.you") : konbit.author_name || konbit.author_pseudo || "…";
+  return (
+    <View>
+      <View style={styles.repostBanner}>
+        <Repeat2 size={15} color={Colors.textMuted} />
+        <Text style={styles.repostBannerText} numberOfLines={1}>
+          {t("App.repost.reposted", { name })}
+        </Text>
+      </View>
+      {konbit.original ? (
+        <KonbitCardBody konbit={originalAsKonbit(konbit.original, mine)} />
+      ) : (
+        <View style={[styles.card, { paddingTop: 4 }]}>
+          <QuotedKonbit original={null} />
+        </View>
+      )}
+    </View>
+  );
+}
+
+function KonbitCardBody({ konbit, detailed = false }: { konbit: Konbit; detailed?: boolean }) {
   const { t, language } = useI18n();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -30,7 +71,8 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
   const communeName = useCommuneName();
   const participation = useParticipation();
   const like = useLike();
-  const [sheet, setSheet] = useState<"menu" | "report" | null>(null);
+  const repostToggle = useRepost();
+  const [sheet, setSheet] = useState<"menu" | "report" | "repost" | null>(null);
 
   const isMine = konbit.author_id === userId;
   const errorText = (e: unknown) => t(`App.konbitErrors.${e instanceof KonbitError ? e.code : "failed"}`);
@@ -178,6 +220,7 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
               </View>
             )}
             <Text style={[styles.body, detailed && styles.bodyDetailed]}>{konbit.body}</Text>
+            {konbit.is_repost && <QuotedKonbit original={konbit.original} />}
           </>
         )}
 
@@ -210,6 +253,21 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
             <Text style={[styles.actionText, konbit.liked && styles.likedText]}>{konbit.like_count ?? 0}</Text>
           </Pressable>
 
+          {/* Repost : simple (annulable) ou avec un message. */}
+          <Pressable
+            onPress={() => requireAccount(() => setSheet("repost"))}
+            style={styles.action}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("App.repost.action")}
+            accessibilityState={{ selected: konbit.reposted }}
+          >
+            <Repeat2 size={19} color={konbit.reposted ? Colors.success : Colors.textMuted} />
+            {konbit.repost_count > 0 && (
+              <Text style={[styles.actionText, konbit.reposted && styles.repostedText]}>{konbit.repost_count}</Text>
+            )}
+          </Pressable>
+
           {/* Partage vers WhatsApp, Facebook… avec le lien konbit509.app (pub gratuite). */}
           <Pressable
             onPress={() => shareKonbit(konbit, t, language)}
@@ -218,7 +276,7 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
             accessibilityRole="button"
             accessibilityLabel={t("App.share.action")}
           >
-            <Share2 size={18} color={Colors.textMuted} />
+            <ShareIcon size={19} color={Colors.textMuted} />
           </Pressable>
 
           {/* Rejoindre : jamais sur un simple pòs. */}
@@ -256,6 +314,29 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
       </View>
 
       <ActionSheet visible={sheet === "menu"} options={menuOptions} onClose={() => setSheet(null)} />
+      <ActionSheet
+        visible={sheet === "repost"}
+        options={[
+          {
+            label: t(konbit.reposted ? "App.repost.undo" : "App.repost.action"),
+            destructive: konbit.reposted,
+            onPress: () =>
+              repostToggle.mutate(
+                { konbit, on: !konbit.reposted },
+                {
+                  onSuccess: () =>
+                    Burnt.toast({ title: t(konbit.reposted ? "App.repost.undone" : "App.repost.done"), preset: "done" }),
+                  onError: (e) => Burnt.toast({ title: errorText(e), preset: "error" }),
+                },
+              ),
+          },
+          {
+            label: t("App.repost.quote"),
+            onPress: () => router.push({ pathname: "/compose", params: { repostOf: String(konbit.id) } }),
+          },
+        ]}
+        onClose={() => setSheet(null)}
+      />
       <ActionSheet
         visible={sheet === "report"}
         title={t("App.card.reportTitle")}
@@ -298,6 +379,9 @@ const styles = StyleSheet.create({
   action: { flexDirection: "row", alignItems: "center", gap: 6 },
   actionText: { fontSize: 13, color: Colors.textMuted },
   likedText: { color: Colors.secondary, fontWeight: "700" },
+  repostedText: { color: Colors.success, fontWeight: "700" },
+  repostBanner: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingTop: 10, paddingLeft: 42 },
+  repostBannerText: { flex: 1, fontSize: 13, fontWeight: "700", color: Colors.textMuted },
   join: {
     flexDirection: "row",
     alignItems: "center",

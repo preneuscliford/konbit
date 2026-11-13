@@ -14,10 +14,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Burnt from "burnt";
-import { ArrowLeft, BadgeCheck, Phone, Share2, Store } from "lucide-react-native";
+import { ArrowLeft, BadgeCheck, Phone, Store } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
 import ImageViewer from "@/components/ui/ImageViewer";
+import ShareIcon from "@/components/ui/ShareIcon";
 import { Text } from "@/components/ui/Text";
 import { useBusiness, useBusinessItems } from "@/hooks/useBusiness";
 import { useCommunes } from "@/hooks/useKonbit";
@@ -296,7 +297,7 @@ function TopBar({ title, onBack, onShare }: { title: string; onBack: () => void;
       </Text>
       {onShare && (
         <Pressable onPress={onShare} hitSlop={12}>
-          <Share2 size={20} color={Colors.text} />
+          <ShareIcon size={21} color={Colors.text} />
         </Pressable>
       )}
     </View>
