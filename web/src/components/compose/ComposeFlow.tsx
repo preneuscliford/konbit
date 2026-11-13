@@ -506,7 +506,7 @@ export default function ComposeFlow({
                   maxLength={80}
                   autoFocus
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Egz: Netwaye ravin Delmas 33"
+                  placeholder="Egz: Netwayaj nan Delmas 33"
                   className={inputClass}
                 />
               </label>
