@@ -138,7 +138,9 @@ export default function ComposeScreen() {
           accessibilityRole="button"
         >
           {sending && <ActivityIndicator size="small" color={Colors.textInverse} />}
-          <Text style={styles.publishText}>{sending ? t("App.compose.publishing") : t("App.compose.publish")}</Text>
+          <Text style={styles.publishText}>
+            {sending ? t("App.compose.publishing") : t(quoting ? "App.repost.action" : "App.compose.publish")}
+          </Text>
         </Pressable>
       </View>
 

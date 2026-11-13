@@ -253,9 +253,16 @@ function KonbitCardBody({ konbit, detailed = false }: { konbit: Konbit; detailed
             <Text style={[styles.actionText, konbit.liked && styles.likedText]}>{konbit.like_count ?? 0}</Text>
           </Pressable>
 
-          {/* Repost : simple (annulable) ou avec un message. */}
+          {/* Repost : ouvre directement l'écran avec une légende facultative ;
+              déjà reposté : proposer d'annuler (ou de reposter avec un message). */}
           <Pressable
-            onPress={() => requireAccount(() => setSheet("repost"))}
+            onPress={() =>
+              requireAccount(() =>
+                konbit.reposted
+                  ? setSheet("repost")
+                  : router.push({ pathname: "/compose", params: { repostOf: String(konbit.id) } }),
+              )
+            }
             style={styles.action}
             hitSlop={8}
             accessibilityRole="button"
@@ -318,14 +325,13 @@ function KonbitCardBody({ konbit, detailed = false }: { konbit: Konbit; detailed
         visible={sheet === "repost"}
         options={[
           {
-            label: t(konbit.reposted ? "App.repost.undo" : "App.repost.action"),
-            destructive: konbit.reposted,
+            label: t("App.repost.undo"),
+            destructive: true,
             onPress: () =>
               repostToggle.mutate(
-                { konbit, on: !konbit.reposted },
+                { konbit, on: false },
                 {
-                  onSuccess: () =>
-                    Burnt.toast({ title: t(konbit.reposted ? "App.repost.undone" : "App.repost.done"), preset: "done" }),
+                  onSuccess: () => Burnt.toast({ title: t("App.repost.undone"), preset: "done" }),
                   onError: (e) => Burnt.toast({ title: errorText(e), preset: "error" }),
                 },
               ),
