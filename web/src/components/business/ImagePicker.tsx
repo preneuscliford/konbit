@@ -37,11 +37,17 @@ export default function ImagePicker({
       <span className="mb-1.5 block text-sm font-semibold text-stone-700">
         {label}
       </span>
-      <div className="flex items-center gap-3">
+      {/* Le × pour retirer la photo est posé sur l'image (coin en haut à droite). */}
+      <div className={`relative ${shape === "wide" ? "w-full" : "w-fit"}`}>
         <button
           type="button"
           onClick={() => input.current?.click()}
           disabled={busy}
+          aria-label={
+            src
+              ? `Chanje ${label.toLowerCase() || "foto a"}`
+              : `Ajoute ${label.toLowerCase() || "yon foto"}`
+          }
           className={`relative flex shrink-0 items-center justify-center overflow-hidden border-2 border-dashed border-stone-300 bg-stone-50 text-sm font-semibold text-stone-500 hover:border-brand hover:text-brand disabled:opacity-60 ${box}`}
         >
           {src ? (
@@ -64,9 +70,13 @@ export default function ImagePicker({
           <button
             type="button"
             onClick={onRemove}
-            className="text-sm font-semibold text-brand-red hover:underline"
+            aria-label="Retire foto a"
+            title="Retire foto a"
+            className={`absolute flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-lg leading-none text-white shadow hover:bg-brand-red ${
+              shape === "round" ? "-right-1 -top-1" : "right-2 top-2"
+            }`}
           >
-            Retire
+            ×
           </button>
         )}
       </div>

@@ -14,6 +14,7 @@ import {
   ReplyIcon,
   ShareIcon,
 } from "@/components/Icons";
+import Lightbox from "@/components/media/Lightbox";
 import { toast } from "@/components/Toaster";
 import type { Konbit } from "@/lib/data";
 import {
@@ -57,6 +58,8 @@ export default function KonbitPost({
   const [menuUp, setMenuUp] = useState(false);
   const busy = useRef({ like: false, join: false });
   const [confirm, setConfirm] = useState<"join" | "leave" | null>(null);
+  // Photo ouverte en plein écran (index), ou aucune.
+  const [viewer, setViewer] = useState<number | null>(null);
   const [joining, setJoining] = useState(false);
 
   // Nouvelle donnée du parent (état personnel chargé après coup, etc.).
@@ -305,18 +308,37 @@ export default function KonbitPost({
               images.length === 2 ? "grid-cols-2" : "grid-cols-1"
             }`}
           >
-            {images.map((img) => (
-              <Image
+            {images.map((img, i) => (
+              // Un toucher ouvre les photos en plein écran (balayage entre elles).
+              <button
                 key={img.path}
-                src={mediaUrl(img.path)}
-                alt=""
-                width={img.width}
-                height={img.height}
-                sizes="(max-width: 640px) 90vw, 520px"
-                className={`w-full object-cover ${images.length === 2 ? "aspect-[4/5]" : "max-h-[520px]"}`}
-              />
+                type="button"
+                onClick={() => setViewer(i)}
+                aria-label={`Wè foto ${i + 1} an gwo`}
+                className="block cursor-zoom-in"
+              >
+                <Image
+                  src={mediaUrl(img.path)}
+                  alt=""
+                  width={img.width}
+                  height={img.height}
+                  sizes="(max-width: 640px) 90vw, 520px"
+                  className={`w-full object-cover ${images.length === 2 ? "aspect-[4/5]" : "max-h-[520px]"}`}
+                />
+              </button>
             ))}
           </div>
+        )}
+        {viewer !== null && (
+          <Lightbox
+            images={images.map((img) => ({
+              src: mediaUrl(img.path),
+              width: img.width,
+              height: img.height,
+            }))}
+            start={viewer}
+            onClose={() => setViewer(null)}
+          />
         )}
 
         <div className="mt-2 flex max-w-md items-center justify-between pr-2">

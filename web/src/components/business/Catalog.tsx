@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { refreshBusiness } from "@/app/actions/business";
 import { useAuth } from "@/components/auth/AuthProvider";
+import SwipeGallery from "@/components/media/SwipeGallery";
 import { toast } from "@/components/Toaster";
 import {
   formatPrice,
@@ -89,20 +89,23 @@ export default function Catalog({
       ) : (
         <div className="grid grid-cols-2 gap-3 px-4 pb-6 sm:gap-4">
           {items.map((item) => {
-            const photo = item.photos[0];
             return (
               <article
                 key={item.id}
                 className={`flex flex-col overflow-hidden rounded-2xl border border-stone-200 ${item.available ? "" : "opacity-60"}`}
               >
                 <div className="relative aspect-square bg-stone-100">
-                  {photo ? (
-                    <Image
-                      src={mediaUrl(photo.path)}
-                      alt=""
-                      fill
+                  {item.photos.length > 0 ? (
+                    // Plusieurs photos : on les fait défiler ; un toucher les
+                    // ouvre en plein écran.
+                    <SwipeGallery
+                      className="h-full w-full"
                       sizes="(max-width: 640px) 45vw, 280px"
-                      className="object-cover"
+                      images={item.photos.map((p) => ({
+                        src: mediaUrl(p.path),
+                        width: p.width,
+                        height: p.height,
+                      }))}
                     />
                   ) : (
                     <span
