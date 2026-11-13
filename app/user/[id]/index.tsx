@@ -17,6 +17,7 @@ import { useCommuneName } from "@/hooks/useAccountGate";
 import { useUserKonbits, useUserProfile } from "@/hooks/useKonbits";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { profileLink } from "@/lib/share";
 import { coverToneForStatusBar } from "@/lib/imageTone";
 import { profileImageUrl } from "@/lib/konbits";
 
@@ -64,7 +65,8 @@ export default function UserProfileScreen() {
 
   async function share() {
     if (!p) return;
-    const link = Linking.createURL(`user/${p.id}`);
+    // Lien web (s'ouvre partout, même sans l'app) ; lien de l'app sinon.
+    const link = p.pseudo ? profileLink(p.pseudo) : Linking.createURL(`user/${p.id}`);
     await Share.share({
       message: t("App.userProfile.shareMessage", { name, pseudo: p.pseudo ?? "", link }),
     }).catch(() => {});

@@ -3,7 +3,7 @@ import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Burnt from "burnt";
-import { Ellipsis, Handshake, Heart, MessageCircle } from "lucide-react-native";
+import { Ellipsis, Handshake, Heart, MessageCircle, Share2 } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
 import KonbitImages from "@/components/konbit509/KonbitImages";
@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/auth";
 import { formatRelative, useI18n } from "@/lib/i18n";
 import { ABUSE_REASONS, deleteKonbit, KonbitError, reportAbuse, type Konbit } from "@/lib/konbits";
 import { formatKonbitDate } from "@/lib/konbitTime";
+import { shareKonbit } from "@/lib/share";
 
 // Carte d'un konbit dans le fil, composition inspirée de X : avatar à
 // gauche ; à droite le pseudo suivi de la commune et de la date, le texte,
@@ -207,6 +208,17 @@ export default function KonbitCard({ konbit, detailed = false }: { konbit: Konbi
               fill={konbit.liked ? Colors.secondary : "transparent"}
             />
             <Text style={[styles.actionText, konbit.liked && styles.likedText]}>{konbit.like_count ?? 0}</Text>
+          </Pressable>
+
+          {/* Partage vers WhatsApp, Facebook… avec le lien konbit509.app (pub gratuite). */}
+          <Pressable
+            onPress={() => shareKonbit(konbit, t, language)}
+            style={styles.action}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("App.share.action")}
+          >
+            <Share2 size={18} color={Colors.textMuted} />
           </Pressable>
 
           {/* Rejoindre : jamais sur un simple pòs. */}

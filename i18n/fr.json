@@ -657,6 +657,12 @@
         "failed": "Une erreur est survenue. Réessaie."
       },
       "editItem": "Modifier"
+    },
+    "share": {
+      "action": "Partager",
+      "konbit": "🤝 Rejoins le konbit « {title} » sur Konbit 509 !",
+      "post": "À voir sur Konbit 509 👇",
+      "business": "Découvre {name} sur Konbit 509 👇"
     }
   },
   "Konbit": {

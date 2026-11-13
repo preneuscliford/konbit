@@ -5,7 +5,6 @@ import {
   Linking,
   Pressable,
   ScrollView,
-  Share,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -18,6 +17,7 @@ import * as Burnt from "burnt";
 import { ArrowLeft, BadgeCheck, Phone, Share2, Store } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
+import ImageViewer from "@/components/ui/ImageViewer";
 import { Text } from "@/components/ui/Text";
 import { useBusiness, useBusinessItems } from "@/hooks/useBusiness";
 import { useCommunes } from "@/hooks/useKonbit";
@@ -33,8 +33,8 @@ import {
 } from "@/lib/business";
 import { useI18n } from "@/lib/i18n";
 import { mediaUrl } from "@/lib/konbits";
+import { shareBusiness } from "@/lib/share";
 
-const SITE = "https://konbit509.app";
 
 // Fiche d'un business : contact direct (WhatsApp, appel), infos et katalòg.
 // Le propriétaire modifie sa fiche et gère son katalòg depuis ici.
@@ -50,6 +50,8 @@ export default function BusinessScreen() {
   const owner = useUserProfile(b?.owner_id ?? "");
   const communes = useCommunes();
   const { width } = useWindowDimensions();
+  // Photos ouvertes en plein écran (couverture, logo ou photos d'un article).
+  const [viewer, setViewer] = useState<{ uris: string[]; start: number } | null>(null);
 
   if (business.isLoading) {
     return (
@@ -100,22 +102,30 @@ export default function BusinessScreen() {
       <TopBar
         title={b.name}
         onBack={() => router.back()}
-        onShare={() => Share.share({ message: `${b.name} · ${SITE}/b/${b.slug}` })}
+        onShare={() => shareBusiness(b.name, b.slug, t)}
       />
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        <View style={styles.cover}>
+        <Pressable
+          style={styles.cover}
+          disabled={!b.cover_path}
+          onPress={() => b.cover_path && setViewer({ uris: [mediaUrl(b.cover_path)], start: 0 })}
+        >
           {b.cover_path && <Image source={{ uri: mediaUrl(b.cover_path) }} style={StyleSheet.absoluteFill} contentFit="cover" />}
-        </View>
+        </Pressable>
 
         <View style={styles.body}>
           <View style={styles.logoRow}>
-            <View style={styles.logo}>
+            <Pressable
+              style={styles.logo}
+              disabled={!b.logo_path}
+              onPress={() => b.logo_path && setViewer({ uris: [mediaUrl(b.logo_path)], start: 0 })}
+            >
               {b.logo_path ? (
                 <Image source={{ uri: mediaUrl(b.logo_path) }} style={StyleSheet.absoluteFill} contentFit="cover" />
               ) : (
                 <Store size={36} color={Colors.primary} />
               )}
-            </View>
+            </Pressable>
             {isOwner && (
               <Pressable onPress={() => router.push("/biznis-edit")} style={styles.outline} accessibilityRole="button">
                 <Text style={styles.outlineText}>{t("App.business.edit")}</Text>
@@ -214,7 +224,12 @@ export default function BusinessScreen() {
           <View style={styles.grid}>
             {(items.data ?? []).map((item) => (
               <View key={item.id} style={[styles.card, { width: cardWidth }, !item.available && { opacity: 0.6 }]}>
-                <PhotoPager photos={item.photos} size={cardWidth} kind={item.kind} />
+                <PhotoPager
+                  photos={item.photos}
+                  size={cardWidth}
+                  kind={item.kind}
+                  onOpen={(i) => setViewer({ uris: item.photos.map((p) => mediaUrl(p.path)), start: i })}
+                />
                 {!item.available && (
                   <View style={styles.unavailable}>
                     <Text style={styles.unavailableText}>{t("App.business.unavailable")}</Text>
@@ -265,6 +280,7 @@ export default function BusinessScreen() {
           </View>
         )}
       </ScrollView>
+      <ImageViewer uris={viewer?.uris ?? []} start={viewer?.start ?? null} onClose={() => setViewer(null)} />
     </SafeAreaView>
   );
 }
@@ -299,7 +315,17 @@ function InfoRow({ label, value, onPress }: { label: string; value: string; onPr
 }
 
 // Photos d'un article : on les fait défiler du doigt, avec des points.
-function PhotoPager({ photos, size, kind }: { photos: BusinessItem["photos"]; size: number; kind: BusinessItem["kind"] }) {
+function PhotoPager({
+  photos,
+  size,
+  kind,
+  onOpen,
+}: {
+  photos: BusinessItem["photos"];
+  size: number;
+  kind: BusinessItem["kind"];
+  onOpen: (index: number) => void;
+}) {
   const [index, setIndex] = useState(0);
   if (photos.length === 0) {
     return (
@@ -316,8 +342,10 @@ function PhotoPager({ photos, size, kind }: { photos: BusinessItem["photos"]; si
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / size))}
       >
-        {photos.map((p) => (
-          <Image key={p.path} source={{ uri: mediaUrl(p.path) }} style={{ width: size, height: size }} contentFit="cover" />
+        {photos.map((p, i) => (
+          <Pressable key={p.path} onPress={() => onOpen(i)} accessibilityRole="imagebutton">
+            <Image source={{ uri: mediaUrl(p.path) }} style={{ width: size, height: size }} contentFit="cover" />
+          </Pressable>
         ))}
       </ScrollView>
       {photos.length > 1 && (

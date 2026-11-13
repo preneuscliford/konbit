@@ -657,6 +657,12 @@
         "failed": "Gen yon erè. Eseye ankò."
       },
       "editItem": "Modifye"
+    },
+    "share": {
+      "action": "Pataje",
+      "konbit": "🤝 Rejwenn konbit « {title} » sou Konbit 509!",
+      "post": "Gade sa sou Konbit 509 👇",
+      "business": "Dekouvri {name} sou Konbit 509 👇"
     }
   },
   "Konbit": {
