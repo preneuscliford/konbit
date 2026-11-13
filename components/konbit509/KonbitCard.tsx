@@ -3,7 +3,7 @@ import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Burnt from "burnt";
-import { Ellipsis, Handshake, Heart, MessageCircle, PenLine, Repeat2 } from "lucide-react-native";
+import { Ellipsis, Handshake, Heart, MessageCircle, Pencil, Repeat2 } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
 import KonbitImages from "@/components/konbit509/KonbitImages";
@@ -334,7 +334,7 @@ function KonbitCardBody({ konbit, detailed = false }: { konbit: Konbit; detailed
           },
           {
             label: t("App.repost.quote"),
-            icon: <PenLine size={20} color={Colors.text} />,
+            icon: <Pencil size={20} color={Colors.text} />,
             onPress: () => router.push({ pathname: "/compose", params: { repostOf: String(konbit.id) } }),
           },
         ]}
