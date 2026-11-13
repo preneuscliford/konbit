@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ import { useLatestRates, useRateHistory, useRateSignals } from "@/hooks/useKonbi
 import { ApiError, submitRateSignal, type LatestRate, type RateRange } from "@/lib/api";
 import { formatNumber, formatShortDate, formatShortTime } from "@/lib/format";
 import { formatRelative, useI18n } from "@/lib/i18n";
+import KeyboardScroll from "@/components/ui/KeyboardScroll";
 
 // Taux du jour : même contenu que haitiscope.com (taux officiel BRH, marché
 // réel P2P, écart, EUR/CAD convertis, historique, convertisseur, "Mon taux
@@ -98,7 +99,7 @@ export default function RatesScreen() {
         </Text>
       </View>
 
-      <ScrollView
+      <KeyboardScroll
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
@@ -193,7 +194,7 @@ export default function RatesScreen() {
         <CommunitySignals signals={signals.data} onSent={() => signals.refetch()} />
 
         <Text style={styles.sources}>{t("App.rates.sources")}</Text>
-      </ScrollView>
+      </KeyboardScroll>
     </SafeAreaView>
   );
 }

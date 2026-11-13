@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect, useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -36,6 +28,7 @@ import {
   uploadKonbitImage,
   type KonbitKind,
 } from "@/lib/konbits";
+import KeyboardScroll from "@/components/ui/KeyboardScroll";
 
 // Créer un konbit : texte court, commune, type (Diskisyon par défaut),
 // jusqu'à 2 images compressées, "Pibliye". Type et images sont pilotés par
@@ -129,8 +122,7 @@ export default function ComposeScreen() {
         </Pressable>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardScroll contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <RestrictionBanner message={restriction.message} />
           <View style={styles.editorRow}>
             <Avatar
@@ -236,8 +228,7 @@ export default function ComposeScreen() {
             text={t("App.compose.rules")}
             links={{ rules: { label: t("App.legal.communityRules"), url: COMMUNITY_RULES_URL } }}
           />
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardScroll>
     </SafeAreaView>
   );
 }

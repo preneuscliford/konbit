@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect, useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -12,6 +12,7 @@ import { Text } from "@/components/ui/Text";
 import { AuthError, useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { ACCOUNT_DELETION_URL } from "@/lib/legal";
+import KeyboardScroll from "@/components/ui/KeyboardScroll";
 
 // Suppression du compte : irréversible, donc reconfirmée par le mot de passe
 // (compte e-mail) ou par Google (compte Google). Le serveur revérifie.
@@ -57,7 +58,7 @@ export default function DeleteAccountScreen() {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardScroll contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.iconCircle}>
           <TriangleAlert size={28} color={Colors.secondary} />
         </View>
@@ -105,7 +106,7 @@ export default function DeleteAccountScreen() {
         <Pressable onPress={() => router.back()} style={styles.cancel} hitSlop={8}>
           <Text style={styles.cancelText}>{t("App.cancel")}</Text>
         </Pressable>
-      </ScrollView>
+      </KeyboardScroll>
     </SafeAreaView>
   );
 }

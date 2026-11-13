@@ -8,6 +8,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import AnimationScreen from "@/components/AnimationScreen";
 import PushManager from "@/components/PushManager";
 import { FONT_ASSETS } from "@/components/ui/Text";
@@ -39,18 +40,23 @@ export default function RootLayout() {
   useAppState();
 
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister, maxAge: 24 * 3600e3, buster: "v3" }}
-    >
-      <I18nProvider>
-        <LocalStateProvider>
-          <AuthProvider>
-            <AppGate />
-          </AuthProvider>
-        </LocalStateProvider>
-      </I18nProvider>
-    </PersistQueryClientProvider>
+    // Clavier : avec l'affichage plein écran d'Android (edge-to-edge, SDK 56),
+    // le système ne remonte plus les champs. KeyboardProvider suit le clavier
+    // pour les zones KeyboardScroll / KeyboardAvoidingView de l'app.
+    <KeyboardProvider>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister, maxAge: 24 * 3600e3, buster: "v3" }}
+      >
+        <I18nProvider>
+          <LocalStateProvider>
+            <AuthProvider>
+              <AppGate />
+            </AuthProvider>
+          </LocalStateProvider>
+        </I18nProvider>
+      </PersistQueryClientProvider>
+    </KeyboardProvider>
   );
 }
 

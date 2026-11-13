@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Burnt from "burnt";
@@ -14,6 +14,7 @@ import { useCommunes } from "@/hooks/useKonbit";
 import { AuthError, useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { PRIVACY_URL, TERMS_URL } from "@/lib/legal";
+import KeyboardScroll from "@/components/ui/KeyboardScroll";
 
 const PSEUDO_PATTERN = /^[A-Za-z0-9_]{3,20}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -221,7 +222,7 @@ export default function AccountScreen() {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardScroll contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Image source={require("@/assets/brand/logo.png")} style={styles.logo} contentFit="contain" />
 
         {mode === "reset" || (!needsPseudo && mode === "verify") ? (
@@ -418,7 +419,7 @@ export default function AccountScreen() {
         )}
 
         {error && <Text style={styles.error}>{error}</Text>}
-      </ScrollView>
+      </KeyboardScroll>
     </SafeAreaView>
   );
 }

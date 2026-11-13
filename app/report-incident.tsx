@@ -1,11 +1,12 @@
 import React from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Burnt from "burnt";
 import { X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import ReportForm from "@/components/konbit/ReportForm";
+import KeyboardScroll from "@/components/ui/KeyboardScroll";
 import LinkedText from "@/components/ui/LinkedText";
 import { Text } from "@/components/ui/Text";
 import { useI18n } from "@/lib/i18n";
@@ -26,8 +27,7 @@ export default function ReportIncidentScreen() {
           <X size={24} color={Colors.text} />
         </Pressable>
       </View>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardScroll contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.intro}>{t("Konbit.intro")}</Text>
           <ReportForm
             onSubmitted={() => {
@@ -40,8 +40,7 @@ export default function ReportIncidentScreen() {
             text={t("Konbit.anonymousNote")}
             links={{ privacy: { label: t("App.legal.privacy"), url: PRIVACY_URL } }}
           />
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardScroll>
     </SafeAreaView>
   );
 }

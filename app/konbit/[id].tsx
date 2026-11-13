@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -24,6 +24,7 @@ import {
   reportAbuse,
   type KonbitReply,
 } from "@/lib/konbits";
+import { KeyboardAvoidingView } from "@/components/ui/KeyboardScroll";
 
 // Un konbit et son fil de réponses.
 export default function KonbitDetailScreen() {
@@ -70,7 +71,7 @@ export default function KonbitDetailScreen() {
         <Text style={styles.title}>{t("App.detail.title")}</Text>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         {konbit.isLoading ? (
           <ActivityIndicator color={Colors.primary} style={{ marginTop: 32 }} />
         ) : !konbit.data ? (

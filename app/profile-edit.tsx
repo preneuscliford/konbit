@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect, useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -18,6 +18,7 @@ import { useI18n } from "@/lib/i18n";
 import { ACCOUNT_DELETION_URL } from "@/lib/legal";
 import { compressImage, type CompressedImage } from "@/lib/imageCompression";
 import { profileImageUrl, uploadProfileImage } from "@/lib/konbits";
+import KeyboardScroll from "@/components/ui/KeyboardScroll";
 
 const PSEUDO_PATTERN = /^[A-Za-z0-9_]{3,20}$/;
 const NAME_MAX = 50;
@@ -118,8 +119,7 @@ export default function ProfileEditScreen() {
         </Pressable>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 32 }}>
+      <KeyboardScroll keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 32 }}>
           <Pressable onPress={() => pick("cover")} style={styles.cover} accessibilityLabel={t("App.userProfile.changeCover")}>
             {coverUri ? (
               <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" />
@@ -205,8 +205,7 @@ export default function ProfileEditScreen() {
               links={{ more: { label: t("App.profile.deleteInfoLink"), url: ACCOUNT_DELETION_URL } }}
             />
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardScroll>
     </SafeAreaView>
   );
 }

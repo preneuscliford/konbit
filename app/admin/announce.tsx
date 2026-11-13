@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from "react-native";
 import * as Burnt from "burnt";
 import { Megaphone, Trash2 } from "lucide-react-native";
 import Colors from "@/constants/Colors";
@@ -8,6 +8,7 @@ import { Text, TextInput } from "@/components/ui/Text";
 import { useAdminStats, useAnnouncements, useDeleteAnnouncement, useSendAnnouncement } from "@/hooks/useAdmin";
 import { formatRelative, useI18n } from "@/lib/i18n";
 import { KonbitError } from "@/lib/konbits";
+import KeyboardScroll from "@/components/ui/KeyboardScroll";
 
 const TITLE_MAX = 80;
 const BODY_MAX = 500;
@@ -69,7 +70,7 @@ export default function AdminAnnounce() {
 
   return (
     <AdminScreen title={t("App.admin.announce.title")} adminOnly>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardScroll contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.hint}>{t("App.admin.announce.hint")}</Text>
 
         <View style={styles.fieldHeader}>
@@ -147,7 +148,7 @@ export default function AdminAnnounce() {
             </View>
           ))
         )}
-      </ScrollView>
+      </KeyboardScroll>
     </AdminScreen>
   );
 }
