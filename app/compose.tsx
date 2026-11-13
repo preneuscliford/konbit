@@ -11,6 +11,7 @@ import Colors from "@/constants/Colors";
 import CommunePicker from "@/components/konbit/CommunePicker";
 import Avatar from "@/components/konbit509/Avatar";
 import RestrictionBanner, { useRestriction } from "@/components/konbit509/RestrictionBanner";
+import EmojiButton, { useEmojiInput } from "@/components/ui/EmojiButton";
 import KeyboardScroll from "@/components/ui/KeyboardScroll";
 import LinkedText from "@/components/ui/LinkedText";
 import { Text, TextInput } from "@/components/ui/Text";
@@ -42,6 +43,7 @@ export default function ComposeScreen() {
   const [preparing, setPreparing] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const emoji = useEmojiInput(body, setBody, KONBIT_MAX_LENGTH);
 
   if (!canPost) return <Redirect href="/account" />;
 
@@ -130,6 +132,7 @@ export default function ComposeScreen() {
           <TextInput
             value={body}
             onChangeText={(text) => setBody(text.slice(0, KONBIT_MAX_LENGTH))}
+            onSelectionChange={emoji.onSelectionChange}
             placeholder={t("App.compose.placeholder")}
             maxLength={KONBIT_MAX_LENGTH}
             multiline
@@ -198,6 +201,7 @@ export default function ComposeScreen() {
           >
             <MapPin size={22} color={Colors.primary} />
           </Pressable>
+          <EmojiButton onPick={emoji.insert} />
           <Pressable onPress={toKonbit} style={styles.tool} hitSlop={6} accessibilityLabel={t("App.compose.toKonbit")}>
             <Handshake size={22} color={Colors.primary} />
           </Pressable>

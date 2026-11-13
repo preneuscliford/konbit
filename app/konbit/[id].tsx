@@ -26,6 +26,7 @@ import {
   type KonbitReply,
 } from "@/lib/konbits";
 import { KeyboardAvoidingView } from "@/components/ui/KeyboardScroll";
+import EmojiButton, { useEmojiInput } from "@/components/ui/EmojiButton";
 
 // Longueur maximale d'un message ou d'une réponse (limite du serveur).
 const REPLY_MAX = 500;
@@ -55,6 +56,7 @@ export default function KonbitDetailScreen() {
     queryFn: () => fetchMyReplyLikes(userId!, replyIds),
     enabled: !!userId && replyIds.length > 0,
   });
+  const draftEmoji = useEmojiInput(draft, setDraft, REPLY_MAX);
   const [likeChanges, setLikeChanges] = useState<Record<number, { liked: boolean; count: number }>>({});
 
   // Un message, puis ses réponses en retrait.
@@ -200,9 +202,11 @@ export default function KonbitDetailScreen() {
         )}
         {konbit.data && !restriction.blocked && canWrite && (
           <View style={styles.composer}>
+            <EmojiButton onPick={draftEmoji.insert} />
             <TextInput
               value={draft}
               onChangeText={(text) => setDraft(text.slice(0, REPLY_MAX))}
+              onSelectionChange={draftEmoji.onSelectionChange}
               placeholder={t(
                 replyTo
                   ? "App.thread.replyPlaceholder"

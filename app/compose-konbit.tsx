@@ -11,6 +11,7 @@ import { CalendarDays, ImagePlus, MapPin, Users, X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import CommunePicker from "@/components/konbit/CommunePicker";
 import RestrictionBanner, { useRestriction } from "@/components/konbit509/RestrictionBanner";
+import EmojiButton, { useEmojiInput } from "@/components/ui/EmojiButton";
 import KeyboardScroll from "@/components/ui/KeyboardScroll";
 import { Text, TextInput } from "@/components/ui/Text";
 import { useCommunes } from "@/hooks/useKonbit";
@@ -73,6 +74,8 @@ export default function ComposeKonbitScreen() {
   const [preparing, setPreparing] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const titleEmoji = useEmojiInput(title, setTitle, 80);
+  const bodyEmoji = useEmojiInput(body, setBody, DESCRIPTION_MAX);
 
   if (!canPost) return <Redirect href="/account" />;
 
@@ -191,19 +194,27 @@ export default function ComposeKonbitScreen() {
         {step === 0 && (
           <>
             <Text style={styles.h2}>{t("App.composeKonbit.whatTitle")}</Text>
-            <Text style={styles.label}>{t("App.composeKonbit.name")} *</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>{t("App.composeKonbit.name")} *</Text>
+              <EmojiButton onPick={titleEmoji.insert} size={20} />
+            </View>
             <TextInput
               value={title}
               onChangeText={setTitle}
+              onSelectionChange={titleEmoji.onSelectionChange}
               maxLength={80}
               placeholder={t("App.composeKonbit.namePlaceholder")}
               style={styles.input}
               autoFocus
             />
-            <Text style={styles.label}>{t("App.composeKonbit.description")} *</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>{t("App.composeKonbit.description")} *</Text>
+              <EmojiButton onPick={bodyEmoji.insert} size={20} />
+            </View>
             <TextInput
               value={body}
               onChangeText={(text) => setBody(text.slice(0, DESCRIPTION_MAX))}
+              onSelectionChange={bodyEmoji.onSelectionChange}
               maxLength={DESCRIPTION_MAX}
               placeholder={t("App.composeKonbit.descriptionPlaceholder")}
               multiline
@@ -420,6 +431,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 40, gap: 10 },
   h2: { fontSize: 20, fontWeight: "800", color: Colors.text, marginBottom: 4 },
   label: { fontSize: 14, fontWeight: "700", color: Colors.textLight, marginTop: 6 },
+  labelRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   hint: { fontSize: 12, color: Colors.textMuted },
   input: {
     borderWidth: 1,
