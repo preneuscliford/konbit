@@ -2,7 +2,10 @@
 // sur haitiscope.com — aussi en kreyòl, qui suit l'usage français. Fait à la
 // main pour ne pas dépendre du support Intl du moteur JavaScript.
 export function formatNumber(value: number, maxDecimals = 2): string {
-  const fixed = value.toFixed(maxDecimals).replace(/\.?0+$/, "");
+  // Zéros inutiles retirés seulement après la virgule : sans décimales
+  // (maxDecimals = 0), « 14200 » doit rester 14 200 et pas devenir « 142 ».
+  const raw = value.toFixed(maxDecimals);
+  const fixed = raw.includes(".") ? raw.replace(/\.?0+$/, "") : raw;
   const [int, dec] = fixed.split(".");
   const sign = int.startsWith("-") ? "-" : "";
   const digits = sign ? int.slice(1) : int;
