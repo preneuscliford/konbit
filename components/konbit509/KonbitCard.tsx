@@ -8,6 +8,7 @@ import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
 import KonbitImages from "@/components/konbit509/KonbitImages";
 import KonbitSummary, { useKonbitStatus } from "@/components/konbit509/KonbitSummary";
+import BusinessFeedCard, { QuotedBusiness } from "@/components/konbit509/BusinessFeedCard";
 import QuotedKonbit from "@/components/konbit509/QuotedKonbit";
 import ShareIcon from "@/components/ui/ShareIcon";
 import ActionSheet, { type SheetOption } from "@/components/ui/ActionSheet";
@@ -51,7 +52,9 @@ function PlainRepost({ konbit }: { konbit: Konbit }) {
           {t("App.repost.reposted", { name })}
         </Text>
       </View>
-      {konbit.original ? (
+      {konbit.business_id ? (
+        <BusinessFeedCard business={konbit.business} />
+      ) : konbit.original ? (
         <KonbitCardBody konbit={originalAsKonbit(konbit.original, mine)} />
       ) : (
         <View style={[styles.card, { paddingTop: 4 }]}>
@@ -220,7 +223,12 @@ function KonbitCardBody({ konbit, detailed = false }: { konbit: Konbit; detailed
               </View>
             )}
             <Text style={[styles.body, detailed && styles.bodyDetailed]}>{konbit.body}</Text>
-            {konbit.is_repost && <QuotedKonbit original={konbit.original} />}
+            {konbit.is_repost &&
+              (konbit.business_id ? (
+                <QuotedBusiness business={konbit.business} />
+              ) : (
+                <QuotedKonbit original={konbit.original} />
+              ))}
           </>
         )}
 

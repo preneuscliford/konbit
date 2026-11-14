@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Avatar from "@/components/Avatar";
 import BusinessMenu from "@/components/business/BusinessMenu";
+import BusinessSocial from "@/components/business/BusinessSocial";
 import Catalog from "@/components/business/Catalog";
 import { StoreIcon, VerifiedIcon } from "@/components/Icons";
 import PageHeader from "@/components/shell/PageHeader";
@@ -174,6 +175,8 @@ async function BusinessView({
             {b.description}
           </p>
         )}
+
+        <BusinessSocial business={b} />
 
         {(b.whatsapp || b.phone) && (
           <div className="mt-4 flex flex-wrap gap-2">

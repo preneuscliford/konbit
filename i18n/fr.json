@@ -675,7 +675,12 @@
       "composeTitle": "Citer",
       "captionPlaceholder": "Ajoute un message (facultatif)…",
       "published": "Republié.",
-      "you": "Tu"
+      "you": "Tu",
+      "businessBadge": "Business",
+      "businessUnavailable": "Cette fiche business n’est plus disponible.",
+      "businessDone": "Vous avez reposté la fiche.",
+      "businessQuoted": "Vous avez cité la fiche.",
+      "like": "J’aime"
     }
   },
   "Konbit": {

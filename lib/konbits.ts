@@ -1,3 +1,4 @@
+import type { FeedBusiness } from "./business";
 import { supabase } from "./supabase";
 
 // Accès aux konbits (Supabase). Schéma : supabase/migrations/20261016150717_konbit509_v1.sql
@@ -49,6 +50,9 @@ export interface Konbit {
   repost_count: number;
   reposted: boolean;
   original: KonbitOriginal | null;
+  // Repost ou « Site » d'une fiche business (fiche vide si supprimée ou masquée).
+  business_id?: number | null;
+  business?: FeedBusiness | null;
 }
 
 // Publication d'origine d'un repost, telle que la renvoie le fil.
@@ -305,6 +309,76 @@ export async function quoteRepost(body: string, communeSlug: string, media: Konb
     .single();
   if (error) throw toKonbitError(error);
   return data.id as number;
+}
+
+// ─── Fiches business dans le fil : J'aime, repost, « Site » ───────────────
+
+export async function fetchBusinessSocialState(businessId: number, userId: string) {
+  const [like, repost] = await Promise.all([
+    supabase.from("business_likes").select("business_id").eq("business_id", businessId).eq("user_id", userId).maybeSingle(),
+    supabase
+      .from("konbits")
+      .select("id")
+      .eq("author_id", userId)
+      .eq("business_id", businessId)
+      .eq("is_repost", true)
+      .eq("body", "")
+      .limit(1),
+  ]);
+  return { liked: !!like.data, reposted: (repost.data ?? []).length > 0 };
+}
+
+export async function setBusinessLike(businessId: number, userId: string, like: boolean) {
+  const { error } = like
+    ? await supabase.from("business_likes").insert({ business_id: businessId })
+    : await supabase.from("business_likes").delete().eq("business_id", businessId).eq("user_id", userId);
+  if (error && error.code !== "23505") throw toKonbitError(error);
+}
+
+// Repost simple d'une fiche (sans texte), dans la commune de la fiche.
+export async function repostBusiness(b: { id: number; commune_slug: string }) {
+  const { error } = await supabase
+    .from("konbits")
+    .insert({ body: "", commune_slug: b.commune_slug, kind: "discussion", business_id: b.id });
+  if (error && error.code !== "23505") throw toKonbitError(error);
+}
+
+export async function undoBusinessRepost(businessId: number, userId: string) {
+  const { error } = await supabase
+    .from("konbits")
+    .delete()
+    .eq("author_id", userId)
+    .eq("business_id", businessId)
+    .eq("is_repost", true)
+    .eq("body", "");
+  if (error) throw toKonbitError(error);
+}
+
+// « Site » une fiche : publication avec légende qui montre la fiche.
+export async function quoteBusiness(body: string, communeSlug: string, media: KonbitImage[], businessId: number): Promise<number> {
+  const { data, error } = await supabase
+    .from("konbits")
+    .insert({ body: body.trim(), commune_slug: communeSlug, kind: "discussion", media, business_id: businessId })
+    .select("id")
+    .single();
+  if (error) throw toKonbitError(error);
+  return data.id as number;
+}
+
+// Fiche à citer (écran « Site »).
+export async function fetchFeedBusiness(id: number, userId: string | null): Promise<FeedBusiness | null> {
+  const { data, error } = await supabase
+    .from("businesses")
+    .select(
+      "id, slug, name, category, commune_slug, description, logo_path, cover_path, verified, owner_id, like_count, repost_count",
+    )
+    .eq("id", id)
+    .eq("status", "visible")
+    .maybeSingle();
+  if (error) throw toKonbitError(error);
+  if (!data) return null;
+  const state = userId ? await fetchBusinessSocialState(id, userId) : { liked: false, reposted: false };
+  return { ...data, ...state };
 }
 
 export async function setParticipation(konbitId: number, userId: string, join: boolean) {

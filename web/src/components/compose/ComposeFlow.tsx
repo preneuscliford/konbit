@@ -9,8 +9,10 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { inputClass } from "@/components/auth/PasswordInput";
 import { HandshakeIcon, ImageIcon, PinIcon } from "@/components/Icons";
 import EmojiButton, { useEmojiInsert } from "@/components/EmojiButton";
+import { QuotedBusiness } from "@/components/feed/BusinessFeedCard";
 import QuotedKonbit from "@/components/feed/QuotedKonbit";
 import { toast } from "@/components/Toaster";
+import type { FeedBusiness } from "@/lib/business";
 import {
   businessErrorMessage,
   removeFiles,
@@ -19,10 +21,13 @@ import {
 import type { Konbit, KonbitImage } from "@/lib/data";
 import {
   createKonbit,
+  fetchFeedBusiness,
   fetchKonbitById,
   konbitErrorMessage,
+  quoteBusiness,
   quoteRepost,
   repost,
+  repostBusiness,
 } from "@/lib/konbit-actions";
 import { formatKonbitRange, haitiToDate, haitiToday } from "@/lib/konbit-time";
 import { mediaUrl } from "@/lib/storage";
@@ -103,6 +108,15 @@ export default function ComposeFlow({
       ? Number(siteParam)
       : null;
   const [original, setOriginal] = useState<Konbit | null>(null);
+  // « Site » une fiche business : /lanse?biznis=<id>.
+  const biznisParam = useSearchParams().get("biznis");
+  const quoteBusinessId =
+    mode === "pos" && !quoteId && biznisParam && /^\d+$/.test(biznisParam)
+      ? Number(biznisParam)
+      : null;
+  const [quotedBusiness, setQuotedBusiness] = useState<FeedBusiness | null>(
+    null,
+  );
   // Emoji : insérés à la position du curseur de chaque champ libre.
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -123,7 +137,17 @@ export default function ComposeFlow({
       cancelled = true;
     };
   }, [quoteId]);
-  const quoting = quoteId !== null;
+  useEffect(() => {
+    if (!quoteBusinessId) return;
+    let cancelled = false;
+    fetchFeedBusiness(quoteBusinessId)
+      .then((b) => !cancelled && setQuotedBusiness(b))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [quoteBusinessId]);
+  const quoting = quoteId !== null || quoteBusinessId !== null;
   const [pickCommune, setPickCommune] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -215,6 +239,28 @@ export default function ComposeFlow({
     setBusy(true);
     setError(null);
     try {
+      // Citer une fiche : sans légende ni photo, c'est un repost simple.
+      if (quoteBusinessId !== null) {
+        const b = quotedBusiness;
+        if (!b) throw new Error("not_found");
+        if (!body.trim() && images.length === 0) {
+          await repostBusiness(b);
+          await refreshFeed();
+          toast("Ou reposte fich la.");
+          router.push(`/b/${b.slug}`);
+        } else {
+          const id = await quoteBusiness(
+            body,
+            commune || b.commune_slug,
+            images,
+            b.id,
+          );
+          await refreshFeed();
+          toast("Ou site fich la.");
+          router.push(`/k/${id}`);
+        }
+        return;
+      }
       // Citer : sans légende ni photo, c'est un repost simple.
       if (quoting) {
         if (!original) throw new Error("not_found");
@@ -463,6 +509,9 @@ export default function ComposeFlow({
           {feedback && <div className="mt-3">{feedback}</div>}
 
           {quoting && original && <QuotedKonbit original={original} disabled />}
+          {quotedBusiness && (
+            <QuotedBusiness business={quotedBusiness} disabled />
+          )}
 
           <div className="mt-3 flex items-center gap-1 border-t border-stone-200 pt-3">
             <label
@@ -524,7 +573,9 @@ export default function ComposeFlow({
               type="button"
               onClick={() => void publish()}
               disabled={
-                busy || uploading || (quoting ? !original : !body.trim())
+                busy ||
+                uploading ||
+                (quoting ? !(original || quotedBusiness) : !body.trim())
               }
               className="ml-3 rounded-full bg-brand px-5 py-2.5 font-bold text-white hover:opacity-90 disabled:opacity-40"
             >

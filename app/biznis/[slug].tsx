@@ -17,6 +17,7 @@ import * as Burnt from "burnt";
 import { ArrowLeft, BadgeCheck, Phone, Store } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import Avatar from "@/components/konbit509/Avatar";
+import { BusinessPageSocial } from "@/components/konbit509/BusinessFeedCard";
 import ImageViewer from "@/components/ui/ImageViewer";
 import ShareIcon from "@/components/ui/ShareIcon";
 import { Text } from "@/components/ui/Text";
@@ -142,6 +143,9 @@ export default function BusinessScreen() {
             {t(`App.business.categories.${b.category}`)} · {where}
           </Text>
           {b.description ? <Text style={styles.description}>{b.description}</Text> : null}
+
+          {/* J'aime, repost / « Site » et partage de la fiche (comme un pòs). */}
+          <BusinessPageSocial business={b} />
 
           {contact && (
             <View style={styles.contactRow}>

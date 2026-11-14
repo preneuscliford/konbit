@@ -47,8 +47,11 @@ export default function FeedList({
     if (!ready || !userId || mergedFor.current === userId) return;
     mergedFor.current = userId;
     const ids = initial.map((k) => k.id);
-    fetchMyState(userId, ids)
-      .then(({ liked, joined, reposted }) =>
+    const businessIds = initial.flatMap((k) =>
+      k.business ? [k.business.id] : [],
+    );
+    fetchMyState(userId, ids, businessIds)
+      .then(({ liked, joined, reposted, businessLiked, businessReposted }) =>
         setItems((list) =>
           list.map((k) =>
             ids.includes(k.id)
@@ -57,6 +60,11 @@ export default function FeedList({
                   liked: liked.has(k.id),
                   joined: joined.has(k.id),
                   reposted: reposted.has(k.id),
+                  business: k.business && {
+                    ...k.business,
+                    liked: businessLiked.has(k.business.id),
+                    reposted: businessReposted.has(k.business.id),
+                  },
                 }
               : k,
           ),

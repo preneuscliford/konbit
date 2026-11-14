@@ -675,7 +675,12 @@
       "composeTitle": "Site",
       "captionPlaceholder": "Ajoute yon mesaj (pa obligatwa)…",
       "published": "Ou reposte l.",
-      "you": "Ou"
+      "you": "Ou",
+      "businessBadge": "Biznis",
+      "businessUnavailable": "Fich biznis sa a pa disponib ankò.",
+      "businessDone": "Ou reposte fich la.",
+      "businessQuoted": "Ou site fich la.",
+      "like": "Renmen"
     }
   },
   "Konbit": {

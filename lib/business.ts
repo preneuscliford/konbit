@@ -38,8 +38,28 @@ export interface Business {
   cover_path: string | null;
   status: "visible" | "hidden" | "removed";
   verified: boolean;
+  like_count: number;
+  repost_count: number;
   created_at: string;
   updated_at: string;
+}
+
+// Fiche reprise dans le fil (repost ou « Site »), avec l'état de l'utilisateur.
+export interface FeedBusiness {
+  id: number;
+  slug: string;
+  name: string;
+  category: string;
+  commune_slug: string;
+  description: string | null;
+  logo_path: string | null;
+  cover_path: string | null;
+  verified: boolean;
+  owner_id: string;
+  like_count: number;
+  repost_count: number;
+  liked: boolean;
+  reposted: boolean;
 }
 
 export interface ItemPhoto {
@@ -63,7 +83,7 @@ export interface BusinessItem {
 }
 
 const BUSINESS_FIELDS =
-  "id, owner_id, slug, name, category, commune_slug, address, description, phone, whatsapp, email, website, hours, logo_path, cover_path, status, verified, created_at, updated_at";
+  "id, owner_id, slug, name, category, commune_slug, address, description, phone, whatsapp, email, website, hours, logo_path, cover_path, status, verified, like_count, repost_count, created_at, updated_at";
 const ITEM_FIELDS = "id, business_id, kind, name, description, price, currency, photos, available, position";
 
 export const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;

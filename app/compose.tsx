@@ -4,12 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Burnt from "burnt";
 import { Handshake, ImagePlus, MapPin, X } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import CommunePicker from "@/components/konbit/CommunePicker";
 import Avatar from "@/components/konbit509/Avatar";
+import { QuotedBusiness } from "@/components/konbit509/BusinessFeedCard";
 import QuotedKonbit from "@/components/konbit509/QuotedKonbit";
 import RestrictionBanner, { useRestriction } from "@/components/konbit509/RestrictionBanner";
 import EmojiButton, { useEmojiInput } from "@/components/ui/EmojiButton";
@@ -26,8 +27,11 @@ import {
   KONBIT_MAX_LENGTH,
   KonbitError,
   MAX_IMAGES,
+  fetchFeedBusiness,
+  quoteBusiness,
   quoteRepost,
   repost,
+  repostBusiness,
   uploadKonbitImage,
 } from "@/lib/konbits";
 import { COMMUNITY_RULES_URL } from "@/lib/legal";
@@ -46,10 +50,17 @@ export default function ComposeScreen() {
   const communes = useCommunes();
   const restriction = useRestriction();
   // Repost avec message : la publication d'origine s'affiche en dessous.
-  const params = useLocalSearchParams<{ repostOf?: string }>();
+  const params = useLocalSearchParams<{ repostOf?: string; businessId?: string }>();
   const repostOf = params.repostOf ? Number(params.repostOf) : null;
   const original = useKonbit(repostOf ?? 0);
-  const quoting = repostOf !== null;
+  // « Site » une fiche business : la fiche s'affiche en dessous.
+  const businessId = !repostOf && params.businessId ? Number(params.businessId) : null;
+  const quotedBusiness = useQuery({
+    queryKey: ["feedBusiness", businessId, userId],
+    queryFn: () => fetchFeedBusiness(businessId!, userId),
+    enabled: !!businessId,
+  });
+  const quoting = repostOf !== null || businessId !== null;
 
   const [body, setBody] = useState("");
   const [communeSlug, setCommuneSlug] = useState("");
@@ -65,7 +76,7 @@ export default function ComposeScreen() {
   const remaining = KONBIT_MAX_LENGTH - body.length;
   // Un repost peut partir sans légende ; un pòs a besoin de texte.
   const canSubmit =
-    (quoting ? !!original.data : body.trim().length > 0) && !sending && !preparing && !restriction.blocked;
+    (quoting ? !!(original.data || quotedBusiness.data) : body.trim().length > 0) && !sending && !preparing && !restriction.blocked;
 
   async function pickImages() {
     const slots = MAX_IMAGES - images.length;
@@ -98,7 +109,12 @@ export default function ComposeScreen() {
     setSending(true);
     try {
       const media = await Promise.all(images.map((image) => uploadKonbitImage(userId, image)));
-      if (quoting && original.data) {
+      if (businessId && quotedBusiness.data) {
+        const b = quotedBusiness.data;
+        // Sans légende ni photo : repost simple de la fiche.
+        if (!body.trim() && media.length === 0) await repostBusiness(b);
+        else await quoteBusiness(body, communeSlug || b.commune_slug, media, b.id);
+      } else if (quoting && original.data) {
         // Sans légende ni photo : repost simple. Sinon : repost avec message.
         if (!body.trim() && media.length === 0) await repost(original.data);
         else await quoteRepost(body, communeSlug || original.data.commune_slug, media, original.data.id);
@@ -184,7 +200,11 @@ export default function ComposeScreen() {
           </View>
         )}
 
-        {quoting && <QuotedKonbit original={original.data ?? null} disabled />}
+        {businessId ? (
+          <QuotedBusiness business={quotedBusiness.data ?? null} disabled />
+        ) : (
+          quoting && <QuotedKonbit original={original.data ?? null} disabled />
+        )}
 
         {communeSlug ? (
           <View style={styles.communeChip}>

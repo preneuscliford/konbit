@@ -9,6 +9,7 @@ import {
   ITEM_FIELDS,
   type Business,
   type BusinessItem,
+  type FeedBusiness,
 } from "./business";
 import { SUPABASE_URL } from "./storage";
 
@@ -62,6 +63,9 @@ export interface Konbit {
   repost_count?: number;
   reposted?: boolean;
   original?: KonbitOriginal | null;
+  // Repost ou « Site » d'une fiche business.
+  business_id?: number | null;
+  business?: FeedBusiness | null;
 }
 
 // Publication d'origine d'un repost, telle que la renvoie le fil.
