@@ -328,6 +328,25 @@ export async function fetchBusinessSocialState(businessId: number, userId: strin
   return { liked: !!like.data, reposted: (repost.data ?? []).length > 0 };
 }
 
+// Annuaire : fiches aimées et repostées par l'utilisateur, en une fois.
+export async function fetchMyBusinessState(userId: string, businessIds: number[]) {
+  if (businessIds.length === 0) return { liked: [] as number[], reposted: [] as number[] };
+  const [likes, reposts] = await Promise.all([
+    supabase.from("business_likes").select("business_id").eq("user_id", userId).in("business_id", businessIds),
+    supabase
+      .from("konbits")
+      .select("business_id")
+      .eq("author_id", userId)
+      .eq("is_repost", true)
+      .eq("body", "")
+      .in("business_id", businessIds),
+  ]);
+  return {
+    liked: (likes.data ?? []).map((r) => r.business_id as number),
+    reposted: (reposts.data ?? []).map((r) => r.business_id as number),
+  };
+}
+
 export async function setBusinessLike(businessId: number, userId: string, like: boolean) {
   const { error } = like
     ? await supabase.from("business_likes").insert({ business_id: businessId })

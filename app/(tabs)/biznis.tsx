@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -7,6 +7,7 @@ import { BadgeCheck, Store } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import AppHeader from "@/components/AppHeader";
 import CommunePicker from "@/components/konbit/CommunePicker";
+import { BusinessRowSocial, useBusinessListState } from "@/components/konbit509/BusinessFeedCard";
 import { Text } from "@/components/ui/Text";
 import { useAccountGate } from "@/hooks/useAccountGate";
 import { useBusinesses, useMyBusiness } from "@/hooks/useBusiness";
@@ -25,6 +26,9 @@ export default function BusinessesScreen() {
   const [commune, setCommune] = useState("");
   const list = useBusinesses({ category: category || undefined, commune: commune || undefined });
   const mine = useMyBusiness();
+  // J'aime et reposts de l'utilisateur pour toute la liste.
+  const ids = useMemo(() => (list.data ?? []).map((b) => b.id), [list.data]);
+  const social = useBusinessListState(ids);
 
   const communeName = (slug: string) => communes.data?.find((c) => c.slug === slug)?.name ?? slug;
 
@@ -88,6 +92,8 @@ export default function BusinessesScreen() {
         renderItem={({ item }) => (
           <BusinessRow
             business={item}
+            liked={social.liked.has(item.id)}
+            reposted={social.reposted.has(item.id)}
             communeName={communeName(item.commune_slug)}
             onPress={() => router.push({ pathname: "/biznis/[slug]", params: { slug: item.slug } })}
           />
@@ -109,7 +115,19 @@ export default function BusinessesScreen() {
   );
 }
 
-function BusinessRow({ business: b, communeName, onPress }: { business: Business; communeName: string; onPress: () => void }) {
+function BusinessRow({
+  business: b,
+  liked,
+  reposted,
+  communeName,
+  onPress,
+}: {
+  business: Business;
+  liked: boolean;
+  reposted: boolean;
+  communeName: string;
+  onPress: () => void;
+}) {
   const { t } = useI18n();
   return (
     <Pressable onPress={onPress} style={styles.row} android_ripple={{ color: Colors.ripple }}>
@@ -135,6 +153,8 @@ function BusinessRow({ business: b, communeName, onPress }: { business: Business
             {b.description}
           </Text>
         ) : null}
+        {/* J'aime, repost / « Site » et partage, comme dans le fil. */}
+        <BusinessRowSocial business={b} liked={liked} reposted={reposted} />
       </View>
     </Pressable>
   );

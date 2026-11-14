@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import BusinessCard from "@/components/business/BusinessCard";
+import { BusinessSocialProvider } from "@/components/business/BusinessSocial";
 import CommuneFilter from "@/components/business/CommuneFilter";
 import MyBusinessButton from "@/components/business/MyBusinessButton";
 import PageHeader from "@/components/shell/PageHeader";
@@ -112,13 +113,15 @@ async function Directory({
           </p>
         </div>
       ) : (
-        businesses.map((b) => (
-          <BusinessCard
-            key={b.id}
-            business={b}
-            communeName={names[b.commune_slug] ?? b.commune_slug}
-          />
-        ))
+        <BusinessSocialProvider ids={businesses.map((b) => b.id)}>
+          {businesses.map((b) => (
+            <BusinessCard
+              key={b.id}
+              business={b}
+              communeName={names[b.commune_slug] ?? b.commune_slug}
+            />
+          ))}
+        </BusinessSocialProvider>
       )}
     </>
   );

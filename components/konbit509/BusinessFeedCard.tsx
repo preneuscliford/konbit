@@ -15,6 +15,7 @@ import type { FeedBusiness } from "@/lib/business";
 import { useI18n } from "@/lib/i18n";
 import {
   fetchBusinessSocialState,
+  fetchMyBusinessState,
   KonbitError,
   mediaUrl,
   repostBusiness,
@@ -217,6 +218,37 @@ export function BusinessSocialBar({ business: initial }: { business: SocialBusin
       />
     </View>
   );
+}
+
+// Annuaire : état de l'utilisateur pour toute la liste (une requête).
+export function useBusinessListState(ids: number[]) {
+  const { userId } = useAuth();
+  const query = useQuery({
+    queryKey: ["businessSocial", "list", ids.join(","), userId],
+    queryFn: () => fetchMyBusinessState(userId!, ids),
+    enabled: !!userId && ids.length > 0,
+  });
+  return useMemo(
+    () => ({
+      liked: new Set(userId ? (query.data?.liked ?? []) : []),
+      reposted: new Set(userId ? (query.data?.reposted ?? []) : []),
+    }),
+    [query.data, userId],
+  );
+}
+
+// Ligne de l'annuaire : la barre avec l'état venu de la liste.
+export function BusinessRowSocial({
+  business,
+  liked,
+  reposted,
+}: {
+  business: Omit<SocialBusiness, "liked" | "reposted">;
+  liked: boolean;
+  reposted: boolean;
+}) {
+  const value = useMemo(() => ({ ...business, liked, reposted }), [business, liked, reposted]);
+  return <BusinessSocialBar business={value} />;
 }
 
 // Page d'une fiche : la barre, avec l'état de l'utilisateur chargé à part.

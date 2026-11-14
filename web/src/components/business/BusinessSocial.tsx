@@ -1,14 +1,58 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { BusinessSocialBar } from "@/components/feed/BusinessFeedCard";
 import { fetchMyBusinessState } from "@/lib/konbit-actions";
 
-// Barre J'aime / repost / partage sur la page d'une fiche. La page vient du
-// cache (sans session) : l'état de l'utilisateur est chargé ici.
+type MyState = { liked: Set<number>; reposted: Set<number> };
+
+// Annuaire : l'état de l'utilisateur (J'aime, repost) pour toutes les fiches
+// de la liste, chargé en une fois au lieu d'une requête par fiche.
+const ListState = createContext<MyState | "loading" | null>(null);
+
+export function BusinessSocialProvider({
+  ids,
+  children,
+}: {
+  ids: number[];
+  children: React.ReactNode;
+}) {
+  const { userId } = useAuth();
+  const [state, setState] = useState<{ key: string; value: MyState } | null>(
+    null,
+  );
+  const key = `${userId}:${ids.join(",")}`;
+
+  useEffect(() => {
+    if (!userId || ids.length === 0) return;
+    let cancelled = false;
+    fetchMyBusinessState(userId, ids)
+      .then(({ businessLiked, businessReposted }) => {
+        if (!cancelled)
+          setState({
+            key: `${userId}:${ids.join(",")}`,
+            value: { liked: businessLiked, reposted: businessReposted },
+          });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, ids]);
+
+  const value = state?.key === key ? state.value : "loading";
+  return <ListState.Provider value={value}>{children}</ListState.Provider>;
+}
+
+const NONE = { liked: false, reposted: false };
+
+// Barre J'aime / repost / partage d'une fiche (page de la fiche ou annuaire).
+// Les pages viennent du cache (sans session) : l'état de l'utilisateur est
+// chargé ici, ou par la liste (BusinessSocialProvider).
 export default function BusinessSocial({
   business,
+  className = "-ml-2 mt-3",
 }: {
   business: {
     id: number;
@@ -18,17 +62,20 @@ export default function BusinessSocial({
     like_count: number;
     repost_count: number;
   };
+  className?: string;
 }) {
   const { userId } = useAuth();
-  const [mine, setMine] = useState({ liked: false, reposted: false });
+  const list = useContext(ListState);
+  const [own, setOwn] = useState(NONE);
 
   useEffect(() => {
-    if (!userId) return;
+    // Dans une liste, c'est la liste qui charge l'état.
+    if (!userId || list !== null) return;
     let cancelled = false;
     fetchMyBusinessState(userId, [business.id])
       .then(({ businessLiked, businessReposted }) => {
         if (cancelled) return;
-        setMine({
+        setOwn({
           liked: businessLiked.has(business.id),
           reposted: businessReposted.has(business.id),
         });
@@ -37,17 +84,24 @@ export default function BusinessSocial({
     return () => {
       cancelled = true;
     };
-  }, [userId, business.id]);
+  }, [userId, business.id, list]);
+
+  const liked = !userId
+    ? false
+    : list && list !== "loading"
+      ? list.liked.has(business.id)
+      : own.liked;
+  const reposted = !userId
+    ? false
+    : list && list !== "loading"
+      ? list.reposted.has(business.id)
+      : own.reposted;
 
   // Objet stable : la barre se recale seulement quand l'état change vraiment.
-  // Déconnecté : rien n'est aimé ni reposté.
   const value = useMemo(
-    () => ({
-      ...business,
-      ...(userId ? mine : { liked: false, reposted: false }),
-    }),
-    [business, userId, mine],
+    () => ({ ...business, liked, reposted }),
+    [business, liked, reposted],
   );
 
-  return <BusinessSocialBar business={value} className="-ml-2 mt-3" />;
+  return <BusinessSocialBar business={value} className={className} />;
 }
