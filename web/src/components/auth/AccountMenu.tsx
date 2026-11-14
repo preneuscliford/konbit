@@ -14,7 +14,7 @@ export default function AccountMenu({
 }: {
   placement?: "down" | "up";
 }) {
-  const { ready, userId, profile, signOut } = useAuth();
+  const { ready, userId, profile, isModerator, signOut } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -126,6 +126,11 @@ export default function AccountMenu({
           >
             Aktivite mwen
           </Link>
+          {isModerator && (
+            <Link href="/admin" className={item} onClick={() => setOpen(false)}>
+              Administrasyon
+            </Link>
+          )}
           <button
             type="button"
             className={`${item} text-brand-red`}
