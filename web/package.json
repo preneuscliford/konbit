@@ -12,6 +12,7 @@
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0",
     "@vercel/analytics": "^2.0.1",
+    "emoji-picker-element": "^1.29.1",
     "marked": "^15.0.12",
     "next": "16.4.5",
     "react": "19.3.0",

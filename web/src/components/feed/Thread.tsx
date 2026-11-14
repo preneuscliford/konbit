@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { refreshKonbit } from "@/app/actions/konbit";
 import Avatar from "@/components/Avatar";
+import EmojiButton, { useEmojiInsert } from "@/components/EmojiButton";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { HeartIcon, MoreIcon, ReplyIcon, ShareIcon } from "@/components/Icons";
 import { toast } from "@/components/Toaster";
@@ -242,6 +243,7 @@ function Composer({
   const [text, setText] = useState(initialText);
   const [busy, setBusy] = useState(false);
   const area = useRef<HTMLTextAreaElement>(null);
+  const insertEmoji = useEmojiInsert(area, text, setText, MAX);
 
   useEffect(() => {
     if (!autoFocus) return;
@@ -287,6 +289,7 @@ function Composer({
           className="w-full resize-y rounded-2xl border border-stone-300 bg-surface px-4 py-2.5 text-[15px] text-stone-900 outline-none placeholder:text-stone-400 focus:border-brand focus:ring-2 focus:ring-brand/15"
         />
         <div className="mt-1.5 flex items-center justify-end gap-2">
+          <EmojiButton onPick={insertEmoji} />
           <span
             className={`mr-auto text-xs ${text.length > MAX - 50 ? "text-brand-red" : "text-stone-400"}`}
           >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,6 +8,7 @@ import { refreshFeed } from "@/app/actions/konbit";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { inputClass } from "@/components/auth/PasswordInput";
 import { HandshakeIcon, ImageIcon, PinIcon } from "@/components/Icons";
+import EmojiButton, { useEmojiInsert } from "@/components/EmojiButton";
 import QuotedKonbit from "@/components/feed/QuotedKonbit";
 import { toast } from "@/components/Toaster";
 import {
@@ -102,6 +103,16 @@ export default function ComposeFlow({
       ? Number(siteParam)
       : null;
   const [original, setOriginal] = useState<Konbit | null>(null);
+  // Emoji : insérés à la position du curseur de chaque champ libre.
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const insertInBody = useEmojiInsert(
+    bodyRef,
+    body,
+    setBody,
+    mode === "konbit" ? 1000 : 280,
+  );
+  const insertInTitle = useEmojiInsert(titleRef, title, setTitle, 80);
   useEffect(() => {
     if (!quoteId) return;
     let cancelled = false;
@@ -367,6 +378,7 @@ export default function ComposeFlow({
         {/* Comme X : le texte d'abord ; photo et lieu en petites icônes. */}
         <div className="px-4 py-4">
           <textarea
+            ref={bodyRef}
             value={body}
             maxLength={280}
             rows={5}
@@ -491,6 +503,7 @@ export default function ComposeFlow({
             >
               <PinIcon className="h-[22px] w-[22px]" />
             </button>
+            <EmojiButton onPick={insertInBody} />
             {!quoting && (
               <button
                 type="button"
@@ -557,8 +570,12 @@ export default function ComposeFlow({
                 Ki konbit w ap lanse?
               </h2>
               <label className="block">
-                <span className={label}>Non konbit la *</span>
+                <span className={`${label} flex items-center justify-between`}>
+                  Non konbit la *
+                  <EmojiButton onPick={insertInTitle} placement="down" />
+                </span>
                 <input
+                  ref={titleRef}
                   value={title}
                   maxLength={80}
                   autoFocus
@@ -568,8 +585,12 @@ export default function ComposeFlow({
                 />
               </label>
               <label className="block">
-                <span className={label}>Eksplikasyon *</span>
+                <span className={`${label} flex items-center justify-between`}>
+                  Eksplikasyon *
+                  <EmojiButton onPick={insertInBody} placement="down" />
+                </span>
                 <textarea
+                  ref={bodyRef}
                   value={body}
                   maxLength={1000}
                   rows={5}
