@@ -12,44 +12,99 @@ import {
   HeartIcon,
   MoreIcon,
   ReplyIcon,
+  PencilIcon,
+  RepostIcon,
   ShareIcon,
 } from "@/components/Icons";
 import Lightbox from "@/components/media/Lightbox";
 import { toast } from "@/components/Toaster";
 import type { Konbit } from "@/lib/data";
+import { isPlainRepost, originalAsKonbit } from "@/lib/repost";
 import {
   ABUSE_REASONS,
   deleteKonbit,
   konbitErrorMessage,
   reportAbuse,
   setLike,
+  repost,
   setParticipation,
+  undoRepost,
   type AbuseReason,
 } from "@/lib/konbit-actions";
 import { displayName, KIND_LABEL } from "@/lib/site";
 import { mediaUrl } from "@/lib/storage";
 import { formatKonbitDate } from "@/lib/konbit-time";
 import KonbitSummary, { useKonbitStatus } from "./KonbitSummary";
+import QuotedKonbit from "./QuotedKonbit";
 import TimeAgo from "./TimeAgo";
 import { useRequireAccount } from "./useRequireAccount";
 
 // Konbit dans le fil, composition inspirée de X : avatar à gauche ; à droite
 // le nom, la commune et l'heure, le texte, les images, puis les actions.
 // `full` : page du konbit (texte plus grand, pas de lien vers lui-même).
-export default function KonbitPost({
-  konbit: initial,
-  communeName,
-  full = false,
-  onDeleted,
-  onJoinChange,
-}: {
+type PostProps = {
   konbit: Konbit;
   communeName: string;
   full?: boolean;
   onDeleted?: (id: number) => void;
   // Page du konbit : l'espace de messages s'ouvre dès qu'on rejoint.
   onJoinChange?: (joined: boolean) => void;
+};
+
+export default function KonbitPost(props: PostProps) {
+  if (!isPlainRepost(props.konbit)) return <KonbitPostBody {...props} />;
+  return <PlainRepost konbit={props.konbit} communeName={props.communeName} />;
+}
+
+// Repost simple : « 🔁 X reposte », puis la publication d'origine (actions
+// sur l'original), ou un message si elle n'est plus disponible.
+function PlainRepost({
+  konbit,
+  communeName,
+}: {
+  konbit: Konbit;
+  communeName: string;
 }) {
+  const { userId } = useAuth();
+  const mine = !!userId && konbit.author_id === userId;
+  const name = mine
+    ? "Ou"
+    : displayName(konbit.author_name, konbit.author_pseudo);
+  return (
+    <div className="border-b border-stone-200">
+      <p className="flex items-center gap-2 px-4 pt-2.5 pl-[3.25rem] text-[13px] font-bold text-stone-500">
+        <RepostIcon className="h-4 w-4" />
+        {konbit.author_pseudo && !mine ? (
+          <Link href={`/u/${konbit.author_pseudo}`} className="hover:underline">
+            {name} reposte
+          </Link>
+        ) : (
+          <span>{name} reposte</span>
+        )}
+      </p>
+      {konbit.original ? (
+        <KonbitPostBody
+          konbit={originalAsKonbit(konbit.original, mine)}
+          communeName={communeName}
+          noBorder
+        />
+      ) : (
+        <div className="px-4 pb-3">
+          <QuotedKonbit original={null} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function KonbitPostBody({
+  konbit: initial,
+  communeName,
+  full = false,
+  onDeleted,
+  onJoinChange,
+  noBorder = false,
+}: PostProps & { noBorder?: boolean }) {
   const router = useRouter();
   const { userId } = useAuth();
   const requireAccount = useRequireAccount();
@@ -61,6 +116,7 @@ export default function KonbitPost({
   // Photo ouverte en plein écran (index), ou aucune.
   const [viewer, setViewer] = useState<number | null>(null);
   const [joining, setJoining] = useState(false);
+  const [repostMenu, setRepostMenu] = useState(false);
 
   // Nouvelle donnée du parent (état personnel chargé après coup, etc.).
   const [source, setSource] = useState(initial);
@@ -136,6 +192,30 @@ export default function KonbitPost({
     }
   }
 
+  async function toggleRepost() {
+    setRepostMenu(false);
+    if (!userId) return;
+    const on = !k.reposted;
+    setK((c) => ({
+      ...c,
+      reposted: on,
+      repost_count: Math.max(0, (c.repost_count ?? 0) + (on ? 1 : -1)),
+    }));
+    try {
+      if (on) await repost(k);
+      else await undoRepost(k.id, userId);
+      toast(on ? "Ou reposte l." : "Repost la anile.");
+      router.refresh();
+    } catch (e) {
+      setK((c) => ({
+        ...c,
+        reposted: !on,
+        repost_count: Math.max(0, (c.repost_count ?? 0) + (on ? -1 : 1)),
+      }));
+      toast(konbitErrorMessage(e), "error");
+    }
+  }
+
   async function share() {
     const url = `${window.location.origin}${href}`;
     try {
@@ -188,7 +268,7 @@ export default function KonbitPost({
   return (
     <article
       onClick={openFromCard}
-      className={`relative flex gap-3 border-b border-stone-200 px-4 py-3 ${full ? "" : "cursor-pointer hover:bg-stone-50/70"}`}
+      className={`relative flex gap-3 ${noBorder ? "" : "border-b border-stone-200"} px-4 py-3 ${full ? "" : "cursor-pointer hover:bg-stone-50/70"}`}
     >
       <div className="shrink-0 pt-0.5">
         {authorHref ? (
@@ -299,6 +379,7 @@ export default function KonbitPost({
             >
               {k.body}
             </p>
+            {k.is_repost && <QuotedKonbit original={k.original} />}
           </>
         )}
 
@@ -410,6 +491,30 @@ export default function KonbitPost({
           ) : (
             <span aria-hidden className="w-8" />
           )}
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => requireAccount(() => setRepostMenu((o) => !o))}
+              aria-label={`Reposte: ${k.repost_count ?? 0}`}
+              aria-haspopup="menu"
+              aria-expanded={repostMenu}
+              className={`${action} ${k.reposted ? "text-emerald-700" : "hover:text-emerald-700"}`}
+            >
+              <span className="rounded-full p-2 group-hover:bg-emerald-50">
+                <RepostIcon className="h-[18px] w-[18px]" />
+              </span>
+              {(k.repost_count ?? 0) > 0 && k.repost_count}
+            </button>
+            {repostMenu && (
+              <RepostMenu
+                reposted={!!k.reposted}
+                onClose={() => setRepostMenu(false)}
+                onRepost={() => void toggleRepost()}
+                onQuote={() => router.push(`/lanse?site=${k.id}`)}
+              />
+            )}
+          </div>
 
           <button
             type="button"
@@ -538,6 +643,62 @@ function PostMenu({
           ))}
         </>
       )}
+    </div>
+  );
+}
+
+function RepostMenu({
+  reposted,
+  onClose,
+  onRepost,
+  onQuote,
+}: {
+  reposted: boolean;
+  onClose: () => void;
+  onRepost: () => void;
+  onQuote: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (!ref.current?.parentElement?.contains(e.target as Node)) onClose();
+    };
+    const escape = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [onClose]);
+
+  const item =
+    "flex w-full items-center gap-3 px-4 py-2.5 text-left text-[15px] font-bold hover:bg-stone-50";
+  return (
+    <div
+      ref={ref}
+      role="menu"
+      className="absolute bottom-full left-0 z-30 mb-1 w-56 overflow-hidden rounded-2xl border border-stone-200 bg-surface py-1 shadow-xl"
+    >
+      <button
+        type="button"
+        role="menuitem"
+        onClick={onRepost}
+        className={`${item} ${reposted ? "text-brand-red" : "text-stone-900"}`}
+      >
+        <RepostIcon className="h-5 w-5" />
+        {reposted ? "Anile repost la" : "Reposte"}
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        onClick={onQuote}
+        className={`${item} text-stone-900`}
+      >
+        <PencilIcon className="h-5 w-5" />
+        Site
+      </button>
     </div>
   );
 }

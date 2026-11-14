@@ -48,11 +48,16 @@ export default function FeedList({
     mergedFor.current = userId;
     const ids = initial.map((k) => k.id);
     fetchMyState(userId, ids)
-      .then(({ liked, joined }) =>
+      .then(({ liked, joined, reposted }) =>
         setItems((list) =>
           list.map((k) =>
             ids.includes(k.id)
-              ? { ...k, liked: liked.has(k.id), joined: joined.has(k.id) }
+              ? {
+                  ...k,
+                  liked: liked.has(k.id),
+                  joined: joined.has(k.id),
+                  reposted: reposted.has(k.id),
+                }
               : k,
           ),
         ),

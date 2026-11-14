@@ -29,12 +29,13 @@ export default function KonbitDetail({
     if (!ready || !userId) return;
     let cancelled = false;
     fetchMyState(userId, [konbit.id])
-      .then(({ liked, joined }) => {
+      .then(({ liked, joined, reposted }) => {
         if (!cancelled)
           setK({
             ...konbit,
             liked: liked.has(konbit.id),
             joined: joined.has(konbit.id),
+            reposted: reposted.has(konbit.id),
           });
       })
       .catch(() => {});

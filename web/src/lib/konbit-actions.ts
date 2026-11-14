@@ -108,8 +108,12 @@ export async function fetchFeedPage(
 export async function fetchMyState(userId: string, ids: number[]) {
   const supabase = getSupabase();
   if (ids.length === 0)
-    return { liked: new Set<number>(), joined: new Set<number>() };
-  const [likes, joins] = await Promise.all([
+    return {
+      liked: new Set<number>(),
+      joined: new Set<number>(),
+      reposted: new Set<number>(),
+    };
+  const [likes, joins, reposts] = await Promise.all([
     supabase
       .from("konbit_likes")
       .select("konbit_id")
@@ -120,6 +124,14 @@ export async function fetchMyState(userId: string, ids: number[]) {
       .select("konbit_id")
       .eq("user_id", userId)
       .in("konbit_id", ids),
+    // Reposts simples de l'utilisateur sur ces publications.
+    supabase
+      .from("konbits")
+      .select("repost_of")
+      .eq("author_id", userId)
+      .eq("is_repost", true)
+      .eq("body", "")
+      .in("repost_of", ids),
   ]);
   return {
     liked: new Set<number>(
@@ -128,7 +140,66 @@ export async function fetchMyState(userId: string, ids: number[]) {
     joined: new Set<number>(
       (joins.data ?? []).map((r) => r.konbit_id as number),
     ),
+    reposted: new Set<number>(
+      (reposts.data ?? []).map((r) => r.repost_of as number),
+    ),
   };
+}
+
+// ─── Repost ────────────────────────────────────────────────────────────────
+
+// Repost simple (sans texte), dans la commune de l'original.
+export async function repost(konbit: Pick<Konbit, "id" | "commune_slug">) {
+  const { error } = await getSupabase().from("konbits").insert({
+    body: "",
+    commune_slug: konbit.commune_slug,
+    kind: "discussion",
+    repost_of: konbit.id,
+  });
+  // Déjà reposté : l'état voulu est atteint.
+  if (error && error.code !== "23505") throw toKonbitError(error);
+}
+
+export async function undoRepost(konbitId: number, userId: string) {
+  const { error } = await getSupabase()
+    .from("konbits")
+    .delete()
+    .eq("author_id", userId)
+    .eq("repost_of", konbitId)
+    .eq("is_repost", true)
+    .eq("body", "");
+  if (error) throw toKonbitError(error);
+}
+
+// Citer (« Site ») : repost avec une légende (texte, emoji, photos).
+export async function quoteRepost(
+  body: string,
+  communeSlug: string,
+  media: KonbitImage[],
+  repostOf: number,
+): Promise<number> {
+  const { data, error } = await getSupabase()
+    .from("konbits")
+    .insert({
+      body: body.trim(),
+      commune_slug: communeSlug,
+      kind: "discussion",
+      media,
+      repost_of: repostOf,
+    })
+    .select("id")
+    .single();
+  if (error) throw toKonbitError(error);
+  return data.id as number;
+}
+
+export async function fetchKonbitById(id: number): Promise<Konbit | null> {
+  const { data, error } = await getSupabase().rpc("konbit_feed", {
+    only_id: id,
+    page_size: 1,
+  });
+  if (error) throw toKonbitError(error);
+  return ((data ?? []) as Konbit[])[0] ?? null;
 }
 
 export async function setLike(konbitId: number, userId: string, like: boolean) {

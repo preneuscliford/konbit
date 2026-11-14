@@ -55,7 +55,37 @@ export interface Konbit {
   starts_at: string | null;
   ends_at: string | null;
   max_participants: number | null;
+  // Repost : publication d'origine (vide si supprimée), nombre de reposts et
+  // repost simple de l'utilisateur (rempli avec sa session).
+  repost_of?: number | null;
+  is_repost?: boolean;
+  repost_count?: number;
+  reposted?: boolean;
+  original?: KonbitOriginal | null;
 }
+
+// Publication d'origine d'un repost, telle que la renvoie le fil.
+export type KonbitOriginal = Pick<
+  Konbit,
+  | "id"
+  | "body"
+  | "kind"
+  | "title"
+  | "commune_slug"
+  | "address_detail"
+  | "starts_at"
+  | "ends_at"
+  | "max_participants"
+  | "media"
+  | "created_at"
+  | "participant_count"
+  | "reply_count"
+  | "like_count"
+  | "author_id"
+  | "author_pseudo"
+  | "author_name"
+  | "author_avatar"
+> & { repost_count?: number };
 
 export interface Profile {
   id: string;

@@ -3,19 +3,26 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { refreshFeed } from "@/app/actions/konbit";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { inputClass } from "@/components/auth/PasswordInput";
 import { HandshakeIcon, ImageIcon, PinIcon } from "@/components/Icons";
+import QuotedKonbit from "@/components/feed/QuotedKonbit";
 import { toast } from "@/components/Toaster";
 import {
   businessErrorMessage,
   removeFiles,
   uploadPhoto,
 } from "@/lib/business-actions";
-import type { KonbitImage } from "@/lib/data";
-import { createKonbit, konbitErrorMessage } from "@/lib/konbit-actions";
+import type { Konbit, KonbitImage } from "@/lib/data";
+import {
+  createKonbit,
+  fetchKonbitById,
+  konbitErrorMessage,
+  quoteRepost,
+  repost,
+} from "@/lib/konbit-actions";
 import { formatKonbitRange, haitiToDate, haitiToday } from "@/lib/konbit-time";
 import { mediaUrl } from "@/lib/storage";
 
@@ -87,6 +94,25 @@ export default function ComposeFlow({
   const [max, setMax] = useState("20");
 
   const [busy, setBusy] = useState(false);
+  // « Site » (citer) : /lanse?site=<id>, la publication d'origine en dessous ;
+  // la légende est facultative.
+  const siteParam = useSearchParams().get("site");
+  const quoteId =
+    mode === "pos" && siteParam && /^\d+$/.test(siteParam)
+      ? Number(siteParam)
+      : null;
+  const [original, setOriginal] = useState<Konbit | null>(null);
+  useEffect(() => {
+    if (!quoteId) return;
+    let cancelled = false;
+    fetchKonbitById(quoteId)
+      .then((k) => !cancelled && setOriginal(k))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [quoteId]);
+  const quoting = quoteId !== null;
   const [pickCommune, setPickCommune] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -172,12 +198,33 @@ export default function ComposeFlow({
     const problem =
       mode === "konbit" ? [0, 1, 2, 3].map(checkStep).find(Boolean) : null;
     if (problem) return setError(problem);
-    if (mode === "pos") {
+    if (mode === "pos" && !quoting) {
       if (!body.trim()) return setError("Ekri pòs ou anvan.");
     }
     setBusy(true);
     setError(null);
     try {
+      // Citer : sans légende ni photo, c'est un repost simple.
+      if (quoting) {
+        if (!original) throw new Error("not_found");
+        if (!body.trim() && images.length === 0) {
+          await repost(original);
+          await refreshFeed();
+          toast("Ou reposte l.");
+          router.push(`/k/${original.id}`);
+        } else {
+          const id = await quoteRepost(
+            body,
+            commune || original.commune_slug,
+            images,
+            original.id,
+          );
+          await refreshFeed();
+          toast("Ou site l.");
+          router.push(`/k/${id}`);
+        }
+        return;
+      }
       const id = await createKonbit(
         mode === "konbit"
           ? {
@@ -326,7 +373,11 @@ export default function ComposeFlow({
             autoFocus
             aria-label="Pòs ou"
             onChange={(e) => setBody(e.target.value)}
-            placeholder="Sak pase, sak ap fèt?"
+            placeholder={
+              quoting
+                ? "Ajoute yon mesaj (pa obligatwa)…"
+                : "Sak pase, sak ap fèt?"
+            }
             className="w-full resize-none bg-transparent text-xl leading-relaxed text-stone-900 outline-none placeholder:text-stone-400"
           />
 
@@ -399,6 +450,8 @@ export default function ComposeFlow({
 
           {feedback && <div className="mt-3">{feedback}</div>}
 
+          {quoting && original && <QuotedKonbit original={original} disabled />}
+
           <div className="mt-3 flex items-center gap-1 border-t border-stone-200 pt-3">
             <label
               title={
@@ -438,15 +491,17 @@ export default function ComposeFlow({
             >
               <PinIcon className="h-[22px] w-[22px]" />
             </button>
-            <button
-              type="button"
-              onClick={toKonbit}
-              title="Fè l tounen yon konbit (yon aksyon ansanm, ak dat ak moun)"
-              aria-label="Fè l tounen yon konbit"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-brand/80 hover:bg-blue-50 hover:text-brand"
-            >
-              <HandshakeIcon className="h-[22px] w-[22px]" />
-            </button>
+            {!quoting && (
+              <button
+                type="button"
+                onClick={toKonbit}
+                title="Fè l tounen yon konbit (yon aksyon ansanm, ak dat ak moun)"
+                aria-label="Fè l tounen yon konbit"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-brand/80 hover:bg-blue-50 hover:text-brand"
+              >
+                <HandshakeIcon className="h-[22px] w-[22px]" />
+              </button>
+            )}
             <span
               className={`ml-auto text-sm ${body.length > 260 ? "text-brand-red" : "text-stone-400"}`}
             >
@@ -455,10 +510,12 @@ export default function ComposeFlow({
             <button
               type="button"
               onClick={() => void publish()}
-              disabled={busy || uploading || !body.trim()}
+              disabled={
+                busy || uploading || (quoting ? !original : !body.trim())
+              }
               className="ml-3 rounded-full bg-brand px-5 py-2.5 font-bold text-white hover:opacity-90 disabled:opacity-40"
             >
-              {busy ? "…" : "Pibliye"}
+              {busy ? "…" : quoting ? "Site" : "Pibliye"}
             </button>
           </div>
         </div>
