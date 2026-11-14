@@ -44,6 +44,10 @@ export interface Business {
   updated_at: string;
 }
 
+// J'aime / repost / « Site » des fiches : désactivés pour ne pas saturer le
+// fil. Prévu plus tard comme option payante, marquée « Sponsorisé ».
+export const BUSINESS_SOCIAL_ENABLED = false;
+
 // Fiche reprise dans le fil (repost ou « Site »), avec l'état de l'utilisateur.
 export interface FeedBusiness {
   id: number;

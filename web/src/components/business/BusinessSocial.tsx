@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { BusinessSocialBar } from "@/components/feed/BusinessFeedCard";
+import { BUSINESS_SOCIAL_ENABLED } from "@/lib/business";
 import { fetchMyBusinessState } from "@/lib/konbit-actions";
 
 type MyState = { liked: Set<number>; reposted: Set<number> };
@@ -25,7 +26,7 @@ export function BusinessSocialProvider({
   const key = `${userId}:${ids.join(",")}`;
 
   useEffect(() => {
-    if (!userId || ids.length === 0) return;
+    if (!BUSINESS_SOCIAL_ENABLED || !userId || ids.length === 0) return;
     let cancelled = false;
     fetchMyBusinessState(userId, ids)
       .then(({ businessLiked, businessReposted }) => {
@@ -70,7 +71,7 @@ export default function BusinessSocial({
 
   useEffect(() => {
     // Dans une liste, c'est la liste qui charge l'état.
-    if (!userId || list !== null) return;
+    if (!BUSINESS_SOCIAL_ENABLED || !userId || list !== null) return;
     let cancelled = false;
     fetchMyBusinessState(userId, [business.id])
       .then(({ businessLiked, businessReposted }) => {

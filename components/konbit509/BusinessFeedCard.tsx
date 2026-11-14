@@ -11,7 +11,7 @@ import ShareIcon from "@/components/ui/ShareIcon";
 import { Text } from "@/components/ui/Text";
 import { useAccountGate } from "@/hooks/useAccountGate";
 import { useAuth } from "@/lib/auth";
-import type { FeedBusiness } from "@/lib/business";
+import { BUSINESS_SOCIAL_ENABLED, type FeedBusiness } from "@/lib/business";
 import { useI18n } from "@/lib/i18n";
 import {
   fetchBusinessSocialState,
@@ -106,7 +106,13 @@ export default function BusinessFeedCard({ business }: { business: FeedBusiness 
 
 // J'aime, repost (« Reposte » / « Site ») et partage d'une fiche : dans le fil
 // et sur la page de la fiche.
-export function BusinessSocialBar({ business: initial }: { business: SocialBusiness }) {
+// Désactivé pour l'instant (BUSINESS_SOCIAL_ENABLED) : rien ne s'affiche.
+export function BusinessSocialBar({ business }: { business: SocialBusiness }) {
+  if (!BUSINESS_SOCIAL_ENABLED) return null;
+  return <BusinessSocialBarInner business={business} />;
+}
+
+function BusinessSocialBarInner({ business: initial }: { business: SocialBusiness }) {
   const { t } = useI18n();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -226,7 +232,7 @@ export function useBusinessListState(ids: number[]) {
   const query = useQuery({
     queryKey: ["businessSocial", "list", ids.join(","), userId],
     queryFn: () => fetchMyBusinessState(userId!, ids),
-    enabled: !!userId && ids.length > 0,
+    enabled: BUSINESS_SOCIAL_ENABLED && !!userId && ids.length > 0,
   });
   return useMemo(
     () => ({
@@ -257,7 +263,7 @@ export function BusinessPageSocial({ business }: { business: Omit<SocialBusiness
   const state = useQuery({
     queryKey: ["businessSocial", business.id, userId],
     queryFn: () => fetchBusinessSocialState(business.id, userId!),
-    enabled: !!userId,
+    enabled: BUSINESS_SOCIAL_ENABLED && !!userId,
   });
   const liked = !!userId && !!state.data?.liked;
   const reposted = !!userId && !!state.data?.reposted;

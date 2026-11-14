@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { StoreIcon, VerifiedIcon } from "@/components/Icons";
-import { categoryLabel, type Business } from "@/lib/business";
+import {
+  BUSINESS_SOCIAL_ENABLED,
+  categoryLabel,
+  type Business,
+} from "@/lib/business";
 import { mediaUrl } from "@/lib/storage";
 import BusinessSocial from "./BusinessSocial";
 
@@ -14,7 +18,9 @@ export default function BusinessCard({
   communeName: string;
 }) {
   return (
-    <div className="border-b border-stone-200 px-4 pb-1.5 pt-3.5 hover:bg-stone-50/70">
+    <div
+      className={`border-b border-stone-200 px-4 pt-3.5 hover:bg-stone-50/70 ${BUSINESS_SOCIAL_ENABLED ? "pb-1.5" : "pb-3.5"}`}
+    >
       <Link href={`/b/${b.slug}`} className="flex gap-3">
         <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-stone-200 bg-stone-50">
           {b.logo_path ? (

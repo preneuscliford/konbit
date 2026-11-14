@@ -12,7 +12,11 @@ import {
   StoreIcon,
 } from "@/components/Icons";
 import { toast } from "@/components/Toaster";
-import { categoryLabel, type FeedBusiness } from "@/lib/business";
+import {
+  BUSINESS_SOCIAL_ENABLED,
+  categoryLabel,
+  type FeedBusiness,
+} from "@/lib/business";
 import {
   konbitErrorMessage,
   repostBusiness,
@@ -138,7 +142,16 @@ export default function BusinessFeedCard({
 
 // J'aime, repost (« Reposte » / « Site ») et partage d'une fiche : dans le fil
 // et sur la page de la fiche.
-export function BusinessSocialBar({
+// Désactivé pour l'instant (BUSINESS_SOCIAL_ENABLED) : rien ne s'affiche.
+export function BusinessSocialBar(props: {
+  business: SocialBusiness;
+  className?: string;
+}) {
+  if (!BUSINESS_SOCIAL_ENABLED) return null;
+  return <BusinessSocialBarInner {...props} />;
+}
+
+function BusinessSocialBarInner({
   business: initial,
   className = "mt-1",
 }: {
