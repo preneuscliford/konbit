@@ -29,15 +29,29 @@ export async function removeProfileImages(paths: string[]) {
     .catch(() => {});
 }
 
-export async function isFollowing(meId: string, otherId: string) {
+// Abonné ? et cloche activée (notification à chaque nouvelle publication) ?
+export async function fetchFollowState(meId: string, otherId: string) {
   const { data, error } = await getSupabase()
     .from("follows")
-    .select("followee_id")
+    .select("notify")
     .eq("follower_id", meId)
     .eq("followee_id", otherId)
     .maybeSingle();
   if (error) throw error;
-  return !!data;
+  return { following: !!data, notify: !!data?.notify };
+}
+
+export async function setFollowNotify(
+  meId: string,
+  otherId: string,
+  notify: boolean,
+) {
+  const { error } = await getSupabase()
+    .from("follows")
+    .update({ notify })
+    .eq("follower_id", meId)
+    .eq("followee_id", otherId);
+  if (error) throw error;
 }
 
 export async function follow(otherId: string) {
