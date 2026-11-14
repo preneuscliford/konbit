@@ -119,6 +119,13 @@ export default function AccountMenu({
           <Link href="/pwofil" className={item} onClick={() => setOpen(false)}>
             Modifye pwofil
           </Link>
+          <Link
+            href="/aktivite"
+            className={item}
+            onClick={() => setOpen(false)}
+          >
+            Aktivite mwen
+          </Link>
           <button
             type="button"
             className={`${item} text-brand-red`}

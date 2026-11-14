@@ -54,7 +54,7 @@ function Form({
   communes: { slug: string; name: string }[];
 }) {
   const router = useRouter();
-  const { userId, updateProfile } = useAuth();
+  const { userId, hasPassword, updateProfile } = useAuth();
   const [name, setName] = useState(profile.display_name ?? "");
   const [pseudo, setPseudo] = useState(profile.pseudo ?? "");
   const [bio, setBio] = useState(profile.bio ?? "");
@@ -244,6 +244,23 @@ function Form({
         >
           Anile
         </Link>
+      </div>
+
+      <div className="divide-y divide-stone-200 overflow-hidden rounded-2xl border border-stone-200">
+        <Link
+          href="/aktivite"
+          className="flex items-center justify-between px-4 py-3.5 font-semibold text-stone-800 hover:bg-stone-50"
+        >
+          Aktivite mwen <span className="text-stone-400">›</span>
+        </Link>
+        {hasPassword && (
+          <Link
+            href="/pwofil/modpas"
+            className="flex items-center justify-between px-4 py-3.5 font-semibold text-stone-800 hover:bg-stone-50"
+          >
+            Chanje modpas <span className="text-stone-400">›</span>
+          </Link>
+        )}
       </div>
 
       <div className="border-t border-stone-200 pt-6 text-center">
