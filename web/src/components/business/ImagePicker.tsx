@@ -13,6 +13,7 @@ export default function ImagePicker({
   shape = "wide",
   onPick,
   onRemove,
+  urlFor = mediaUrl,
 }: {
   label: string;
   path: string | null;
@@ -22,9 +23,11 @@ export default function ImagePicker({
   shape?: "wide" | "square" | "round";
   onPick: (file: File) => void;
   onRemove?: () => void;
+  // Adresse publique de la photo (photos de profil : autre dossier).
+  urlFor?: (path: string) => string;
 }) {
   const input = useRef<HTMLInputElement>(null);
-  const src = previewUrl ?? (path ? mediaUrl(path) : null);
+  const src = previewUrl ?? (path ? urlFor(path) : null);
   const box =
     shape === "wide"
       ? "aspect-[3/1] w-full rounded-2xl"

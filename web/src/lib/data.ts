@@ -181,6 +181,8 @@ export async function getReplies(konbitId: number): Promise<Reply[]> {
 export async function getProfile(pseudo: string): Promise<Profile | null> {
   "use cache";
   cacheLife("minutes");
+  // Vidée par app/actions/profile.ts (modification, abonnement).
+  cacheTag(`profile:${pseudo.toLowerCase()}`);
   const { data, error } = await supabase
     .from("profiles")
     .select(PROFILE_FIELDS)

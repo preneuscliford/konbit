@@ -186,7 +186,7 @@ const MAX_BYTES = 1024 * 1024;
 
 // Réduit la photo (1280 px max, JPEG) comme l'app, pour rester sous 1 Mo et
 // charger vite sur les petites connexions.
-async function compress(
+export async function compress(
   file: File,
   maxSide: number,
 ): Promise<{ blob: Blob; width: number; height: number }> {

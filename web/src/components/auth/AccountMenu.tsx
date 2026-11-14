@@ -116,6 +116,9 @@ export default function AccountMenu({
           >
             Pwofil mwen
           </Link>
+          <Link href="/pwofil" className={item} onClick={() => setOpen(false)}>
+            Modifye pwofil
+          </Link>
           <button
             type="button"
             className={`${item} text-brand-red`}

@@ -6,6 +6,7 @@ import Avatar from "@/components/Avatar";
 import FeedList from "@/components/feed/FeedList";
 import PageHeader from "@/components/shell/PageHeader";
 import BusinessCard from "@/components/business/BusinessCard";
+import ProfileActions from "@/components/profile/ProfileActions";
 import { ProfileSkeleton } from "@/components/Skeleton";
 import {
   getBusinessByOwner,
@@ -97,13 +98,18 @@ async function ProfileView({
         )}
       </div>
       <div className="px-4 pb-4">
-        <div className="relative z-10 -mt-10 mb-3 inline-block rounded-full border-4 border-surface bg-surface">
-          <Avatar
-            name={name}
-            avatarPath={p.avatar_path}
-            seed={p.id}
-            size={80}
-          />
+        <div className="flex items-start justify-between gap-3">
+          <div className="relative z-10 -mt-10 mb-3 inline-block rounded-full border-4 border-surface bg-surface">
+            <Avatar
+              name={name}
+              avatarPath={p.avatar_path}
+              seed={p.id}
+              size={80}
+            />
+          </div>
+          <div className="pt-3">
+            <ProfileActions profileId={p.id} pseudo={p.pseudo} />
+          </div>
         </div>
         <h1 className="text-2xl font-extrabold">{name}</h1>
         <p className="text-stone-500">@{p.pseudo}</p>
