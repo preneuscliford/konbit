@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import Avatar from "@/components/Avatar";
 import FeedList from "@/components/feed/FeedList";
@@ -120,11 +121,15 @@ async function ProfileView({
           {p.commune_slug && `${communes[p.commune_slug] ?? p.commune_slug} · `}
           Manm depi {formatDate(p.created_at)}
         </p>
-        <p className="mt-2 text-sm">
-          <b>{p.following_count}</b>{" "}
-          <span className="text-stone-500">ap swiv</span> ·{" "}
-          <b>{p.followers_count}</b>{" "}
-          <span className="text-stone-500">abòne</span>
+        <p className="mt-2 flex gap-4 text-sm">
+          <Link href={`/u/${p.pseudo}/swiv`} className="hover:underline">
+            <b>{p.following_count}</b>{" "}
+            <span className="text-stone-500">ap swiv</span>
+          </Link>
+          <Link href={`/u/${p.pseudo}/abone`} className="hover:underline">
+            <b>{p.followers_count}</b>{" "}
+            <span className="text-stone-500">abòne</span>
+          </Link>
         </p>
       </div>
       {business && (

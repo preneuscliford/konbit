@@ -332,3 +332,41 @@ export async function getProfileById(
   if (error) throw error;
   return data;
 }
+
+export type FollowPerson = Pick<
+  Profile,
+  "id" | "pseudo" | "display_name" | "avatar_path" | "bio"
+>;
+
+// Abonnés (« followers ») ou abonnements (« following ») d'un membre.
+export async function getFollowList(
+  userId: string,
+  pseudo: string,
+  kind: "followers" | "following",
+): Promise<FollowPerson[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(`profile:${pseudo.toLowerCase()}`);
+  const fields = "id, pseudo, display_name, avatar_path, bio";
+  const query =
+    kind === "followers"
+      ? supabase
+          .from("follows")
+          .select(
+            `created_at, person:profiles!follows_follower_id_fkey(${fields})`,
+          )
+          .eq("followee_id", userId)
+      : supabase
+          .from("follows")
+          .select(
+            `created_at, person:profiles!follows_followee_id_fkey(${fields})`,
+          )
+          .eq("follower_id", userId);
+  const { data, error } = await query
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw error;
+  return ((data ?? []) as unknown as { person: FollowPerson | null }[])
+    .map((row) => row.person)
+    .filter((p): p is FollowPerson => !!p?.pseudo);
+}
