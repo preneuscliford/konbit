@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import AccountMenu from "@/components/auth/AccountMenu";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { PenIcon } from "@/components/Icons";
+import UnreadBadge from "@/components/notifications/UnreadBadge";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import { COMPOSE_HREF, isActive, NAV, navHref } from "./nav";
 
@@ -47,10 +48,15 @@ export default function SideNav() {
                 title={label}
                 className="group flex w-fit items-center gap-4 rounded-full p-3 text-xl text-stone-900 hover:bg-stone-100 xl:pr-6"
               >
-                <Icon
-                  className="h-[26px] w-[26px]"
-                  strokeWidth={active ? 2.6 : 1.9}
-                />
+                <span className="relative">
+                  <Icon
+                    className="h-[26px] w-[26px]"
+                    strokeWidth={active ? 2.6 : 1.9}
+                  />
+                  {key === "notifications" && (
+                    <UnreadBadge className="-right-2 -top-1.5" />
+                  )}
+                </span>
                 <span
                   className={`hidden xl:inline ${active ? "font-extrabold" : "font-medium"}`}
                 >

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { PlusIcon } from "@/components/Icons";
+import UnreadBadge from "@/components/notifications/UnreadBadge";
 import { COMPOSE_HREF, isActive, NAV, navHref } from "./nav";
 
 // Onglets en bas de l'écran sur téléphone (comme l'app), avec le bouton
@@ -28,12 +29,15 @@ export default function MobileTabBar() {
       >
         {/* Icônes seules ; l'onglet actif a une pastille colorée. */}
         <span
-          className={`rounded-full px-5 py-1.5 ${active ? "bg-blue-50" : ""}`}
+          className={`relative rounded-full px-5 py-1.5 ${active ? "bg-blue-50" : ""}`}
         >
           <item.Icon
             className="h-[26px] w-[26px]"
             strokeWidth={active ? 2.6 : 2.1}
           />
+          {item.key === "notifications" && (
+            <UnreadBadge className="right-2.5 top-0" />
+          )}
         </span>
       </Link>
     );
