@@ -35,3 +35,11 @@ service-account*.json
 # Builds Android téléchargés (Play Console, EAS) : jamais dans le dépôt
 *.apk
 *.aab
+
+# Google Play service account key (stored on EAS, never in the repo)
+*play*service*account*.json
+*-play-*.json
+
+# Raw screen recordings for the promo video (large, kept out of Git)
+konbit-app-assets/app-assets/recording + capture/
+
