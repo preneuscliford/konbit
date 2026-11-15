@@ -267,6 +267,36 @@ export async function getBusinessItems(
   return (data ?? []) as BusinessItem[];
 }
 
+// Plan du site : les articles visibles des fiches visibles (adresse /b/<slug>/atik/<id>).
+export async function getItemSitemap(
+  limit = 1000,
+): Promise<{ id: number; slug: string; updated_at: string }[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("businesses");
+  const { data, error } = await supabase
+    .from("business_items")
+    .select("id, updated_at, business:businesses!inner(slug, status)")
+    .eq("status", "visible")
+    .eq("business.status", "visible")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (
+    (data ?? []) as unknown as {
+      id: number;
+      updated_at: string;
+      business: { slug: string } | null;
+    }[]
+  )
+    .filter((r) => r.business)
+    .map((r) => ({
+      id: r.id,
+      slug: r.business!.slug,
+      updated_at: r.updated_at,
+    }));
+}
+
 // Page d'un article : l'article visible d'une fiche visible.
 export async function getBusinessItem(
   businessId: number,

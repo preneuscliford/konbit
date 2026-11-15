@@ -1,17 +1,21 @@
 import type { MetadataRoute } from "next";
 import {
   getBusinessSlugs,
+  getItemSitemap,
   getRecentKonbits,
   getRecentPseudos,
 } from "@/lib/data";
 import { SITE_URL } from "@/lib/site";
 
-// Plan du site pour Google : accueil, konbits récents, fiches business, profils.
+// Plan du site pour Google : accueil, konbits récents, fiches business et
+// leurs articles, profils. Les pages de compte (connexion, notifications,
+// modification, administration) n'y sont pas : elles ne sont pas indexées.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [konbits, pseudos, businesses] = await Promise.all([
+  const [konbits, pseudos, businesses, items] = await Promise.all([
     getRecentKonbits(50),
     getRecentPseudos(500),
     getBusinessSlugs(500),
+    getItemSitemap(1000),
   ]);
   return [
     { url: SITE_URL, changeFrequency: "hourly", priority: 1 },
@@ -26,6 +30,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${SITE_URL}/b/${b.slug}`,
       lastModified: b.updated_at,
       priority: 0.8,
+    })),
+    ...items.map((i) => ({
+      url: `${SITE_URL}/b/${i.slug}/atik/${i.id}`,
+      lastModified: i.updated_at,
+      priority: 0.7,
     })),
     ...konbits.map((k) => ({
       url: `${SITE_URL}/k/${k.id}`,
