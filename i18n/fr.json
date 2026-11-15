@@ -662,7 +662,9 @@
       "action": "Partager",
       "konbit": "🤝 Rejoins le konbit « {title} » sur Konbit 509 !",
       "post": "À voir sur Konbit 509 👇",
-      "business": "Découvre {name} sur Konbit 509 👇"
+      "business": "Découvre {name} sur Konbit 509 👇",
+      "item": "Découvrez « {name} » sur Konbit 509 👇",
+      "catalog": "Découvrez le catalogue de {name} sur Konbit 509 👇"
     },
     "repost": {
       "action": "Republier",
@@ -681,6 +683,18 @@
       "businessDone": "Vous avez reposté la fiche.",
       "businessQuoted": "Vous avez cité la fiche.",
       "like": "J’aime"
+    },
+    "item": {
+      "title": "Article",
+      "notFound": "Cet article n’est plus disponible.",
+      "seeCatalog": "Voir tout le catalogue",
+      "stats": "Statistiques (visibles par vous seul)",
+      "views": "👁 {total} personnes l’ont vu · {week} ces 7 derniers jours",
+      "viewsShort": "👁 {total} · {week} en 7 j",
+      "statsHint": "Une personne compte une fois par jour, quand elle ouvre la page ou quand la carte reste visible 1 seconde.",
+      "edit": "Modifier l’article",
+      "like": "J’aime",
+      "shareCatalog": "Partager"
     }
   },
   "Konbit": {

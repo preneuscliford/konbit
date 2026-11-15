@@ -12,10 +12,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Burnt from "burnt";
 import { ArrowLeft, BadgeCheck, Phone, Store } from "lucide-react-native";
 import Colors from "@/constants/Colors";
+import ItemLike from "@/components/business/ItemLike";
+import PhotoPager from "@/components/business/PhotoPager";
+import { useSeenInScroll } from "@/components/business/useSeenInScroll";
 import Avatar from "@/components/konbit509/Avatar";
 import { BusinessPageSocial } from "@/components/konbit509/BusinessFeedCard";
 import ImageViewer from "@/components/ui/ImageViewer";
@@ -34,8 +37,9 @@ import {
   type BusinessItem,
 } from "@/lib/business";
 import { useI18n } from "@/lib/i18n";
+import { fetchItemViewStats, fetchMyItemLikes, recordItemView } from "@/lib/itemSocial";
 import { mediaUrl } from "@/lib/konbits";
-import { shareBusiness } from "@/lib/share";
+import { shareBusiness, shareCatalog, shareItem } from "@/lib/share";
 
 
 // Fiche d'un business : contact direct (WhatsApp, appel), infos et katalòg.
@@ -52,8 +56,24 @@ export default function BusinessScreen() {
   const owner = useUserProfile(b?.owner_id ?? "");
   const communes = useCommunes();
   const { width } = useWindowDimensions();
-  // Photos ouvertes en plein écran (couverture, logo ou photos d'un article).
+  // Photos ouvertes en plein écran (couverture ou logo).
   const [viewer, setViewer] = useState<{ uris: string[]; start: number } | null>(null);
+
+  // Katalòg : J'aime de l'utilisateur, vues pour le propriétaire, et une vue
+  // par carte restée visible à moitié pendant 1 s (pas pour le propriétaire).
+  const owns = !!userId && b?.owner_id === userId;
+  const itemIds = (items.data ?? []).map((i) => i.id);
+  const myLikes = useQuery({
+    queryKey: ["business", "itemLikes", itemIds.join(","), userId],
+    queryFn: () => fetchMyItemLikes(userId!, itemIds),
+    enabled: !!userId && itemIds.length > 0,
+  });
+  const itemStats = useQuery({
+    queryKey: ["business", "itemStats", b?.id],
+    queryFn: () => fetchItemViewStats(b!.id),
+    enabled: owns,
+  });
+  const seen = useSeenInScroll(recordItemView, !!b && !owns);
 
   if (business.isLoading) {
     return (
@@ -106,7 +126,12 @@ export default function BusinessScreen() {
         onBack={() => router.back()}
         onShare={() => shareBusiness(b.name, b.slug, t)}
       />
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 40 }}
+        onScroll={seen.onScroll}
+        scrollEventThrottle={100}
+        onLayout={seen.onViewportLayout}
+      >
         <Pressable
           style={styles.cover}
           disabled={!b.cover_path}
@@ -210,15 +235,29 @@ export default function BusinessScreen() {
             {t("App.business.catalog")}
             {items.data && items.data.length > 0 ? <Text style={styles.count}> ({items.data.length})</Text> : null}
           </Text>
-          {isOwner && (
-            <Pressable
-              onPress={() => router.push({ pathname: "/biznis-item", params: { businessId: String(b.id) } })}
-              style={styles.addItem}
-              accessibilityRole="button"
-            >
-              <Text style={styles.addItemText}>{t("App.business.addItem")}</Text>
-            </Pressable>
-          )}
+          <View style={styles.catalogActions}>
+            {/* Partager tout le katalòg : pour tout le monde. */}
+            {(items.data ?? []).length > 0 && (
+              <Pressable
+                onPress={() => shareCatalog(b.name, b.slug, t)}
+                style={styles.shareCatalog}
+                hitSlop={6}
+                accessibilityRole="button"
+              >
+                <ShareIcon size={17} color={Colors.textMuted} />
+                <Text style={styles.shareCatalogText}>{t("App.item.shareCatalog")}</Text>
+              </Pressable>
+            )}
+            {isOwner && (
+              <Pressable
+                onPress={() => router.push({ pathname: "/biznis-item", params: { businessId: String(b.id) } })}
+                style={styles.addItem}
+                accessibilityRole="button"
+              >
+                <Text style={styles.addItemText}>{t("App.business.addItem")}</Text>
+              </Pressable>
+            )}
+          </View>
         </View>
 
         {items.isLoading ? (
@@ -226,14 +265,19 @@ export default function BusinessScreen() {
         ) : (items.data ?? []).length === 0 ? (
           <Text style={styles.empty}>{isOwner ? t("App.business.catalogEmptyOwner") : t("App.business.catalogEmpty")}</Text>
         ) : (
-          <View style={styles.grid}>
+          <View style={styles.grid} onLayout={seen.onGridLayout}>
             {(items.data ?? []).map((item) => (
-              <View key={item.id} style={[styles.card, { width: cardWidth }, !item.available && { opacity: 0.6 }]}>
+              <Pressable
+                key={item.id}
+                onLayout={seen.onCardLayout(item.id)}
+                onPress={() => router.push({ pathname: "/atik/[id]", params: { id: String(item.id) } })}
+                style={[styles.card, { width: cardWidth }, !item.available && { opacity: 0.6 }]}
+              >
                 <PhotoPager
                   photos={item.photos}
-                  size={cardWidth}
+                  width={cardWidth}
                   kind={item.kind}
-                  onOpen={(i) => setViewer({ uris: item.photos.map((p) => mediaUrl(p.path)), start: i })}
+                  onOpen={() => router.push({ pathname: "/atik/[id]", params: { id: String(item.id) } })}
                 />
                 {!item.available && (
                   <View style={styles.unavailable}>
@@ -251,6 +295,31 @@ export default function BusinessScreen() {
                     </Text>
                   ) : null}
                   <Text style={styles.price}>{formatPrice(item.price, item.currency, priceLabels)}</Text>
+                  <View style={styles.itemSocial}>
+                    <ItemLike
+                      itemId={item.id}
+                      count={item.like_count ?? 0}
+                      liked={!!myLikes.data?.includes(item.id)}
+                    />
+                    <Pressable
+                      onPress={() =>
+                        shareItem(item.name, formatPrice(item.price, item.currency, priceLabels), b.slug, item.id, t)
+                      }
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel={t("App.share.action")}
+                    >
+                      <ShareIcon size={17} color={Colors.textMuted} />
+                    </Pressable>
+                  </View>
+                  {isOwner && itemStats.data ? (
+                    <Text style={styles.views}>
+                      {t("App.item.viewsShort", {
+                        total: itemStats.data[item.id]?.total ?? 0,
+                        week: itemStats.data[item.id]?.week ?? 0,
+                      })}
+                    </Text>
+                  ) : null}
                   {isOwner ? (
                     <View style={styles.ownerActions}>
                       <Pressable
@@ -280,7 +349,7 @@ export default function BusinessScreen() {
                     )
                   )}
                 </View>
-              </View>
+              </Pressable>
             ))}
           </View>
         )}
@@ -315,51 +384,6 @@ function InfoRow({ label, value, onPress }: { label: string; value: string; onPr
       <Text style={[styles.infoValue, onPress && styles.linkValue]} onPress={onPress}>
         {value}
       </Text>
-    </View>
-  );
-}
-
-// Photos d'un article : on les fait défiler du doigt, avec des points.
-function PhotoPager({
-  photos,
-  size,
-  kind,
-  onOpen,
-}: {
-  photos: BusinessItem["photos"];
-  size: number;
-  kind: BusinessItem["kind"];
-  onOpen: (index: number) => void;
-}) {
-  const [index, setIndex] = useState(0);
-  if (photos.length === 0) {
-    return (
-      <View style={[styles.placeholder, { width: size, height: size }]}>
-        <Text style={styles.placeholderText}>{kind === "service" ? "✦" : "▢"}</Text>
-      </View>
-    );
-  }
-  return (
-    <View style={{ width: size, height: size }}>
-      <ScrollView
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / size))}
-      >
-        {photos.map((p, i) => (
-          <Pressable key={p.path} onPress={() => onOpen(i)} accessibilityRole="imagebutton">
-            <Image source={{ uri: mediaUrl(p.path) }} style={{ width: size, height: size }} contentFit="cover" />
-          </Pressable>
-        ))}
-      </ScrollView>
-      {photos.length > 1 && (
-        <View style={styles.dots}>
-          {photos.map((p, i) => (
-            <View key={p.path} style={[styles.dot, i === index && styles.dotActive]} />
-          ))}
-        </View>
-      )}
     </View>
   );
 }
@@ -460,20 +484,10 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   unavailableText: { color: Colors.textInverse, fontSize: 11, fontWeight: "800" },
-  placeholder: { backgroundColor: Colors.surfaceMuted, alignItems: "center", justifyContent: "center" },
-  placeholderText: { fontSize: 30, color: Colors.textMuted },
-  dots: {
-    position: "absolute",
-    bottom: 8,
-    alignSelf: "center",
-    flexDirection: "row",
-    gap: 5,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    borderRadius: 10,
-    paddingHorizontal: 7,
-    paddingVertical: 5,
-  },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.6)" },
-  dotActive: { width: 14, backgroundColor: "#FFFFFF" },
   empty: { textAlign: "center", color: Colors.textMuted, padding: 24 },
+  catalogActions: { flexDirection: "row", alignItems: "center", gap: 14 },
+  shareCatalog: { flexDirection: "row", alignItems: "center", gap: 5 },
+  shareCatalogText: { fontSize: 14, fontWeight: "600", color: Colors.textMuted },
+  itemSocial: { flexDirection: "row", alignItems: "center", gap: 20, marginTop: 6 },
+  views: { fontSize: 12, color: Colors.textMuted, marginTop: 4 },
 });

@@ -662,7 +662,9 @@
       "action": "Pataje",
       "konbit": "🤝 Rejwenn konbit « {title} » sou Konbit 509!",
       "post": "Gade sa sou Konbit 509 👇",
-      "business": "Dekouvri {name} sou Konbit 509 👇"
+      "business": "Dekouvri {name} sou Konbit 509 👇",
+      "item": "Gade « {name} » sou Konbit 509 👇",
+      "catalog": "Gade katalòg {name} sou Konbit 509 👇"
     },
     "repost": {
       "action": "Reposte",
@@ -681,6 +683,18 @@
       "businessDone": "Ou reposte fich la.",
       "businessQuoted": "Ou site fich la.",
       "like": "Renmen"
+    },
+    "item": {
+      "title": "Atik",
+      "notFound": "Atik sa a pa disponib ankò.",
+      "seeCatalog": "Wè tout katalòg la",
+      "stats": "Estatistik (ou sèl ki wè yo)",
+      "views": "👁 {total} moun wè l · {week} sa 7 dènye jou yo",
+      "viewsShort": "👁 {total} · {week} sa 7 j",
+      "statsHint": "Yon moun konte yon fwa pa jou, lè li louvri paj la oswa lè kat la rete vizib 1 segonn.",
+      "edit": "Modifye atik la",
+      "like": "Renmen",
+      "shareCatalog": "Pataje"
     }
   },
   "Konbit": {

@@ -89,12 +89,14 @@ export interface BusinessItem {
   photos: ItemPhoto[];
   available: boolean;
   position: number;
+  // J'aime publics (les vues sont privées : item_view_stats).
+  like_count: number;
 }
 
 export const BUSINESS_FIELDS =
   "id, owner_id, slug, name, category, commune_slug, address, description, phone, whatsapp, email, website, hours, logo_path, cover_path, status, verified, like_count, repost_count, created_at, updated_at";
 export const ITEM_FIELDS =
-  "id, business_id, kind, name, description, price, currency, photos, available, position";
+  "id, business_id, kind, name, description, price, currency, photos, available, position, like_count";
 
 export const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;
 export const PHONE_PATTERN = /^\+?[0-9 ]{7,20}$/;

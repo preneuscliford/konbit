@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import Lightbox, { type ViewerImage } from "./Lightbox";
 
 // Photos d'un article (katalòg) : on les fait défiler du doigt, avec des
@@ -10,10 +11,13 @@ export default function SwipeGallery({
   images,
   sizes,
   className = "aspect-square",
+  href,
 }: {
   images: ViewerImage[];
   sizes: string;
   className?: string;
+  // Dans une carte : un toucher ouvre cette page au lieu du plein écran.
+  href?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [open, setOpen] = useState<number | null>(null);
@@ -27,23 +31,39 @@ export default function SwipeGallery({
         }}
         className="flex h-full w-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]"
       >
-        {images.map((img, i) => (
-          <button
-            key={img.src}
-            type="button"
-            onClick={() => setOpen(i)}
-            aria-label={`Wè foto ${i + 1} an gwo`}
-            className="relative h-full w-full shrink-0 snap-center"
-          >
-            <Image
-              src={img.src}
-              alt=""
-              fill
-              sizes={sizes}
-              className="object-cover"
-            />
-          </button>
-        ))}
+        {images.map((img, i) =>
+          href ? (
+            <Link
+              key={img.src}
+              href={href}
+              className="relative h-full w-full shrink-0 snap-center"
+            >
+              <Image
+                src={img.src}
+                alt=""
+                fill
+                sizes={sizes}
+                className="object-cover"
+              />
+            </Link>
+          ) : (
+            <button
+              key={img.src}
+              type="button"
+              onClick={() => setOpen(i)}
+              aria-label={`Wè foto ${i + 1} an gwo`}
+              className="relative h-full w-full shrink-0 snap-center"
+            >
+              <Image
+                src={img.src}
+                alt=""
+                fill
+                sizes={sizes}
+                className="object-cover"
+              />
+            </button>
+          ),
+        )}
       </div>
 
       {images.length > 1 && (

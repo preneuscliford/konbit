@@ -267,6 +267,26 @@ export async function getBusinessItems(
   return (data ?? []) as BusinessItem[];
 }
 
+// Page d'un article : l'article visible d'une fiche visible.
+export async function getBusinessItem(
+  businessId: number,
+  slug: string,
+  itemId: number,
+): Promise<BusinessItem | null> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(`business:${slug}`);
+  const { data, error } = await supabase
+    .from("business_items")
+    .select(ITEM_FIELDS)
+    .eq("id", itemId)
+    .eq("business_id", businessId)
+    .eq("status", "visible")
+    .maybeSingle();
+  if (error) throw error;
+  return data as BusinessItem | null;
+}
+
 // Annuaire : les fiches vérifiées puis les plus récentes, filtrées par catégorie et commune.
 export async function getBusinesses(
   filter: { category?: string; commune?: string } = {},

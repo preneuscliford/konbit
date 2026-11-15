@@ -34,3 +34,15 @@ export function shareKonbit(k: Konbit, t: Translate, language: Language) {
 export function shareBusiness(name: string, slug: string, t: Translate) {
   return share(`${t("App.share.business", { name })}\n${businessLink(slug)}`);
 }
+
+export const itemLink = (slug: string, id: number) => `${SITE_URL}/b/${slug}/atik/${id}`;
+
+// Un article du katalòg (produit ou service), avec son prix s'il en a un.
+export function shareItem(name: string, price: string, slug: string, id: number, t: Translate) {
+  return share(`${t("App.share.item", { name })}${price ? `\n💲 ${price}` : ""}\n${itemLink(slug, id)}`);
+}
+
+// Tout le katalòg d'une fiche.
+export function shareCatalog(name: string, slug: string, t: Translate) {
+  return share(`${t("App.share.catalog", { name })}\n${businessLink(slug)}#katalog`);
+}

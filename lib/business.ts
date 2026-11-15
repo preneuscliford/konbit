@@ -84,11 +84,13 @@ export interface BusinessItem {
   photos: ItemPhoto[];
   available: boolean;
   position: number;
+  // J'aime publics (les vues sont privées : item_view_stats).
+  like_count: number;
 }
 
 const BUSINESS_FIELDS =
   "id, owner_id, slug, name, category, commune_slug, address, description, phone, whatsapp, email, website, hours, logo_path, cover_path, status, verified, like_count, repost_count, created_at, updated_at";
-const ITEM_FIELDS = "id, business_id, kind, name, description, price, currency, photos, available, position";
+const ITEM_FIELDS = "id, business_id, kind, name, description, price, currency, photos, available, position, like_count";
 
 export const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;
 export const PHONE_PATTERN = /^\+?[0-9 ]{7,20}$/;
@@ -189,6 +191,20 @@ export async function fetchItems(businessId: number): Promise<BusinessItem[]> {
     .limit(100);
   if (error) throw toError(error);
   return (data ?? []) as BusinessItem[];
+}
+
+// Page d'un article : l'article et sa fiche (les règles de la base ne
+// renvoient que ce qui est visible, ou tout pour le propriétaire).
+export async function fetchItem(itemId: number): Promise<{ item: BusinessItem; business: Business } | null> {
+  const { data, error } = await supabase
+    .from("business_items")
+    .select(`${ITEM_FIELDS}, business:businesses!inner(${BUSINESS_FIELDS})`)
+    .eq("id", itemId)
+    .maybeSingle();
+  if (error) throw toError(error);
+  if (!data) return null;
+  const { business, ...item } = data as unknown as BusinessItem & { business: Business };
+  return { item, business };
 }
 
 // ─── Écritures du propriétaire ─────────────────────────────────────────────
