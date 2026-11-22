@@ -106,6 +106,10 @@ export default function EmojiButton({ onPick, size = 22 }: { onPick: (emoji: str
               enableSearchBar
               enableRecentlyUsed
               categoryPosition="top"
+              // Saut direct à la catégorie touchée (l'animation échouait sur
+              // Android) ; les marges du bas sont gérées par notre panneau.
+              enableCategoryChangeAnimation={false}
+              disableSafeArea
               translation={language === "fr" ? fr : HT}
               styles={{ container: styles.keyboard }}
               theme={{

@@ -1,0 +1,103 @@
+diff --git a/node_modules/rn-emoji-keyboard/lib/commonjs/components/EmojiStaticKeyboard.js b/node_modules/rn-emoji-keyboard/lib/commonjs/components/EmojiStaticKeyboard.js
+index 7e954a4..9ea7ff2 100644
+--- a/node_modules/rn-emoji-keyboard/lib/commonjs/components/EmojiStaticKeyboard.js
++++ b/node_modules/rn-emoji-keyboard/lib/commonjs/components/EmojiStaticKeyboard.js
+@@ -113,7 +113,7 @@ const EmojiStaticKeyboard = /*#__PURE__*/React.memo(() => {
+     data: renderList,
+     keyExtractor: keyExtractor,
+     renderItem: renderItem,
+-    removeClippedSubviews: isAndroid,
++    removeClippedSubviews: false,
+     ref: flatListRef,
+     onScrollToIndexFailed: onCategoryChangeFailed,
+     horizontal: true,
+diff --git a/node_modules/rn-emoji-keyboard/lib/module/components/EmojiStaticKeyboard.js b/node_modules/rn-emoji-keyboard/lib/module/components/EmojiStaticKeyboard.js
+index 505c217..f192722 100644
+--- a/node_modules/rn-emoji-keyboard/lib/module/components/EmojiStaticKeyboard.js
++++ b/node_modules/rn-emoji-keyboard/lib/module/components/EmojiStaticKeyboard.js
+@@ -105,7 +105,7 @@ export const EmojiStaticKeyboard = /*#__PURE__*/React.memo(() => {
+     data: renderList,
+     keyExtractor: keyExtractor,
+     renderItem: renderItem,
+-    removeClippedSubviews: isAndroid,
++    removeClippedSubviews: false,
+     ref: flatListRef,
+     onScrollToIndexFailed: onCategoryChangeFailed,
+     horizontal: true,
+diff --git a/node_modules/rn-emoji-keyboard/src/components/Categories.tsx b/node_modules/rn-emoji-keyboard/src/components/Categories.tsx
+index f6f5df8..b3ee9ae 100644
+--- a/node_modules/rn-emoji-keyboard/src/components/Categories.tsx
++++ b/node_modules/rn-emoji-keyboard/src/components/Categories.tsx
+@@ -46,7 +46,7 @@ export const Categories = (p: Props) => {
+   React.useEffect(() => {
+     Animated.spring(scrollNav, {
+       toValue: activeCategoryIndex * CATEGORY_ELEMENT_WIDTH,
+-      useNativeDriver: true,
++      useNativeDriver: false,
+     }).start()
+   }, [activeCategoryIndex, scrollNav])
+ 
+@@ -57,12 +57,14 @@ export const Categories = (p: Props) => {
+           styles.activeIndicator,
+           {
+             backgroundColor: theme.category.containerActive,
+-            transform: [{ translateX: p.scrollNav || scrollNav }],
++            // Konbit 509 : position fixée directement (une animation ne s'affichait
++            // qu'au rendu suivant, avec un temps de retard).
++            transform: [{ translateX: activeCategoryIndex * CATEGORY_ELEMENT_WIDTH }],
+           },
+         ]}
+       />
+     ),
+-    [theme.category.containerActive, scrollNav, p.scrollNav],
++    [theme.category.containerActive, activeCategoryIndex],
+   )
+ 
+   const getStylesBasedOnPosition = () => {
+diff --git a/node_modules/rn-emoji-keyboard/src/components/EmojiStaticKeyboard.tsx b/node_modules/rn-emoji-keyboard/src/components/EmojiStaticKeyboard.tsx
+index ff00d44..7fda305 100644
+--- a/node_modules/rn-emoji-keyboard/src/components/EmojiStaticKeyboard.tsx
++++ b/node_modules/rn-emoji-keyboard/src/components/EmojiStaticKeyboard.tsx
+@@ -160,30 +160,20 @@ export const EmojiStaticKeyboard = React.memo(
+               )}
+               {customButtons}
+             </View>
+-            <Animated.FlatList<EmojisByCategory>
+-              extraData={[keyboardState.recentlyUsed.length, searchPhrase]}
+-              data={renderList}
+-              keyExtractor={keyExtractor}
+-              renderItem={renderItem}
+-              removeClippedSubviews={isAndroid}
+-              ref={flatListRef}
+-              onScrollToIndexFailed={onCategoryChangeFailed}
+-              horizontal
+-              showsHorizontalScrollIndicator={false}
+-              pagingEnabled
+-              scrollEventThrottle={16}
+-              getItemLayout={getItemLayout}
+-              scrollEnabled={enableCategoryChangeGesture}
+-              initialNumToRender={1}
+-              maxToRenderPerBatch={1}
+-              onScroll={handleScroll}
+-              keyboardShouldPersistTaps="handled"
+-              onMomentumScrollBegin={onMomentumScrollBegin}
+-              onMomentumScrollEnd={onMomentumScrollEnd}
+-            />
++            {/* Konbit 509 : une seule catégorie affichée à la fois. Sur la
++                nouvelle architecture Android, dans une fenêtre modale, la
++                liste horizontale ignorait tout défilement demandé par le code
++                (toucher une catégorie ne changeait rien). */}
++            <View style={styles.flex}>
++              {renderList[activeCategoryIndex] ? (
++                <React.Fragment key={renderList[activeCategoryIndex].title}>
++                  {renderItem({ item: renderList[activeCategoryIndex], index: activeCategoryIndex })}
++                </React.Fragment>
++              ) : null}
++            </View>
+             <Categories
+               scrollEmojiCategoryListToIndex={scrollEmojiCategoryListToIndex}
+-              scrollNav={enableCategoryChangeGesture ? scrollNav : undefined}
++              scrollNav={undefined}
+             />
+             <SkinTones keyboardScrollOffsetY={keyboardScrollOffsetY} />
+           </>
