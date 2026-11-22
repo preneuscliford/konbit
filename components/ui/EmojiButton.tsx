@@ -1,12 +1,28 @@
 import React, { useCallback, useRef, useState } from "react";
-import { Pressable, type NativeSyntheticEvent, type TextInputSelectionChangeEventData } from "react-native";
-import EmojiPicker, { fr } from "rn-emoji-keyboard";
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type NativeSyntheticEvent,
+  type TextInputSelectionChangeEventData,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { EmojiKeyboard, fr } from "rn-emoji-keyboard";
 import { Smile } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import { useI18n } from "@/lib/i18n";
 
 // Bibliothèque d'emoji pour les champs libres seulement (pòs, konbit,
 // messages et réponses) : jamais pour les données de compte (pseudo, e-mail…).
+//
+// La liste d'emoji (EmojiKeyboard de rn-emoji-keyboard) est affichée dans
+// notre propre panneau (Modal Android avec glissement natif). Le sélecteur
+// tout fait de la bibliothèque (EmojiPicker) lance son animation d'entrée
+// avant que le panneau existe côté natif : en version de production, sur la
+// nouvelle architecture de React Native, il restait hors de l'écran et seul
+// le fond sombre apparaissait.
 
 const HT = {
   recently_used: "Sa w itilize dènyèman",
@@ -49,6 +65,9 @@ export function useEmojiInput(value: string, setValue: (next: string) => void, m
 export default function EmojiButton({ onPick, size = 22 }: { onPick: (emoji: string) => void; size?: number }) {
   const { language } = useI18n();
   const [open, setOpen] = useState(false);
+  const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const close = () => setOpen(false);
 
   return (
     <>
@@ -61,35 +80,76 @@ export default function EmojiButton({ onPick, size = 22 }: { onPick: (emoji: str
       >
         <Smile size={size} color={Colors.primary} />
       </Pressable>
-      <EmojiPicker
-        open={open}
-        onClose={() => setOpen(false)}
-        onEmojiSelected={(e) => onPick(e.emoji)}
-        enableSearchBar
-        enableRecentlyUsed
-        categoryPosition="top"
-        translation={language === "fr" ? fr : HT}
-        theme={{
-          backdrop: "rgba(0,0,0,0.45)",
-          knob: Colors.borderStrong,
-          container: Colors.surface,
-          header: Colors.text,
-          skinTonesContainer: Colors.surfaceMuted,
-          category: {
-            icon: Colors.textMuted,
-            iconActive: Colors.textInverse,
-            container: Colors.surfaceMuted,
-            containerActive: Colors.primary,
-          },
-          search: {
-            background: Colors.surfaceMuted,
-            text: Colors.text,
-            placeholder: Colors.textMuted,
-            icon: Colors.textMuted,
-          },
-          emoji: { selected: Colors.primary50 },
-        }}
-      />
+      <Modal
+        visible={open}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        navigationBarTranslucent
+        onRequestClose={close}
+      >
+        <View style={styles.root}>
+          {/* Toucher en dehors du panneau le ferme. */}
+          <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="Fèmen" />
+          <View
+            style={[
+              styles.panel,
+              { height: Math.round(height * 0.5) + insets.bottom, paddingBottom: insets.bottom },
+            ]}
+          >
+            <View style={styles.knob} />
+            <EmojiKeyboard
+              onEmojiSelected={(e) => {
+                onPick(e.emoji);
+                close();
+              }}
+              enableSearchBar
+              enableRecentlyUsed
+              categoryPosition="top"
+              translation={language === "fr" ? fr : HT}
+              styles={{ container: styles.keyboard }}
+              theme={{
+                container: Colors.surface,
+                header: Colors.text,
+                skinTonesContainer: Colors.surfaceMuted,
+                category: {
+                  icon: Colors.textMuted,
+                  iconActive: Colors.textInverse,
+                  container: Colors.surfaceMuted,
+                  containerActive: Colors.primary,
+                },
+                search: {
+                  background: Colors.surfaceMuted,
+                  text: Colors.text,
+                  placeholder: Colors.textMuted,
+                  icon: Colors.textMuted,
+                },
+                emoji: { selected: Colors.primary50 },
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.45)" },
+  panel: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: "hidden",
+  },
+  knob: {
+    alignSelf: "center",
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: Colors.borderStrong,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  keyboard: { flex: 1, borderRadius: 0, shadowOpacity: 0, elevation: 0 },
+});
