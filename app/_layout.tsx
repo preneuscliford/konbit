@@ -1,4 +1,6 @@
-import { Stack } from "expo-router";
+// En premier : les rapports de plantage démarrent avant tout le reste.
+import { navigationIntegration, setMonitoringUser, wrapRoot } from "@/lib/monitoring";
+import { Stack, useNavigationContainerRef } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as SystemUI from "expo-system-ui";
 import { useFonts } from "expo-font";
@@ -38,9 +40,15 @@ const queryClient = new QueryClient({
 
 const persister = createAsyncStoragePersister({ storage: AsyncStorage, key: "konbit509-query-cache" });
 
-export default function RootLayout() {
+function RootLayout() {
   useOnlineManager();
   useAppState();
+
+  // Écrans visités, joints aux rapports de plantage.
+  const navigationRef = useNavigationContainerRef();
+  useEffect(() => {
+    if (navigationRef) navigationIntegration.registerNavigationContainer(navigationRef);
+  }, [navigationRef]);
 
   return (
     // Clavier : avec l'affichage plein écran d'Android (edge-to-edge, SDK 56),
@@ -63,6 +71,9 @@ export default function RootLayout() {
   );
 }
 
+// Sentry entoure toute l'app : un plantage de rendu est rapporté avec son contexte.
+export default wrapRoot(RootLayout);
+
 // L'intro Lottie joue pendant le chargement (polices, langue, jeton, session).
 function AppGate() {
   const [fontsLoaded] = useFonts(FONT_ASSETS);
@@ -71,6 +82,11 @@ function AppGate() {
   const auth = useAuth();
   const [animationFinished, setAnimationFinished] = useState(false);
   useUsagePing(auth.ready ? auth.userId : null);
+
+  // Rapports de plantage : l'uuid du compte connecté, rien d'autre.
+  useEffect(() => {
+    if (auth.ready) setMonitoringUser(auth.userId);
+  }, [auth.ready, auth.userId]);
 
   useEffect(() => {
     SplashScreen.hideAsync();
