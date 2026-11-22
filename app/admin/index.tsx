@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useRouter, type Href } from "expo-router";
+import * as Sentry from "@sentry/react-native";
+import * as Burnt from "burnt";
 import { ChevronRight, Flag, Megaphone, Users, type LucideIcon } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 import AdminScreen from "@/components/admin/AdminScreen";
@@ -120,6 +122,22 @@ export default function AdminHome() {
             )}
           </>
         )}
+
+        {/* Admin seulement : vérifie que les rapports de plantage arrivent
+            dans Sentry (erreur réelle de l'app, avec son contexte). */}
+        {isAdmin && (
+          <Pressable
+            onPress={() => {
+              const message = `Sentry test error ${Date.now()}`;
+              Sentry.captureException(new Error(message));
+              Burnt.toast({ title: "Erè tès voye", message, preset: "done" });
+            }}
+            style={styles.sentryTest}
+            accessibilityRole="button"
+          >
+            <Text style={styles.sentryTestText}>Voye yon erè tès (Sentry)</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </AdminScreen>
   );
@@ -145,6 +163,17 @@ function Group({ title, hint, tiles }: { title: string; hint?: string; tiles: [s
 }
 
 const styles = StyleSheet.create({
+  sentryTest: {
+    alignSelf: "center",
+    marginTop: 24,
+    marginBottom: 32,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  sentryTestText: { fontSize: 13, fontWeight: "600", color: Colors.textMuted },
   content: { padding: 16, gap: 16 },
   card: { borderRadius: 14, borderWidth: 1, borderColor: Colors.borderSoft, overflow: "hidden" },
   row: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16 },

@@ -82,6 +82,14 @@
           "color": "#D21034",
           "defaultChannel": "default"
         }
+      ],
+      [
+        "@sentry/react-native",
+        {
+          "url": "https://sentry.io/",
+          "organization": "konbit509",
+          "project": "konbit-app"
+        }
       ]
     ],
     "experiments": {
