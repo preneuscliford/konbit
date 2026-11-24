@@ -1,6 +1,6 @@
 # Politique de confidentialité de Konbit 509
 
-*Dernière mise à jour : 22 novembre 2026*
+*Dernière mise à jour : 24 novembre 2026*
 
 > **Rezime an kreyòl.** Nou kolekte sèlman sa ki nesesè pou Konbit 509 mache : imèl ou (ki pa janm parèt), tinon w, pwofil ou, fich biznis ou ak sa w pibliye. Nou pa vann done w, nou pa fè piblisite. Siyalman yo anonim e yo pa janm konekte ak kont ou. Ou ka chanje pwofil ou oswa efase kont ou nenpòt ki lè.
 
@@ -35,6 +35,8 @@ Si tu te connectes avec Google, nous recevons seulement ton adresse e-mail et le
 
 **Sur le site :** ta session de connexion est gardée dans des cookies de ton navigateur, indispensables pour rester connecté. Ton choix de thème (clair, sombre ou automatique) reste seulement dans ton navigateur. Le site n'utilise **aucun cookie publicitaire** ni outil de suivi publicitaire. Pour savoir quelles pages sont consultées, nous utilisons une **mesure d'audience anonyme** (Vercel Web Analytics) : elle compte les pages vues, le type d'appareil et le pays approximatif, **sans cookie** et sans te suivre d'un site à l'autre.
 
+**Carte (site) :** le fond de la carte est chargé depuis les serveurs d'OpenFreeMap. Ton navigateur leur transmet donc ton adresse IP, comme pour toute image chargée depuis un autre site. OpenFreeMap ne dépose pas de cookie et ne reçoit aucune information sur ton compte Konbit 509.
+
 **Rapports de plantage (application) :** quand l'application plante ou rencontre une erreur, un rapport technique est envoyé pour que nous puissions la corriger : le modèle et la marque du téléphone, la version d'Android et de l'application, l'erreur elle-même, les écrans visités et les boutons touchés juste avant, et l'identifiant (uuid) de ton compte si tu es connecté. Lors d'une erreur, une reconstitution de l'écran peut aussi être enregistrée, avec **tous les textes et toutes les images masqués** : on y voit la disposition de l'écran, jamais tes messages ni tes photos. Ces rapports ne contiennent ni ton e-mail ni ton adresse IP.
 
 Certaines préférences (langue, commune choisie pour la météo) restent seulement sur ton téléphone.
@@ -65,6 +67,7 @@ Uniquement avec les prestataires techniques qui font fonctionner le service :
 | Resend | Envoi des e-mails (codes de confirmation, mot de passe oublié) |
 | HaitiScope | Signalements, taux de change et météo |
 | Sentry | Rapports de plantage et d'erreur de l'application |
+| OpenFreeMap | Fond de la carte du site (konbit509.app/kat) |
 
 Ces prestataires peuvent stocker les données hors d'Haïti, notamment aux États-Unis ou dans l'Union européenne. Nous pouvons aussi communiquer des données si la loi l'exige ou pour protéger la sécurité de personnes.
 

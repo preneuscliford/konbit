@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/copy-maplibre-worker.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/copy-maplibre-worker.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -13,6 +15,7 @@
     "@supabase/supabase-js": "^2.119.0",
     "@vercel/analytics": "^2.0.1",
     "emoji-picker-element": "^1.29.1",
+    "maplibre-gl": "6.14.0",
     "marked": "^15.0.12",
     "next": "16.4.5",
     "react": "19.3.0",
@@ -20,6 +23,7 @@
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
+    "@types/geojson": "7946.0.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

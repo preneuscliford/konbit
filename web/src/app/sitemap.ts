@@ -21,6 +21,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: SITE_URL, changeFrequency: "hourly", priority: 1 },
     { url: `${SITE_URL}/konbit`, changeFrequency: "hourly", priority: 0.9 },
     { url: `${SITE_URL}/biznis`, changeFrequency: "daily", priority: 0.9 },
+    ...["/kat", "/kat/fr", "/kat/en"].map((p) => ({
+      url: `${SITE_URL}${p}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
     ...["kondisyon", "konfidansyalite", "sekirite-timoun"].map((p) => ({
       url: `${SITE_URL}/${p}`,
       changeFrequency: "monthly" as const,

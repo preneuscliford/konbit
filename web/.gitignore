@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# worker MapLibre copié depuis node_modules (scripts/copy-maplibre-worker.mjs)
+/public/maplibre/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

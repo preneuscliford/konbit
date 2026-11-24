@@ -31,6 +31,9 @@ export function Header() {
           <Link href="/konbit" className="hover:text-brand">
             Konbit yo
           </Link>
+          <Link href="/kat" className="hover:text-brand">
+            Kat konfli a
+          </Link>
           <Link href="/#sa-w-ka-fe" className="hover:text-brand">
             Sa w ka fè
           </Link>
