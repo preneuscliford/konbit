@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import AccountMenu from "@/components/auth/AccountMenu";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import { MapIcon } from "@/components/Icons";
 import { LEGAL, PLAY_STORE_URL } from "@/lib/site";
 
 export function Logo() {
@@ -42,6 +43,15 @@ export function Header() {
           </Link>
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Téléphone et tablette : le menu est masqué, la carte garde un accès direct. */}
+          <Link
+            href="/kat"
+            aria-label="Kat konfli a"
+            title="Kat konfli a"
+            className="rounded-full p-2 text-stone-700 hover:text-brand md:hidden"
+          >
+            <MapIcon className="h-5 w-5" />
+          </Link>
           <ThemeToggle className="p-2" />
           <span className="hidden sm:inline-flex">
             <AppButton small />
@@ -99,6 +109,11 @@ export function Footer() {
             <li>
               <Link href="/konbit" className="hover:text-brand">
                 Tout konbit yo
+              </Link>
+            </li>
+            <li>
+              <Link href="/kat" className="hover:text-brand">
+                Kat konfli a
               </Link>
             </li>
             <li>

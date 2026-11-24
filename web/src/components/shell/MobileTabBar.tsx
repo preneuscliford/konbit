@@ -13,9 +13,10 @@ export default function MobileTabBar() {
   const pathname = usePathname();
   const { profile } = useAuth();
   const pseudo = profile?.pseudo;
-  // Deux onglets de chaque côté du bouton « + ».
-  const left = NAV.slice(0, 2);
-  const right = NAV.slice(2);
+  // Trois onglets à gauche du bouton « + », deux à droite ; le bouton reste
+  // au centre de l'écran.
+  const left = NAV.slice(0, 3);
+  const right = NAV.slice(3);
 
   const tab = (item: (typeof NAV)[number]) => {
     const active = isActive(item.key, pathname, pseudo);
@@ -29,7 +30,7 @@ export default function MobileTabBar() {
       >
         {/* Icônes seules ; l'onglet actif a une pastille colorée. */}
         <span
-          className={`relative rounded-full px-5 py-1.5 ${active ? "bg-blue-50" : ""}`}
+          className={`relative rounded-full px-3 py-1.5 ${active ? "bg-blue-50" : ""}`}
         >
           <item.Icon
             className="h-[26px] w-[26px]"
@@ -45,8 +46,8 @@ export default function MobileTabBar() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center border-t border-stone-300 bg-surface pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(0,0,0,0.08)] sm:hidden">
-      {left.map(tab)}
-      <div className="flex flex-1 justify-center">
+      <div className="flex flex-1">{left.map(tab)}</div>
+      <div className="flex w-16 shrink-0 justify-center">
         <Link
           href={COMPOSE_HREF}
           aria-label="Pibliye"
@@ -55,7 +56,7 @@ export default function MobileTabBar() {
           <PlusIcon className="h-7 w-7" strokeWidth={2.4} />
         </Link>
       </div>
-      {right.map(tab)}
+      <div className="flex flex-1">{right.map(tab)}</div>
     </nav>
   );
 }

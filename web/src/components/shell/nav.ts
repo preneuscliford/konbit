@@ -1,11 +1,12 @@
-import { BellIcon, HomeIcon, StoreIcon, UserIcon } from "@/components/Icons";
+import { BellIcon, HomeIcon, MapIcon, StoreIcon, UserIcon } from "@/components/Icons";
 
 // Entrées de navigation de l'espace Konbit (barre latérale et onglets mobiles).
-export type NavKey = "feed" | "business" | "notifications" | "profile";
+export type NavKey = "feed" | "business" | "map" | "notifications" | "profile";
 
 export const NAV = [
   { key: "feed", label: "Konbit yo", Icon: HomeIcon },
   { key: "business", label: "Biznis", Icon: StoreIcon },
+  { key: "map", label: "Kat konfli", Icon: MapIcon },
   { key: "notifications", label: "Notifikasyon", Icon: BellIcon },
   { key: "profile", label: "Pwofil", Icon: UserIcon },
 ] as const;
@@ -19,6 +20,7 @@ export function navHref(
 ): string {
   if (key === "feed") return "/konbit";
   if (key === "business") return "/biznis";
+  if (key === "map") return "/kat";
   if (key === "notifications")
     return pseudo ? "/notifikasyon" : "/konekte?next=%2Fnotifikasyon";
   return pseudo ? `/u/${pseudo}` : "/konekte";
@@ -33,6 +35,7 @@ export function isActive(
     return pathname.startsWith("/biznis") || pathname.startsWith("/b/");
   if (key === "feed")
     return pathname === "/konbit" || pathname.startsWith("/k/");
+  if (key === "map") return pathname.startsWith("/kat");
   if (key === "notifications") return pathname === "/notifikasyon";
   return !!pseudo && pathname.toLowerCase() === `/u/${pseudo.toLowerCase()}`;
 }
