@@ -6,7 +6,7 @@ export type NavKey = "feed" | "business" | "map" | "notifications" | "profile";
 export const NAV = [
   { key: "feed", label: "Konbit yo", Icon: HomeIcon },
   { key: "business", label: "Biznis", Icon: StoreIcon },
-  { key: "map", label: "Kat konfli", Icon: MapIcon },
+  { key: "map", label: "Map", Icon: MapIcon },
   { key: "notifications", label: "Notifikasyon", Icon: BellIcon },
   { key: "profile", label: "Pwofil", Icon: UserIcon },
 ] as const;

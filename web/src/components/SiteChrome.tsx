@@ -33,7 +33,7 @@ export function Header() {
             Konbit yo
           </Link>
           <Link href="/kat" className="hover:text-brand">
-            Kat konfli a
+            Map
           </Link>
           <Link href="/#sa-w-ka-fe" className="hover:text-brand">
             Sa w ka fè
@@ -46,8 +46,8 @@ export function Header() {
           {/* Téléphone et tablette : le menu est masqué, la carte garde un accès direct. */}
           <Link
             href="/kat"
-            aria-label="Kat konfli a"
-            title="Kat konfli a"
+            aria-label="Map"
+            title="Map"
             className="rounded-full p-2 text-stone-700 hover:text-brand md:hidden"
           >
             <MapIcon className="h-5 w-5" />
@@ -113,7 +113,7 @@ export function Footer() {
             </li>
             <li>
               <Link href="/kat" className="hover:text-brand">
-                Kat konfli a
+                Map
               </Link>
             </li>
             <li>
