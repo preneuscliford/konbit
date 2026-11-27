@@ -16,6 +16,7 @@
 //   node scripts/play-listing.mjs            # aperçu : n'envoie rien
 //   node scripts/play-listing.mjs --apply    # envoie textes + images
 //   node scripts/play-listing.mjs --apply --text-only
+//   node scripts/play-listing.mjs --apply --screenshots-only   # captures seulement
 //
 // La politique de confidentialité se règle dans « Contenu de l'appli » du Play
 // Console : l'API ne permet pas de la modifier.
@@ -31,6 +32,8 @@ const STORE = join(ROOT, "store");
 const LIMITS = { title: 30, shortDescription: 80, fullDescription: 4000 };
 const apply = process.argv.includes("--apply");
 const textOnly = process.argv.includes("--text-only");
+// Captures seulement : ne touche ni aux textes, ni aux détails, ni à la bannière, ni à l'icône.
+const screenshotsOnly = process.argv.includes("--screenshots-only");
 
 const read = (p) => readFileSync(p, "utf8").replace(/\r\n/g, "\n").trim();
 
@@ -73,7 +76,9 @@ for (const { language, listing } of all) {
   if (!textOnly) {
     const imgs = imagesFor(language);
     console.log(
-      `    images : ${imgs.phoneScreenshots.length} captures, ${imgs.featureGraphic.length ? "bannière" : "pas de bannière"}, ${imgs.icon.length ? "icône" : "pas d'icône"}`,
+      screenshotsOnly
+        ? `    images : ${imgs.phoneScreenshots.length} captures (textes, bannière et icône inchangés)`
+        : `    images : ${imgs.phoneScreenshots.length} captures, ${imgs.featureGraphic.length ? "bannière" : "pas de bannière"}, ${imgs.icon.length ? "icône" : "pas d'icône"}`,
     );
   }
 }
@@ -97,13 +102,25 @@ const api = androidpublisher({ version: "v3", auth: client });
 const { data: edit } = await api.edits.insert({ packageName: PACKAGE });
 const editId = edit.id;
 try {
-  await api.edits.details.patch({ packageName: PACKAGE, editId, requestBody: details });
+  if (!screenshotsOnly) await api.edits.details.patch({ packageName: PACKAGE, editId, requestBody: details });
+  // En mode captures seulement, on ne crée pas de nouvelle langue : on se limite
+  // aux fiches qui existent déjà sur le Play Store.
+  const live = screenshotsOnly
+    ? new Set(((await api.edits.listings.list({ packageName: PACKAGE, editId })).data.listings ?? []).map((l) => l.language))
+    : null;
   for (const { language, listing } of all) {
-    await api.edits.listings.update({ packageName: PACKAGE, editId, language, requestBody: listing });
-    console.log(`✓ textes ${language}`);
+    if (live && !live.has(language)) {
+      console.log(`- ${language} : pas de fiche sur le Play Store, ignorée`);
+      continue;
+    }
+    if (!screenshotsOnly) {
+      await api.edits.listings.update({ packageName: PACKAGE, editId, language, requestBody: listing });
+      console.log(`✓ textes ${language}`);
+    }
     if (textOnly) continue;
     for (const [imageType, files] of Object.entries(imagesFor(language))) {
       if (files.length === 0) continue;
+      if (screenshotsOnly && imageType !== "phoneScreenshots") continue;
       await api.edits.images.deleteall({ packageName: PACKAGE, editId, language, imageType });
       for (const file of files) {
         await api.edits.images.upload({
